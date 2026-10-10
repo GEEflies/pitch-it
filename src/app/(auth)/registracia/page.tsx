@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: "Vytvor si účet a natrénuj investorské stretnutie na vlastných podkladoch.",
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage({ searchParams }: PageProps<"/registracia">) {
+  const staleAccount = (await searchParams)["stary-ucet"] === "1";
   if (getSignupMode() === "waitlist") {
     return (
       <AuthPage
@@ -26,7 +27,11 @@ export default function SignUpPage() {
   return (
     <AuthPage
       title="Vytvor si účet."
-      description="Začni zadarmo. Netreba kreditnú kartu."
+      description={
+        staleAccount
+          ? "Po aktualizácii sme tvoj predošlý účet nenašli. Prepáč, zaregistruj sa prosím znova, tentoraz sa už všetko uloží."
+          : "Začni zadarmo. Netreba kreditnú kartu."
+      }
       footer={
         <>
           Už máš účet?{" "}

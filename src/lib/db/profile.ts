@@ -2,7 +2,7 @@ import "server-only";
 
 import { check, must } from "@/lib/db/core";
 import type { ProfileRow, UserSettingsRow } from "@/lib/db/types";
-import { getUserDb } from "@/lib/store/client";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 
 export async function getProfile(userId: string): Promise<ProfileRow | null> {
   const db = await getUserDb();
@@ -80,6 +80,10 @@ export async function completeOnboarding(
   if (input.answers) profileUpdate.onboarding_answers = input.answers;
   if (input.notes !== undefined) profileUpdate.pitch_notes = input.notes;
   check(await db.from("profiles").update(profileUpdate).eq("id", userId), "profile.onboarding");
+  // profil chýba (napr. zlyhal pri registrácii): vytvoríme ho, aby sa kvíz nepýtal znova
+  if (!(await getProfile(userId))) {
+    check(await getAdminDb().from("profiles").insert({ id: userId, ...profileUpdate }), "profile.onboarding.insert");
+  }
 }
 
 /** Poznámky k pitchu (zobrazia sa nad kamerou pri nahrávaní). */
