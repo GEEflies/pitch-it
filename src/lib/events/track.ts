@@ -18,6 +18,9 @@ export type ProductEventName =
   | "report_viewed"
   | "session_repeated"
   | "exercise_completed"
+  | "pitch_analyzed"
+  | "pitch_shared"
+  | "event_created"
   | "checkout_started"
   | "purchase_completed"
   | "account_deleted";

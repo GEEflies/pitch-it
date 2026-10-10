@@ -1,0 +1,25 @@
+/* Prenesené 1:1 z dizajnu Record.dc.html. Farby mapované na tokeny témy. */
+.pi-rec a{color:inherit;text-decoration:none}
+.pi-rec .h{font-family:var(--font-bricolage),sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.pi-rec .muted{color:var(--color-mute)}
+.pi-rec .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.pi-rec .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid var(--color-line-strong);background:transparent;color:var(--color-paper);transition:transform .15s,filter .15s}
+.pi-rec .btn:hover{transform:translateY(-2px)}
+.pi-rec .btn-p{background:linear-gradient(135deg,#D2FF6B,var(--color-signal) 55%,#7AB800);color:#141414;border-color:var(--color-mint)}
+.pi-rec .btn-p:hover{filter:brightness(1.08)}
+.pi-rec .card{background:linear-gradient(160deg,var(--card-from),var(--card-to));border:1px solid var(--color-line);border-radius:20px;padding:24px}
+.pi-rec .chip{display:inline-block;padding:7px 14px;border:1px solid var(--color-line-strong);border-radius:999px;font-size:13px;color:var(--pi-chip)}
+.pi-rec .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);font-weight:700}
+.pi-rec .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.pi-rec input[type=text],.pi-rec input[type=email]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid var(--color-line-strong);background:var(--color-panel);color:var(--color-paper);font:inherit}
+.pi-rec label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.pi-rec .bars{display:flex;align-items:center;justify-content:center;gap:5px;height:140px}
+.pi-rec .bars i{display:block;width:6px;border-radius:3px;background:linear-gradient(180deg,var(--color-signal),var(--color-violet))}
+.pi-rec .bars.live i{animation:pi-rec-wv 1s ease-in-out infinite}
+@keyframes pi-rec-wv{50%{transform:scaleY(.25)}}
+.pi-rec .rd{animation:pi-rec-pulse 1s infinite}
+@keyframes pi-rec-pulse{50%{opacity:.25}}
+.pi-rec .cnt{animation:pi-rec-pop .9s ease-out}
+@keyframes pi-rec-pop{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
+.pi-rec .stp{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:14px;border:1px solid var(--color-line);background:var(--color-panel);transition:all .3s}
+@media (prefers-reduced-motion:reduce){.pi-rec .bars.live i,.pi-rec .rd,.pi-rec .cnt{animation:none}}

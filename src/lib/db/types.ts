@@ -268,3 +268,37 @@ export function toNumber(value: number | string | null | undefined): number | nu
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
+
+export type PitchEventRow = {
+  id: string;
+  organizer_id: string;
+  name: string;
+  code: string;
+  created_at: string;
+};
+
+export type PitchAttemptRow = {
+  id: string;
+  user_id: string;
+  audience: "investor" | "team";
+  target_seconds: 30 | 60 | 180;
+  focus: "tempo" | "fillery" | "obsah";
+  with_camera: boolean;
+  duration_ms: number | null;
+  status: "analyzing" | "ready" | "failed";
+  transcript: string | null;
+  /** Tvar `PitchMetrics` (src/lib/pitch/metrics.ts). */
+  metrics: Record<string, unknown> | null;
+  /** Tvar `ContentScore` (src/lib/pitch/content.ts). */
+  content: Record<string, unknown> | null;
+  content_score: number | null;
+  /** Tvar `BodySummary` (src/lib/pitch/body.ts). */
+  body: Record<string, unknown> | null;
+  model: string | null;
+  event_id: string | null;
+  share_name: string | null;
+  share_team: string | null;
+  share_email: string | null;
+  shared_at: string | null;
+  created_at: string;
+};

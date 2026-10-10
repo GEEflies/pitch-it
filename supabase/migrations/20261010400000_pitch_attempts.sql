@@ -67,3 +67,12 @@ create policy pitch_attempts_select_mentor on public.pitch_attempts
   );
 create policy pitch_attempts_delete_own on public.pitch_attempts
   for delete to authenticated using (user_id = (select auth.uid()));
+
+-- Nové produktové udalosti pre nahrávaný pitch a akcie.
+alter table public.product_events drop constraint product_events_name_check;
+alter table public.product_events add constraint product_events_name_check check (name in (
+  'signup_completed', 'onboarding_completed', 'project_created', 'deck_processed',
+  'session_started', 'session_completed', 'report_viewed', 'session_repeated',
+  'exercise_completed', 'checkout_started', 'purchase_completed', 'account_deleted',
+  'pitch_analyzed', 'pitch_shared', 'event_created'
+));
