@@ -1,446 +1,281 @@
 "use client";
 
-import Link from "next/link";
+import "@/styles/screens/onboarding.css";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Wordmark } from "@/components/wordmark";
-import { buttonClasses } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/submit-button";
-import { STAGES, STAGE_LABELS, TRAINING_MODE_LABELS, type Stage } from "@/lib/domain/labels";
-import { INVESTOR_STYLES, SCENARIOS } from "@/lib/investor/catalog";
-import { skipOnboarding, submitOnboarding } from "@/lib/onboarding/actions";
-import { previewHref } from "@/lib/preview/links";
-import {
-  EXPERIENCE_LABELS,
-  EXPERIENCE_LEVELS,
-  MEETING_LABELS,
-  MEETING_TIMINGS,
-  RAISE_LABELS,
-  RAISE_RANGES,
-  WORRIES,
-  WORRY_LABELS,
-  buildTrainingPlan,
-  firstSessionHref,
-  type ExperienceLevel,
-  type MeetingTiming,
-  type OnboardingAnswers,
-  type RaiseRange,
-  type TrainingPlan,
-  type Worry,
-} from "@/lib/onboarding/plan";
+import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
+import { submitOnboarding } from "@/lib/onboarding/actions";
+import { NOTES_MAX, planSummary, QUESTIONS, type OnboardingAnswers } from "@/lib/onboarding/plan";
 
-type Draft = {
-  stage?: Stage;
-  raise?: RaiseRange;
-  meeting?: MeetingTiming;
-  worries: Worry[];
-  experience?: ExperienceLevel;
-  startupName: string;
-};
+/*
+  Onboarding 1:1 podľa dizajnu PitchIt („1 · Onboarding“): tri otázky, karta „Tvoj plán“
+  a voliteľné poznámky k pitchu. Potom rovno nahrávanie s kamerou.
+*/
 
-type Option<T extends string> = { value: T; label: string; hint?: string };
+const NEXT_HREF = "/app/nahravka/kamera";
 
-const STAGE_HINTS: Partial<Record<Stage, string>> = {
-  idea: "Overujem nápad, ešte nemám produkt",
-  pre_seed: "Prvá verzia produktu, prví používatelia",
-  seed: "Produkt na trhu, prví platiaci zákazníci",
-  series_a: "Rastieme a škálujeme",
-};
-
-const options = <T extends string>(values: readonly T[], labels: Record<T, string>, hints: Partial<Record<T, string>> = {}): Option<T>[] =>
-  values.map((value) => ({ value, label: labels[value], hint: hints[value] }));
-
-const STEP_COUNT = 6;
-
-const BUILD_LINES = [
-  "Fáza startupu a cieľ kola",
-  "Termín najbližšieho stretnutia",
-  "Tvoje slabé miesta",
-  "Výber investora pre prvý tréning",
-];
-
-function OptionButton({
-  selected,
-  onClick,
-  label,
-  hint,
-  multi = false,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  label: string;
-  hint?: string;
-  multi?: boolean;
-}) {
+function CloseButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
-      role={multi ? "checkbox" : "radio"}
-      aria-checked={selected}
       onClick={onClick}
-      className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors ${
-        selected ? "border-signal bg-signal/10" : "border-line-strong bg-panel hover:border-mute"
-      }`}
+      aria-label="Zavrieť a začať od prvej otázky"
+      style={{
+        position: "absolute",
+        top: "14px",
+        right: "14px",
+        width: "44px",
+        height: "44px",
+        borderRadius: "50%",
+        border: "1px solid var(--color-line-strong)",
+        background: "transparent",
+        color: "var(--color-paper)",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
     >
-      <span
-        aria-hidden="true"
-        className={`inline-flex size-[18px] shrink-0 items-center justify-center border ${multi ? "rounded" : "rounded-full"} ${
-          selected ? "border-signal bg-signal text-on-signal" : "border-line-strong"
-        }`}
-      >
-        {selected ? (
-          <svg viewBox="0 0 16 16" className="size-3">
-            <path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ) : null}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[15px] font-medium text-paper">{label}</span>
-        {hint ? <span className="mt-0.5 block text-sm text-mute">{hint}</span> : null}
-      </span>
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
     </button>
   );
 }
 
-function Question({ step, title, hint, children }: { step: number; title: string; hint?: string; children: React.ReactNode }) {
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => headingRef.current?.focus(), [step]);
+function Overlay({ children }: { children: React.ReactNode }) {
   return (
-    <div key={step} className="fade-up">
-      <p className="type-eyebrow">
-        Otázka {step + 1} z {STEP_COUNT}
-      </p>
-      <h1 ref={headingRef} tabIndex={-1} className="type-display mt-2 text-[1.75rem] outline-none md:text-[2rem]">
-        {title}
-      </h1>
-      {hint ? <p className="mt-2 text-[15px] text-mute">{hint}</p> : null}
-      <div className="mt-7">{children}</div>
+    <div
+      className="ov"
+      style={{
+        position: "fixed",
+        inset: "0",
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        background: "var(--pi-overlay)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      }}
+    >
+      {children}
     </div>
   );
 }
 
-function BuildingPlan({ done }: { done: number }) {
-  return (
-    <div className="fade-up" role="status" aria-live="polite">
-      <Spinner className="size-6 text-signal-soft" />
-      <h1 className="type-display mt-5 text-[1.75rem] md:text-[2rem]">Skladám tvoj plán tréningu…</h1>
-      <ul className="mt-7 space-y-3">
-        {BUILD_LINES.map((line, index) => (
-          <li key={line} className={`flex items-center gap-3 text-[15px] transition-colors ${index < done ? "text-paper" : "text-faint"}`}>
-            <span
-              aria-hidden="true"
-              className={`inline-flex size-5 items-center justify-center rounded-full border ${
-                index < done ? "border-mint bg-mint/15 text-mint" : "border-line-strong"
-              }`}
-            >
-              {index < done ? (
-                <svg viewBox="0 0 16 16" className="size-3">
-                  <path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : null}
-            </span>
-            {line}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function PlanView({
-  plan,
-  projectId,
-  startupName,
-  freeMinutes,
-  href,
-}: {
-  plan: TrainingPlan;
-  projectId: string;
-  startupName: string;
-  freeMinutes: number;
-  href: (path: string) => string;
-}) {
-  const investor = INVESTOR_STYLES[plan.firstSession.investorKey];
-  const scenario = SCENARIOS[plan.firstSession.scenarioKey];
-  return (
-    <div className="fade-up">
-      <p className="type-eyebrow">Plán je pripravený</p>
-      <h1 className="type-display mt-2 text-[1.75rem] md:text-[2.25rem]">Tvoj plán pre {startupName} {plan.horizon}</h1>
-
-      <dl className="mt-7 grid grid-cols-2 gap-3">
-        <div className="rounded-lg border border-line bg-panel px-4 py-3.5">
-          <dt className="text-sm text-mute">Tréningy s investorom</dt>
-          <dd className="mt-1 text-2xl font-semibold tabular-nums">{plan.sessions}</dd>
-        </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3.5">
-          <dt className="text-sm text-mute">Cielené cvičenia</dt>
-          <dd className="mt-1 text-2xl font-semibold tabular-nums">{plan.exercises}</dd>
-        </div>
-      </dl>
-
-      <div className="mt-6">
-        <h2 className="text-sm font-medium text-mute">Zameriame sa na</h2>
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {plan.focus.map((worry) => (
-            <li key={worry} className="rounded-full border border-line-strong px-3 py-1 text-sm text-paper">
-              {WORRY_LABELS[worry]}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <ol className="mt-7 space-y-4 border-l border-line pl-5">
-        {plan.steps.map((step, index) => (
-          <li key={step.title} className="relative">
-            <span
-              aria-hidden="true"
-              className="absolute top-0.5 -left-[31px] inline-flex size-5 items-center justify-center rounded-full border border-line-strong bg-ink text-[11px] text-mute"
-            >
-              {index + 1}
-            </span>
-            <p className="font-medium text-paper">{step.title}</p>
-            <p className="mt-0.5 text-sm leading-relaxed text-mute">{step.detail}</p>
-          </li>
-        ))}
-      </ol>
-
-      <div className="mt-8 rounded-lg border border-line bg-panel px-5 py-4">
-        <p className="text-sm text-mute">Prvý tréning</p>
-        <p className="mt-1 font-medium text-paper">{investor.name}</p>
-        <p className="mt-0.5 text-sm text-mute">
-          {scenario.name} · {TRAINING_MODE_LABELS[plan.firstSession.mode]} · {scenario.defaultMinutes} min
-        </p>
-      </div>
-
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <Link href={href(firstSessionHref(plan, projectId))} className={buttonClasses({ size: "lg", className: "sm:flex-1" })}>
-          Začať bezplatný tréning
-        </Link>
-        <Link href={href(`/app/projekty/${projectId}/podklady?novy=1`)} className={buttonClasses({ variant: "secondary", size: "lg" })}>
-          Najprv nahrať pitch deck
-        </Link>
-      </div>
-      <p className="mt-4 text-sm leading-relaxed text-faint">
-        Free plán má {freeMinutes} minút hlasového tréningu mesačne. Na celý plán pred stretnutím s rezervou stačí plán{" "}
-        <Link href={href("/app/nastavenia#plan")} className="text-mute underline underline-offset-2 hover:text-paper">
-          Pro
-        </Link>
-        .
-      </p>
-    </div>
-  );
-}
-
-/** `preview`: vývojová ukážka bez účtu; nič neukladá, odkazy vedú do /ukazka. */
-export function OnboardingQuiz({ freeMinutes, preview = false }: { freeMinutes: number; preview?: boolean }) {
-  const href = preview ? previewHref : (path: string) => path;
+export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boolean; previewHref?: string }) {
+  const router = useRouter();
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<Draft>({ worries: [], startupName: "" });
-  const [phase, setPhase] = useState<"quiz" | "building" | "plan">("quiz");
-  const [buildDone, setBuildDone] = useState(0);
-  const [result, setResult] = useState<{ projectId: string; plan: TrainingPlan } | null>(null);
+  const [answers, setAnswers] = useState<Array<string | number | null>>([null, null, null]);
+  const [stage, setStage] = useState<"quiz" | "plan" | "notes">("quiz");
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [skipping, startSkip] = useTransition();
-  const advanceTimer = useRef<number | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => () => {
-    if (advanceTimer.current) window.clearTimeout(advanceTimer.current);
-  }, []);
+  const question = QUESTIONS[step];
+  const current = answers[step];
+  const isLast = step === QUESTIONS.length - 1;
+  const filled = answers.every((answer) => answer !== null);
+  const parsed: OnboardingAnswers | null = filled
+    ? { audience: answers[0] as OnboardingAnswers["audience"], lengthSeconds: answers[1] as 30 | 60, focus: answers[2] as OnboardingAnswers["focus"] }
+    : null;
+  const summary = parsed ? planSummary(parsed) : null;
 
-  // Animácia skladania plánu: riadky sa odškrtávajú postupne; plán sa ukáže, až keď je uložený.
-  useEffect(() => {
-    if (phase !== "building") return;
-    if (buildDone < BUILD_LINES.length) {
-      const id = window.setTimeout(() => setBuildDone((value) => value + 1), 550);
-      return () => window.clearTimeout(id);
-    }
-    if (result) {
-      const id = window.setTimeout(() => setPhase("plan"), 350);
-      return () => window.clearTimeout(id);
-    }
-  }, [phase, buildDone, result]);
-
-  const pick = <K extends "stage" | "raise" | "meeting" | "experience">(key: K, value: NonNullable<Draft[K]>) => {
-    setDraft((current) => ({ ...current, [key]: value }));
-    if (advanceTimer.current) window.clearTimeout(advanceTimer.current);
-    advanceTimer.current = window.setTimeout(() => setStep((current) => Math.min(current + 1, STEP_COUNT - 1)), 220);
+  const restart = () => {
+    setStage("quiz");
+    setStep(0);
+    setAnswers([null, null, null]);
+    setNotes("");
+    setError(null);
   };
 
-  const toggleWorry = (worry: Worry) =>
-    setDraft((current) => ({
-      ...current,
-      worries: current.worries.includes(worry) ? current.worries.filter((item) => item !== worry) : [...current.worries, worry],
-    }));
+  useEffect(() => {
+    if (stage === "quiz") return;
+    dialogRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") restart();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [stage]);
 
-  const submit = () => {
-    const { stage, raise, meeting, experience, worries, startupName } = draft;
-    if (!stage || !raise || !meeting || !experience || worries.length === 0) {
-      setError("Niektorá odpoveď chýba. Vráť sa a doplň ju.");
-      return;
-    }
-    if (!startupName.trim()) {
-      setError("Zadaj názov startupu.");
-      return;
-    }
-    const answers: OnboardingAnswers = { stage, raise, meeting, experience, worries };
-    setError(null);
-    setBuildDone(0);
-    setPhase("building");
+  const finish = (withNotes: boolean) => {
+    if (!parsed) return;
     if (preview) {
-      setResult({ projectId: "ukazka", plan: buildTrainingPlan(answers) });
+      router.push(previewHref ?? "/ukazka");
       return;
     }
+    setError(null);
     startTransition(async () => {
-      const response = await submitOnboarding({ ...answers, startupName });
-      if (response.status === "ok") {
-        setResult({ projectId: response.projectId, plan: buildTrainingPlan(answers) });
-      } else {
-        setError(response.message);
-        setPhase("quiz");
-      }
+      const result = await submitOnboarding({ ...parsed, notes: withNotes ? notes : "" });
+      if (result.status === "ok") router.push(NEXT_HREF);
+      else setError(result.message);
     });
   };
 
-  const progress = phase === "quiz" ? (step / STEP_COUNT) * 100 : 100;
-
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-line">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Wordmark />
-          {phase === "quiz" && preview ? (
-            <Link href={href("/app")} className="rounded-md px-2 py-1 text-sm text-mute hover:text-paper">
-              Preskočiť
-            </Link>
-          ) : phase === "quiz" ? (
+    <div
+      className="pi-onb"
+      style={{ background: PI_BACKGROUND, color: "var(--color-paper)", minHeight: "100dvh", position: "relative" }}
+    >
+      <PiTopbar />
+      <main
+        id="obsah"
+        style={{ display: "flex", flexWrap: "wrap", gap: "48px", justifyContent: "center", alignItems: "flex-start", padding: "48px 32px" }}
+      >
+        <div style={{ flex: "1 1 520px", maxWidth: "700px", minWidth: "0" }}>
+          <div className="bar" role="progressbar" aria-label="Priebeh" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1}>
+            <i className="on" />
+            <i className={step >= 1 ? "on" : ""} />
+            <i className={step >= 2 ? "on" : ""} />
+          </div>
+          <div className="eyebrow">Otázka {step + 1} zo 3</div>
+          <h1 className="h" style={{ fontSize: "44px", margin: "12px 0" }}>
+            {question.title}
+          </h1>
+          <p className="muted" style={{ margin: "0 0 28px", fontSize: "17px" }}>
+            {question.subtitle}
+          </p>
+          <div className="grid2">
+            {question.options.map((option) => (
+              <button
+                key={String(option.value)}
+                className="opt"
+                type="button"
+                aria-pressed={current === option.value}
+                onClick={() => setAnswers((previous) => previous.map((answer, index) => (index === step ? option.value : answer)))}
+              >
+                {option.label}
+                <small>{option.detail}</small>
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginTop: "40px", flexWrap: "wrap" }}>
             <button
+              className="btn"
               type="button"
-              disabled={skipping}
-              onClick={() => startSkip(() => skipOnboarding())}
-              className="rounded-md px-2 py-1 text-sm text-mute hover:text-paper"
+              onClick={() => setStep((value) => Math.max(0, value - 1))}
+              disabled={step === 0}
+              style={{ minWidth: "130px", opacity: step === 0 ? 0.35 : 1 }}
             >
-              {skipping ? "Preskakujem…" : "Preskočiť"}
+              Späť
             </button>
-          ) : null}
+            <button
+              className="btn btn-p"
+              type="button"
+              onClick={() => (isLast ? setStage("plan") : setStep((value) => value + 1))}
+              disabled={current === null}
+              style={{ minWidth: "220px", opacity: current === null ? 0.45 : 1 }}
+            >
+              {isLast ? "Potvrdiť" : "Pokračovať"}
+            </button>
+          </div>
         </div>
-        <div className="h-0.5 bg-line" aria-hidden="true">
-          <div className="h-full bg-signal transition-[width] duration-300 ease-out" style={{ width: `${progress}%` }} />
-        </div>
-      </header>
+      </main>
 
-      <main id="obsah" className="mx-auto w-full max-w-xl flex-1 px-4 py-10 sm:px-6 md:py-16">
-        {phase === "building" ? <BuildingPlan done={buildDone} /> : null}
-        {phase === "plan" && result ? (
-          <PlanView plan={result.plan} projectId={result.projectId} startupName={draft.startupName.trim()} freeMinutes={freeMinutes} href={href} />
-        ) : null}
+      {stage === "plan" && summary ? (
+        <Overlay>
+          <div
+            ref={dialogRef}
+            tabIndex={-1}
+            className="card mdl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pt"
+            style={{ position: "relative", width: "100%", maxWidth: "480px", padding: "36px", boxShadow: "var(--pi-hero-shadow)", outline: "none" }}
+          >
+            <CloseButton onClick={restart} />
+            <div className="eyebrow">Tvoj plán</div>
+            <h2 id="pt" className="h" style={{ fontSize: "30px", margin: "12px 0 22px" }}>
+              Nastavíme to na mieru.
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "15px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                <span className="muted">Pitchuješ</span>
+                <b>{summary.audience}</b>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                <span className="muted">Dĺžka</span>
+                <b>{summary.length}</b>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                <span className="muted">Najprv ukážeme</span>
+                <b>{summary.first}</b>
+              </div>
+            </div>
+            <div
+              className="muted"
+              style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid var(--color-line)", fontSize: "14px", lineHeight: "1.55" }}
+            >
+              Podľa dĺžky nastavíme časovač a cieľové tempo. Podľa publika zmeníme váhu kategórií v obsahovom skóre.
+            </div>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "28px" }}>
+              <button type="button" className="btn btn-p" onClick={() => setStage("notes")} style={{ flex: "1 1 100%", minHeight: "52px" }}>
+                Pokračovať
+              </button>
+            </div>
+          </div>
+        </Overlay>
+      ) : null}
 
-        {phase === "quiz" ? (
-          <>
-            {step === 0 ? (
-              <Question step={0} title="V akej fáze je tvoj startup?" hint="Podľa toho prispôsobíme otázky investora.">
-                <div role="radiogroup" className="space-y-2.5">
-                  {options(STAGES, STAGE_LABELS, STAGE_HINTS).map((option) => (
-                    <OptionButton key={option.value} {...option} selected={draft.stage === option.value} onClick={() => pick("stage", option.value)} />
-                  ))}
-                </div>
-              </Question>
-            ) : null}
-            {step === 1 ? (
-              <Question step={1} title="Koľko plánuješ získať?" hint="Stačí približne. Investor sa na to určite opýta.">
-                <div role="radiogroup" className="space-y-2.5">
-                  {options(RAISE_RANGES, RAISE_LABELS).map((option) => (
-                    <OptionButton key={option.value} {...option} selected={draft.raise === option.value} onClick={() => pick("raise", option.value)} />
-                  ))}
-                </div>
-              </Question>
-            ) : null}
-            {step === 2 ? (
-              <Question step={2} title="Kedy máš najbližšie stretnutie s investorom?" hint="Plán rozložíme tak, aby si bol pripravený včas.">
-                <div role="radiogroup" className="space-y-2.5">
-                  {options(MEETING_TIMINGS, MEETING_LABELS).map((option) => (
-                    <OptionButton key={option.value} {...option} selected={draft.meeting === option.value} onClick={() => pick("meeting", option.value)} />
-                  ))}
-                </div>
-              </Question>
-            ) : null}
-            {step === 3 ? (
-              <Question step={3} title="Čoho sa na stretnutí obávaš najviac?" hint="Vyber všetko, čo platí.">
-                <div className="space-y-2.5">
-                  {options(WORRIES, WORRY_LABELS).map((option) => (
-                    <OptionButton
-                      key={option.value}
-                      multi
-                      {...option}
-                      selected={draft.worries.includes(option.value)}
-                      onClick={() => toggleWorry(option.value)}
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  disabled={draft.worries.length === 0}
-                  onClick={() => setStep(4)}
-                  className={buttonClasses({ size: "lg", className: "mt-6 w-full" })}
-                >
-                  Pokračovať
-                </button>
-              </Question>
-            ) : null}
-            {step === 4 ? (
-              <Question step={4} title="Pitchoval si už investorom?">
-                <div role="radiogroup" className="space-y-2.5">
-                  {options(EXPERIENCE_LEVELS, EXPERIENCE_LABELS).map((option) => (
-                    <OptionButton
-                      key={option.value}
-                      {...option}
-                      selected={draft.experience === option.value}
-                      onClick={() => pick("experience", option.value)}
-                    />
-                  ))}
-                </div>
-              </Question>
-            ) : null}
-            {step === 5 ? (
-              <Question step={5} title="Ako sa volá tvoj startup?" hint="Vytvoríme z neho tvoj prvý projekt. Podklady doplníš kedykoľvek.">
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    submit();
-                  }}
-                >
-                  <label htmlFor="startup-name" className="sr-only">
-                    Názov startupu
-                  </label>
-                  <input
-                    id="startup-name"
-                    autoFocus
-                    maxLength={120}
-                    value={draft.startupName}
-                    onChange={(event) => setDraft((current) => ({ ...current, startupName: event.target.value }))}
-                    placeholder="Napr. Faktúrka"
-                    className="min-h-[46px] w-full rounded-xl border border-line-strong bg-panel px-4 text-[15px] text-paper outline-none placeholder:text-faint focus:border-signal focus:shadow-[0_0_0_3px_rgba(170,255,0,0.18)]"
-                  />
-                  <button type="submit" disabled={pending || !draft.startupName.trim()} className={buttonClasses({ size: "lg", className: "mt-6 w-full" })}>
-                    Vytvoriť môj plán
-                  </button>
-                </form>
-              </Question>
-            ) : null}
-
+      {stage === "notes" ? (
+        <Overlay>
+          <div
+            ref={dialogRef}
+            tabIndex={-1}
+            className="card mdl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="nt"
+            style={{ position: "relative", width: "100%", maxWidth: "560px", padding: "36px", boxShadow: "var(--pi-hero-shadow)", outline: "none" }}
+          >
+            <CloseButton onClick={restart} />
+            <div className="eyebrow">Poznámky k pitchu</div>
+            <h2 id="nt" className="h" style={{ fontSize: "30px", margin: "12px 0 10px" }}>
+              Vlož si text alebo osnovu.
+            </h2>
+            <p className="muted" style={{ margin: "0 0 18px", fontSize: "15px", lineHeight: "1.55" }}>
+              Voliteľné. Poznámky ti budú nad kamerou počas nahrávania, aby si nestratila niť. Analýza ich použije na porovnanie, čo si naozaj
+              povedala.
+            </p>
+            <label htmlFor="nta" style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "8px" }}>
+              Tvoje poznámky
+            </label>
+            <textarea
+              id="nta"
+              value={notes}
+              maxLength={NOTES_MAX}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder={"Napr. Problém: …\nRiešenie: …\nTrh: …\nTraction: …\nAsk: …"}
+            />
             {error ? (
-              <p role="alert" className="mt-5 text-sm text-coral">
+              <p role="alert" style={{ margin: "12px 0 0", fontSize: "14px", color: "var(--color-coral)" }}>
                 {error}
               </p>
             ) : null}
-
-            {step > 0 ? (
-              <button type="button" onClick={() => setStep((current) => current - 1)} className="mt-8 text-sm text-mute hover:text-paper">
-                ← Späť
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "24px" }}>
+              <button type="button" className="btn" disabled={pending} onClick={() => finish(false)} style={{ flex: "1 1 150px", minHeight: "52px" }}>
+                Preskočiť
               </button>
-            ) : null}
-          </>
-        ) : null}
-      </main>
+              <button
+                type="button"
+                className="btn btn-p"
+                disabled={pending}
+                onClick={() => finish(true)}
+                style={{ flex: "2 1 240px", minHeight: "52px", opacity: pending ? 0.7 : 1 }}
+              >
+                {pending ? "Ukladám…" : "Začať nahrávať s kamerou"}
+              </button>
+            </div>
+            <div className="muted" style={{ marginTop: "14px", fontSize: "13px", textAlign: "center" }}>
+              Nahrávanie prebehne cez kameru, so sledovaním reči tela.
+            </div>
+          </div>
+        </Overlay>
+      ) : null}
     </div>
   );
 }

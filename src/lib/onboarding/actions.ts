@@ -4,59 +4,40 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { completeOnboarding } from "@/lib/db/profile";
-import { countOwnedProjects, createProject, listProjects } from "@/lib/db/projects";
-import { getBillingContext } from "@/lib/db/usage";
 import { trackEvent } from "@/lib/events/track";
-import { ANSWERS_VERSION, buildTrainingPlan, onboardingSubmissionSchema } from "@/lib/onboarding/plan";
-import { projectSchema } from "@/lib/validation/schemas";
+import { ANSWERS_VERSION, onboardingSubmissionSchema } from "@/lib/onboarding/plan";
 
-export type OnboardingResult = { status: "ok"; projectId: string } | { status: "error"; message: string };
+export type OnboardingResult = { status: "ok" } | { status: "error"; message: string };
 
-/**
- * Uloží odpovede z kvízu, vytvorí prvý projekt a nastaví predvolený režim tréningu.
- * Ak plán už ďalší projekt nedovolí, použije existujúci (napr. ak sa kvíz spustí znova).
- */
+/** Uloží tri odpovede z kvízu a voliteľné poznámky k pitchu. */
 export async function submitOnboarding(input: unknown): Promise<OnboardingResult> {
   const user = await getCurrentUser();
   if (!user) return { status: "error", message: "Relácia vypršala. Prihlás sa znova." };
 
   const parsed = onboardingSubmissionSchema.safeParse(input);
   if (!parsed.success) return { status: "error", message: "Niektorá odpoveď chýba. Vráť sa a doplň ju." };
-  const { startupName, ...answers } = parsed.data;
-  const plan = buildTrainingPlan(answers);
+  const { notes, ...answers } = parsed.data;
 
   try {
-    const [billing, owned] = await Promise.all([getBillingContext(user.id), countOwnedProjects(user.id)]);
-    let projectId: string;
-    if (owned < billing.plan.limits.projects) {
-      const project = await createProject(user.id, projectSchema.parse({ name: startupName, stage: answers.stage }));
-      projectId = project.id;
-      await trackEvent(user.id, "project_created", { stage: answers.stage, first: owned === 0, source: "onboarding" });
-    } else {
-      const [existing] = await listProjects();
-      if (!existing) return { status: "error", message: "Projekt sa nepodarilo vytvoriť. Skús to znova." };
-      projectId = existing.id;
-    }
-
     await completeOnboarding(user.id, {
       answers: { version: ANSWERS_VERSION, ...answers },
-      settings: { default_mode: plan.firstSession.mode, coach_focus: plan.coachFocus },
+      notes: notes || null,
     });
     await trackEvent(user.id, "onboarding_completed", {
-      stage: answers.stage,
-      meeting: answers.meeting,
-      experience: answers.experience,
-      worries: answers.worries.join(","),
+      audience: answers.audience,
+      length: answers.lengthSeconds,
+      focus: answers.focus,
+      notes: Boolean(notes),
     });
     revalidatePath("/app", "layout");
-    return { status: "ok", projectId };
+    return { status: "ok" };
   } catch (error) {
     console.error("[onboarding]", error instanceof Error ? error.message : error);
     return { status: "error", message: "Plán sa nepodarilo uložiť. Skús to znova." };
   }
 }
 
-/** Preskočenie kvízu: dashboard ho už nevynúti, checklist ostáva. */
+/** Preskočenie kvízu: použijú sa predvolené nastavenia. */
 export async function skipOnboarding(): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect("/prihlasenie?next=/app");

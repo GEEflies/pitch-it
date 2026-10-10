@@ -75,6 +75,16 @@
   --card-from: #222228;
   --card-to: #1a1a1f;
   --shadow-card: 0 22px 50px rgb(0 0 0 / 0.5);
+  /* Obrazovky z dizajnu PitchIt (src/styles/screens). */
+  --pi-sel: #2a2a32;
+  --pi-chip: #dedee6;
+  --pi-sunken: #0b0b0e;
+  --pi-hero-shadow: 0 40px 100px rgb(0 0 0 / 0.6);
+  --pi-overlay: rgb(10 10 12 / 0.72);
+  --logo-top: #aaff00;
+  --logo-stem: #7ab800;
+  --logo-tri: #d2ff6b;
+  --logo-it: #aaff00;
 }
 
 :root[data-theme="light"] {
@@ -103,6 +113,15 @@
   --card-from: #ffffff;
   --card-to: #ffffff;
   --shadow-card: 0 18px 40px rgb(30 30 70 / 0.14);
+  --pi-sel: #ecece6;
+  --pi-chip: #2e2e38;
+  --pi-sunken: #f0f0ea;
+  --pi-hero-shadow: 0 30px 80px rgb(30 30 70 / 0.14);
+  --pi-overlay: rgb(245 245 241 / 0.72);
+  --logo-top: #4c9a00;
+  --logo-stem: #3a7a00;
+  --logo-tri: #6bbf00;
+  --logo-it: #3f8a00;
   color-scheme: light;
 }
 
@@ -133,6 +152,15 @@
     --card-from: #ffffff;
     --card-to: #ffffff;
     --shadow-card: 0 18px 40px rgb(30 30 70 / 0.14);
+  --pi-sel: #ecece6;
+  --pi-chip: #2e2e38;
+  --pi-sunken: #f0f0ea;
+  --pi-hero-shadow: 0 30px 80px rgb(30 30 70 / 0.14);
+  --pi-overlay: rgb(245 245 241 / 0.72);
+  --logo-top: #4c9a00;
+  --logo-stem: #3a7a00;
+  --logo-tri: #6bbf00;
+  --logo-it: #3f8a00;
     color-scheme: light;
   }
 }

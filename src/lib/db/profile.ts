@@ -72,18 +72,17 @@ export async function recordConsent(userId: string, kind: ConsentKind, granted: 
 /** Uloží výsledok úvodného kvízu (alebo jeho preskočenie, ak `answers` chýba). */
 export async function completeOnboarding(
   userId: string,
-  input: {
-    answers: Record<string, unknown> | null;
-    settings?: { default_mode: UserSettingsRow["default_mode"]; coach_focus: string[] };
-  },
+  input: { answers: Record<string, unknown> | null; notes?: string | null },
 ): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const profileUpdate: Partial<ProfileRow> = { onboarding_completed_at: new Date().toISOString() };
   if (input.answers) profileUpdate.onboarding_answers = input.answers;
-  const [profile, settings] = await Promise.all([
-    supabase.from("profiles").update(profileUpdate).eq("id", userId),
-    input.settings ? supabase.from("user_settings").update(input.settings).eq("user_id", userId) : Promise.resolve({ error: null }),
-  ]);
-  check(profile, "profile.onboarding");
-  check(settings, "settings.onboarding");
+  if (input.notes !== undefined) profileUpdate.pitch_notes = input.notes;
+  check(await supabase.from("profiles").update(profileUpdate).eq("id", userId), "profile.onboarding");
+}
+
+/** Poznámky k pitchu (zobrazia sa nad kamerou pri nahrávaní). */
+export async function savePitchNotes(userId: string, notes: string | null): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  check(await supabase.from("profiles").update({ pitch_notes: notes }).eq("id", userId), "profile.notes");
 }

@@ -1,0 +1,27 @@
+/* Prenesené 1:1 z dizajnu Onboarding.dc.html. Farby mapované na tokeny témy. */
+.pi-onb a{color:inherit;text-decoration:none}
+.pi-onb .h{font-family:var(--font-bricolage),sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.pi-onb .muted{color:var(--color-mute)}
+.pi-onb .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.pi-onb .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid var(--color-line-strong);background:transparent;color:var(--color-paper);transition:transform .15s,filter .15s}
+.pi-onb .btn:hover{transform:translateY(-2px)}
+.pi-onb .btn-p{background:linear-gradient(135deg,#D2FF6B,var(--color-signal) 55%,#7AB800);color:#141414;border-color:var(--color-mint)}
+.pi-onb .btn-p:hover{filter:brightness(1.08)}
+.pi-onb .card{background:linear-gradient(160deg,var(--card-from),var(--card-to));border:1px solid var(--color-line);border-radius:20px;padding:24px}
+.pi-onb .chip{display:inline-block;padding:7px 14px;border:1px solid var(--color-line-strong);border-radius:999px;font-size:13px;color:var(--pi-chip)}
+.pi-onb .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);font-weight:700}
+.pi-onb .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.pi-onb textarea{width:100%;box-sizing:border-box;padding:14px 16px;border-radius:12px;border:1px solid var(--color-line-strong);background:var(--color-panel);color:var(--color-paper);font:inherit;font-size:15px;line-height:1.55;resize:vertical;min-height:170px}
+.pi-onb textarea:focus{outline:2px solid var(--color-mint);outline-offset:1px}
+.pi-onb input[type=text],.pi-onb input[type=email]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid var(--color-line-strong);background:var(--color-panel);color:var(--color-paper);font:inherit}
+.pi-onb label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.pi-onb .opt{font:inherit;text-align:left;cursor:pointer;background:var(--color-panel);color:var(--color-paper);border:1px solid var(--color-line);border-radius:16px;padding:18px;min-height:56px;transition:border-color .15s,background .15s}
+.pi-onb .opt:hover{border-color:var(--color-violet)}
+.pi-onb .opt[aria-pressed=true]{border-color:var(--color-mint);background:var(--pi-sel)}
+.pi-onb .opt small{display:block;color:var(--color-mute);margin-top:6px;font-size:13px}
+.pi-onb .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pi-onb .bar{display:flex;gap:6px;margin-bottom:28px}
+.pi-onb .bar i{flex:1;height:5px;border-radius:3px;background:var(--color-line);transition:background .3s}
+.pi-onb .bar i.on{background:var(--color-signal)}
+.pi-onb .btn:disabled{cursor:not-allowed}
+@media (prefers-reduced-motion:no-preference){.pi-onb .ov{animation:pi-onb-ovf .25s ease both}.pi-onb .mdl{animation:pi-onb-mdl .45s cubic-bezier(.2,.8,.2,1) both}@keyframes pi-onb-ovf{from{opacity:0}to{opacity:1}}@keyframes pi-onb-mdl{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}}
