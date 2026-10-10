@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DashboardView } from "@/components/app/dashboard-view";
+import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { Notice } from "@/components/ui/notice";
 import { requireUser } from "@/lib/auth/session";
+import { toDashboardExercise, toDashboardSession } from "@/lib/dashboard/load";
+import {
+  buildActivity,
+  buildProgressSeries,
+  buildRecentReports,
+  buildStatCards,
+  buildTip,
+  trainingHref,
+} from "@/lib/dashboard/overview";
 import { recommendNextStep } from "@/lib/dashboard/recommendation";
 import { listExercises } from "@/lib/db/exercises";
 import { getProfile } from "@/lib/db/profile";
 import { getMaterialCounts, listProjects } from "@/lib/db/projects";
-import { listSessions } from "@/lib/db/sessions";
-import { getBillingContext } from "@/lib/db/usage";
+import { listDashboardSessions } from "@/lib/db/sessions";
+import { toNumber } from "@/lib/db/types";
 
 // Stránka závisí od URL a dát používateľa: navigácia smie počkať na server.
 export const instant = false;
@@ -18,21 +27,21 @@ export const metadata: Metadata = { title: "Prehľad" };
 export default async function DashboardPage({ searchParams }: PageProps<"/app">) {
   const user = await requireUser("/app");
   const params = await searchParams;
-  const [profile, projects, sessions, exercises, billing] = await Promise.all([
+  const [profile, projects, rows, exerciseRows] = await Promise.all([
     getProfile(user.id),
     listProjects(),
-    listSessions({ userId: user.id, limit: 6 }),
-    listExercises(user.id, "open"),
-    getBillingContext(user.id),
+    listDashboardSessions(user.id),
+    listExercises(user.id),
   ]);
   // Nový účet: najprv krátky úvodný kvíz (dá sa preskočiť).
   if (profile && !profile.onboarding_completed_at) redirect("/app/vitaj");
 
   const counts = await getMaterialCounts(projects.map((project) => project.id));
+  const sessions = rows.map(toDashboardSession);
+  const exercises = exerciseRows.map(toDashboardExercise);
 
   const firstProject = projects[0] ?? null;
   const hasDeck = projects.some((project) => (counts[project.id]?.documents ?? 0) > 0);
-  const deckProject = firstProject ? `/app/projekty/${firstProject.id}/podklady` : "/app/projekty/novy";
   const checklist = [
     {
       key: "profile",
@@ -52,7 +61,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
       key: "deck",
       title: "Nahraj pitch deck",
       detail: "PDF alebo PPTX. Vytiahneme z neho čísla a fakty, na ktoré sa investor opýta.",
-      href: deckProject,
+      href: firstProject ? `/app/projekty/${firstProject.id}/podklady` : "/app/projekty/novy",
       done: hasDeck,
     },
     {
@@ -60,18 +69,18 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
       title: "Absolvuj prvý tréning",
       detail: "Hlasový rozhovor so simulovaným investorom.",
       href: "/app/trening/novy",
-      done: sessions.some((session) => session.status === "completed"),
+      done: rows.some((row) => row.status === "completed"),
     },
     {
       key: "report",
       title: "Prejdi si rozbor",
       detail: "Merania, citácie slabých miest a cvičenia na zlepšenie.",
       href: "/app/historia",
-      done: sessions.some((session) => session.feedback_reports?.status === "ready"),
+      done: rows.some((row) => row.feedback_reports?.status === "ready"),
     },
   ];
 
-  const last = sessions.find((session) => session.status === "completed") ?? null;
+  const last = rows.find((row) => row.status === "completed") ?? null;
   const recommendation = recommendNextStep({
     projects: projects.map((project) => ({
       id: project.id,
@@ -90,19 +99,41 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
           reportStatus: last.feedback_reports?.status ?? null,
         }
       : null,
-    openReportExercises: exercises
-      .filter((exercise) => exercise.origin === "report")
+    openReportExercises: exerciseRows
+      .filter((exercise) => exercise.origin === "report" && exercise.status === "open")
       .map((exercise) => ({ id: exercise.id, title: exercise.title, sourceSessionId: exercise.source_session_id })),
-    completedExercisesSinceLastSession: 0,
+    completedExercisesSinceLastSession: last
+      ? exerciseRows.filter((exercise) => exercise.completed_at && exercise.completed_at > (last.ended_at ?? last.created_at)).length
+      : 0,
   });
+
+  const completed = sessions.filter((session) => session.status === "completed");
+  const { subject, family, cards } = buildStatCards(completed);
+  const reports = buildRecentReports(completed);
 
   return (
     <DashboardView
-      name={profile?.display_name ?? null}
-      recommendation={recommendation}
-      sessions={sessions}
-      exercises={exercises}
-      billing={billing}
+      trainingHref={trainingHref(recommendation, firstProject?.id ?? null)}
+      stats={cards}
+      startup={
+        firstProject
+          ? {
+              id: firstProject.id,
+              name: firstProject.name,
+              oneLiner: firstProject.one_liner,
+              stage: firstProject.stage,
+              traction: firstProject.traction,
+              raiseAmount: toNumber(firstProject.raise_amount),
+              raiseCurrency: firstProject.raise_currency,
+            }
+          : null
+      }
+      activity={buildActivity(completed, exercises)}
+      reports={reports}
+      progress={buildProgressSeries(completed, family)}
+      tip={buildTip(subject, recommendation)}
+      latestReportHref={reports[0]?.href ?? null}
+      now={new Date().toISOString()}
       checklist={checklist}
       notice={params.heslo === "zmenene" ? <Notice tone="success">Heslo je zmenené.</Notice> : null}
     />

@@ -14,6 +14,8 @@ const dateOnly = new Intl.DateTimeFormat("sk-SK", { day: "numeric", month: "long
 
 const shortDate = new Intl.DateTimeFormat("sk-SK", { day: "numeric", month: "numeric", timeZone: TIME_ZONE });
 
+const numericDate = new Intl.DateTimeFormat("sk-SK", { day: "numeric", month: "numeric", year: "numeric", timeZone: TIME_ZONE });
+
 export function formatDateTime(value: string | Date): string {
   return dateTime.format(typeof value === "string" ? new Date(value) : value);
 }
@@ -24,6 +26,11 @@ export function formatDate(value: string | Date): string {
 
 export function formatShortDate(value: string | Date): string {
   return shortDate.format(typeof value === "string" ? new Date(value) : value);
+}
+
+/** „24. 4. 2026“ */
+export function formatNumericDate(value: string | Date): string {
+  return numericDate.format(typeof value === "string" ? new Date(value) : value);
 }
 
 /** 754 → „12:34“, 65 → „1:05“. */

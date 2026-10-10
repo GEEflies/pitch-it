@@ -9,7 +9,9 @@ export function previewHref(path: string): string {
   if (path.startsWith("/app/vitaj")) return "/ukazka/vitaj";
   if (path.startsWith("/app/historia/porovnanie")) return path.replace("/app/historia/porovnanie", "/ukazka/porovnanie");
   if (path.startsWith("/app/historia")) return path.replace("/app/historia", "/ukazka/historia");
+  if (path.startsWith("/app/progres")) return path.replace("/app/progres", "/ukazka/progres");
   if (path.startsWith("/app/trening/novy")) return "/ukazka/novy-trening";
+  if (path.startsWith("/app/nahravka")) return "/ukazka/nahravka";
   if (path.startsWith("/app/trening/")) return "/ukazka/report";
   if (path.startsWith("/app/miestnost/")) return "/ukazka/miestnost";
   if (path.startsWith("/app/projekty")) return "/ukazka/podklady";
