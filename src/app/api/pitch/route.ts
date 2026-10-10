@@ -89,7 +89,8 @@ export async function POST(request: Request) {
       vision,
       coach,
     });
-    return apiOk({ attemptId: attempt.id }, 201);
+    // celý výsledok ide aj klientovi, feedback sa tak zobrazí aj bez trvalého úložiska
+    return apiOk({ attemptId: attempt.id, attempt }, 201);
   } catch (error) {
     if (error instanceof PitchServiceError) return apiError(error.status, error.code, error.message);
     return handleRouteError(error, "pitch.analyze");

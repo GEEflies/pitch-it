@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FeedbackScreen } from "@/components/pitch/feedback-screen";
+import { LocalFeedback } from "@/components/pitch/local-feedback";
 import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
 import { requireUser } from "@/lib/auth/session";
 import { attemptNumber, getPitchAttempt, lastShare } from "@/lib/db/pitch";
@@ -19,7 +20,9 @@ export default async function FeedbackPage({ params }: PageProps<"/app/nahravka/
   if (!isUuid(attemptId)) notFound();
 
   const attempt = await getPitchAttempt(attemptId);
-  if (!attempt || attempt.user_id !== user.id) notFound();
+  // bez trvalého úložiska ho táto inštancia servera nemusí poznať: ukáž výsledok z odoslania
+  if (!attempt) return <LocalFeedback attemptId={attemptId} email={user.email ?? ""} />;
+  if (attempt.user_id !== user.id) notFound();
   const retryHref = attempt.with_camera ? "/app/nahravka" : "/app/nahravka/zvuk";
 
   if (attempt.status !== "ready") {

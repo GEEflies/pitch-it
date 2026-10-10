@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { VisionSample } from "@/lib/analytics/vision/types";
 import type { StoredCoach } from "@/lib/coach/stored";
+import type { PitchAttemptRow } from "@/lib/db/types";
+import { keepLocalAttempt } from "@/lib/pitch/local-attempt";
 
 /*
   Nahrávanie pitchu v prehliadači: mikrofón (a voliteľne kamera), úroveň hlasu pre vlnu,
@@ -158,8 +160,11 @@ export async function uploadPitch(
   if (coach) form.set("coach", JSON.stringify(coach));
   try {
     const response = await fetch("/api/pitch", { method: "POST", body: form });
-    const data = (await response.json().catch(() => null)) as { attemptId?: string; error?: { message?: string } } | null;
-    if (response.ok && data?.attemptId) return { ok: true, attemptId: data.attemptId };
+    const data = (await response.json().catch(() => null)) as { attemptId?: string; attempt?: PitchAttemptRow; error?: { message?: string } } | null;
+    if (response.ok && data?.attemptId) {
+      if (data.attempt) keepLocalAttempt(data.attempt);
+      return { ok: true, attemptId: data.attemptId };
+    }
     return { ok: false, message: data?.error?.message ?? "Analýza zlyhala. Skús to znova.", retryable: response.status >= 500 || !data };
   } catch {
     return { ok: false, message: "Nepodarilo sa spojiť so serverom. Skontroluj pripojenie a skús to znova.", retryable: true };
