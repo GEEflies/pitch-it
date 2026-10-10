@@ -61,11 +61,12 @@ export async function lastShare(userId: string): Promise<Pick<PitchAttemptRow, "
 }
 
 /** Zdieľa pokus a všetky ďalšie pokusy používateľa s rovnakou akciou (mentor vidí progres). */
-export async function sharePitchAttempts(userId: string, attemptId: string, share: { eventId: string; name: string; team: string; email: string }): Promise<void> {
+export async function sharePitchAttempts(userId: string, attemptId: string, share: { eventId: string | null; name: string; team: string; email: string }): Promise<void> {
   const admin = getSupabaseAdmin();
   const patch = { event_id: share.eventId, share_name: share.name, share_team: share.team, share_email: share.email, shared_at: new Date().toISOString() };
   check(await admin.from("pitch_attempts").update(patch).eq("user_id", userId).eq("id", attemptId), "pitch.share");
   // Staršie pokusy bez akcie pripojíme tiež, aby mentor videl 1. aj posledný pokus.
+  if (!share.eventId) return;
   check(await admin.from("pitch_attempts").update(patch).eq("user_id", userId).is("event_id", null), "pitch.share.older");
 }
 

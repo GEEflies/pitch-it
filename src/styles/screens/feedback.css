@@ -1,0 +1,34 @@
+/* Prenesené 1:1 z dizajnu Feedback.dc.html. Farby mapované na tokeny témy. */
+.pi-fb a{color:inherit;text-decoration:none}
+.pi-fb .h{font-family:var(--font-bricolage),sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.pi-fb .muted{color:var(--color-mute)}
+.pi-fb .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.pi-fb .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid var(--color-line-strong);background:transparent;color:var(--color-paper);transition:transform .15s,filter .15s}
+.pi-fb .btn:hover{transform:translateY(-2px)}
+.pi-fb .btn-p{background:linear-gradient(135deg,#D2FF6B,var(--color-signal) 55%,#7AB800);color:#141414;border-color:var(--color-mint)}
+.pi-fb .btn-p:hover{filter:brightness(1.08)}
+.pi-fb .card{background:linear-gradient(160deg,var(--card-from),var(--card-to));border:1px solid var(--color-line);border-radius:20px;padding:24px}
+.pi-fb .chip{display:inline-block;padding:7px 14px;border:1px solid var(--color-line-strong);border-radius:999px;font-size:13px;color:var(--pi-chip)}
+.pi-fb .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);font-weight:700}
+.pi-fb .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.pi-fb input[type=text],.pi-fb input[type=email],.pi-fb input[type=password]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid var(--color-line-strong);background:var(--color-panel);color:var(--color-paper);font:inherit}
+.pi-fb label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.pi-fb .fill{background:rgba(255,201,77,.18);border-bottom:2px solid var(--color-marker);color:#FFE3A0;border-radius:3px;padding:0 2px}
+.pi-fb .pz{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;margin:0 4px;vertical-align:1px}
+.pi-fb .pz-e{background:#2B2060;color:#C9BBFF;border:1px solid var(--color-violet)}
+.pi-fb .pz-w{background:var(--pi-sel);color:var(--color-mute);border:1px dashed #6A6A74}
+.pi-fb .sc{height:10px;border-radius:5px;background:var(--color-line);overflow:hidden}
+.pi-fb .sc i{display:block;height:100%;border-radius:5px}
+@media (prefers-reduced-motion:no-preference){.pi-fb .rv{animation:pi-fb-rv .7s cubic-bezier(.2,.8,.2,1) both}@keyframes pi-fb-rv{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}}
+.pi-fb .big{font-family:var(--font-bricolage),sans-serif;font-weight:700;font-size:44px;line-height:1}
+.pi-fb :focus-visible{outline:none}
+.pi-fb input[type=text]:focus,.pi-fb input[type=email]:focus,.pi-fb input[type=password]:focus{outline:none;border-color:var(--color-mint);box-shadow:0 0 0 3px rgba(170,255,0,.18)}
+.pi-fb input:-webkit-autofill{-webkit-text-fill-color:var(--color-paper);-webkit-box-shadow:0 0 0 100px var(--color-panel) inset;caret-color:var(--color-paper)}
+:root[data-theme="light"] .pi-fb .fill{background:rgba(255,201,77,.4);border-bottom-color:#B97A00;color:#4D3200}
+:root[data-theme="light"] .pi-fb .pz-e{background:#ECE6FF;color:#4A25C9}
+:root[data-theme="light"] .pi-fb .pz-w{background:#ECECE6;color:#54545E}
+@media (prefers-color-scheme:light){
+:root:not([data-theme="dark"]) .pi-fb .fill{background:rgba(255,201,77,.4);border-bottom-color:#B97A00;color:#4D3200}
+:root:not([data-theme="dark"]) .pi-fb .pz-e{background:#ECE6FF;color:#4A25C9}
+:root:not([data-theme="dark"]) .pi-fb .pz-w{background:#ECECE6;color:#54545E}
+}
