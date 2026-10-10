@@ -44,7 +44,6 @@ export function CameraRecordScreen({
   const recorder = usePitchRecorder();
   const { open, release } = recorder;
   const [phase, setPhase] = useState<Phase>("setup");
-  const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [k, setK] = useState(0);
   const [attemptId, setAttemptId] = useState<string | null>(null);
@@ -81,7 +80,7 @@ export function CameraRecordScreen({
           : "Zapínam mikrofón…";
 
   const start = () => {
-    if (!consent || !micReady) return;
+    if (!micReady) return;
     setError(null);
     audioStarted.current = false;
     setPhase("live");
@@ -156,7 +155,7 @@ export function CameraRecordScreen({
         <main id="obsah">
           <SessionSetup
             heading="Pitch pred kamerou"
-            lead="Počas pitchu ti tréner v reálnom čase radí s rečou tela. Po skončení dostaneš feedback na reč, obsah aj gestá."
+            lead={`${setup.targetSeconds >= 60 ? `${setup.targetSeconds / 60} min` : `${setup.targetSeconds} s`} pitch ${AUDIENCE_LABELS[setup.audience].toLowerCase()}. Tréner ti počas pitchu radí, na konci dostaneš spätnú väzbu.`}
             backHref={audioHref}
             backLabel="Nahrávať len zvuk"
             modes={null}
@@ -165,29 +164,15 @@ export function CameraRecordScreen({
             {...prefs}
             error={error}
             startLabel="Spustiť nahrávanie"
-            canStart={consent && micReady}
+            canStart={micReady}
+            finePrint="Spustením súhlasíš, že pitch analyzuje AI a výsledky uvidia mentori akcie."
             onStart={start}
           >
-            <div className="flex flex-wrap gap-2">
-              <span className="chip">{AUDIENCE_LABELS[setup.audience]}</span>
-              <span className="chip">{setup.targetSeconds} s</span>
-              <span className="chip">Slovenčina</span>
-            </div>
             {micText ? (
               <p className="text-sm text-marker" role="status">
                 {micText}
               </p>
             ) : null}
-            <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-normal">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={() => setConsent(!consent)}
-                className="mt-[3px] h-5 w-5"
-                style={{ accentColor: "var(--color-signal)" }}
-              />
-              Súhlasím, že môj pitch bude analyzovaný AI a výsledky budú viditeľné mentorom tejto akcie.
-            </label>
           </SessionSetup>
         </main>
       ) : (

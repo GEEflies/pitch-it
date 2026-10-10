@@ -34,7 +34,9 @@ type Props = {
   error: string | null;
   startLabel?: string;
   canStart?: boolean;
-  /** doplnok nad tlačidlom štartu (napr. súhlas s analýzou) */
+  /** drobný text pod tlačidlom štartu (napr. súhlas s analýzou) */
+  finePrint?: string;
+  /** doplnok nad tlačidlom štartu (napr. stav mikrofónu) */
   children?: React.ReactNode;
   onStart: () => void;
 };
@@ -103,6 +105,7 @@ export default function SessionSetup({
   error,
   startLabel,
   canStart: canStartOuter = true,
+  finePrint = "Video sa spracúva iba v tvojom prehliadači a nikam sa neodosiela.",
   children,
   onStart,
 }: Props) {
@@ -111,11 +114,6 @@ export default function SessionSetup({
     prompter.scriptId === "custom" ? prompter.customText : SCRIPTS.find((s) => s.id === prompter.scriptId)?.text;
   const canStart = canStartOuter && (prompter.scriptId !== "custom" || prompter.customText.trim().length > 0);
   let n = 0;
-  const settingsSummary = [
-    micMode ? "Mikrofón v ruke" : "Bez mikrofónu v ruke",
-    `${QUALITIES.find((q) => q.id === quality)?.title ?? ""} sledovanie`,
-    prompter.scriptId === null ? "bez telepromptra" : "s teleprompterom",
-  ].join(" · ");
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 md:px-8">
@@ -157,40 +155,35 @@ export default function SessionSetup({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-5 rounded-3xl border border-line bg-ink/60 p-6 md:p-8">
-        <ul className="grid gap-2 text-mute sm:grid-cols-3">
-          <li>• Postav sa 2 až 3 m od kamery.</li>
-          <li>• Kamera vidí trup, ideálne po kolená.</li>
-          <li>• Pri odpočte sa pozri do kamery.</li>
-        </ul>
+      <div className="flex flex-col items-start gap-3">
         {children}
         {error && <p className="rounded-xl bg-danger/15 p-4 text-coral">{error}</p>}
-        <div className="flex flex-wrap items-center gap-5">
-          <button
-            type="button"
-            onClick={onStart}
-            disabled={!canStart}
-            className="rounded-full bg-signal px-10 py-5 text-xl font-bold text-on-signal transition hover:bg-signal-hover disabled:opacity-40"
-          >
-            {startLabel ?? (drill ? "Spustiť cvičenie" : "Spustiť")} →
-          </button>
-          <p className="text-sm text-faint">Video sa spracúva iba v tvojom prehliadači a nikam sa neodosiela.</p>
-        </div>
-      </section>
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={!canStart}
+          className="rounded-full bg-signal px-10 py-5 text-xl font-bold text-on-signal transition hover:bg-signal-hover disabled:opacity-40"
+        >
+          {startLabel ?? (drill ? "Spustiť cvičenie" : "Spustiť")} →
+        </button>
+        <p className="text-sm text-faint">{finePrint}</p>
+      </div>
 
-      {/* Pokročilé voľby sú predvolene zbalené; väčšina ľudí ich nemusí meniť. */}
-      <details className="group rounded-3xl border border-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 md:px-8 [&::-webkit-details-marker]:hidden">
-          <span className="flex flex-col gap-1">
-            <span className="font-bold">Nastavenia</span>
-            <span className="text-sm text-mute">{settingsSummary}</span>
-          </span>
-          <span className="text-sm font-bold text-signal">
-            <span className="group-open:hidden">Upraviť</span>
-            <span className="hidden group-open:inline">Zbaliť</span>
-          </span>
+      {/* Voľby a tipy sú zbalené; s predvolenými hodnotami sa dá rovno začať. */}
+      <details className="group">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-mute hover:text-paper [&::-webkit-details-marker]:hidden">
+          Nastavenia a tipy
+          <span className="transition group-open:rotate-180">▾</span>
         </summary>
-        <div className="flex flex-col gap-10 border-t border-line p-5 md:p-8">
+        <div className="mt-4 flex flex-col gap-10 rounded-3xl border border-line p-5 md:p-8">
+          <section>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Tipy na záber</p>
+            <ul className="grid gap-2 text-mute sm:grid-cols-3">
+              <li>• Postav sa 2 až 3 m od kamery.</li>
+              <li>• Kamera vidí trup, ideálne po kolená.</li>
+              <li>• Pri odpočte sa pozri do kamery.</li>
+            </ul>
+          </section>
           <section>
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Ako budeš hovoriť?</p>
             <div className="grid gap-3 sm:grid-cols-2">
