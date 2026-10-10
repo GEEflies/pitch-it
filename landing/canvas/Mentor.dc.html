@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchIt – Mentor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&amp;family=DM+Sans:wght@400;500;700&amp;family=Outfit:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+.h{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.muted{color:#B4B4BE}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid #4A4A52;background:transparent;color:#F5F5F7;transition:transform .15s,filter .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,#D2FF6B,var(--accent) 55%,#7AB800);color:#141414;border-color:#AAFF00}
+.btn-p:hover{filter:brightness(1.08)}
+.card{background:linear-gradient(160deg,#222228,#1A1A1F);border:1px solid #333333;border-radius:20px;padding:24px}
+.chip{display:inline-block;padding:7px 14px;border:1px solid #4A4A52;border-radius:999px;font-size:13px;color:#DEDEE6}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+input[type=text],input[type=email]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid #4A4A52;background:#1E1E22;color:#F5F5F7;font:inherit}
+label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.fb{font:inherit;cursor:pointer;background:transparent;color:#DEDEE6;border:1px solid #4A4A52;border-radius:999px;padding:9px 16px;min-height:40px;font-size:14px}
+.fb:hover{border-color:#7D51FE}
+.fb[aria-pressed=true]{background:var(--accent);color:#141414;border-color:#AAFF00;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#B4B4BE;padding:10px 12px;border-bottom:1px solid #333333}
+td{padding:14px 12px;border-bottom:1px solid #2A2A32}
+.tag{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.kpi{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:44px;line-height:1}
+.dt{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%}
+</style>
+</helmet>
+<div style="--accent:{{accent}};background:radial-gradient(900px 600px at 90% 0,rgba(125,81,254,.38),transparent 60%),radial-gradient(700px 500px at 0 20%,rgba(170,255,0,.10),transparent 60%),#141414;color:#F5F5F7;font-family:'DM Sans',sans-serif;min-height:900px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 28px;border-bottom:1px solid #333333"><a href="Main.dc.html" aria-label="PitchIt domov"><span style="display:inline-flex;align-items:center;gap:10px"><svg width="26" height="36" viewBox="-4 -4 216 292" aria-hidden="true"><path d="M8 52C5 42 10 36 20 31L52 6C62 -1 72 0 82 4L158 41C190 57 212 90 205 126C202 146 193 158 185 165C183 149 178 140 168 134L12 58C10 57 9 55 8 52Z" fill="#AAFF00"></path><path d="M73 100V214C73 232 64 242 50 250L9 281C5 284 2 282 2 278V140C2 128 8 120 18 114Z" fill="#7AB800"></path><path d="M99 130L166 161L101 211Z" fill="#D2FF6B" stroke="#D2FF6B" stroke-width="10" stroke-linejoin="round"></path></svg><span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.03em;color:#F5F5F7">Pitch<span style="color:#AAFF00">It</span></span></span></a></div>
+<div class="wrap" style="padding-top:40px;padding-bottom:64px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:28px">
+<div><div class="eyebrow">Pohľad mentora</div><h1 class="h" style="font-size:48px;margin:10px 0 8px">Prehľad tímov</h1><div class="muted">Startup Weekend · [názov akcie]</div></div>
+<div role="group" aria-label="Filter podľa najslabšej kategórie" style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{filters}}" as="f" hint-placeholder-count="6"><button class="fb" type="button" aria-pressed="{{f.sel}}" onClick="{{f.pick}}">{{f.l}}</button></sc-for></div>
+</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:20px">
+<div class="card"><div class="kpi">{{k.tried}}</div><p class="muted" style="margin:10px 0 0;font-size:14px">tímov skúsilo appku z {{k.total}}</p></div>
+<div class="card"><div class="kpi" style="color:#AAFF00">{{k.imp}}</div><p class="muted" style="margin:10px 0 0;font-size:14px">priemerné zlepšenie skóre medzi 1. a posledným pokusom</p></div>
+<div class="card"><div class="kpi" style="color:#FF7A59">{{k.low}}</div><p class="muted" style="margin:10px 0 0;font-size:14px">tímov s jedným pokusom alebo žiadnym</p></div>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px"><h2 class="h" style="font-size:24px">Zlepšenie podľa tímu</h2>
+<div style="display:flex;gap:18px;font-size:13px" class="muted"><span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7D51FE;margin-right:6px"></span>1. pokus</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#AAFF00;margin-right:6px"></span>posledný pokus</span></div></div>
+<p class="muted" style="margin:0 0 18px;font-size:14px">Priemerné obsahové skóre z 10. Pri tíme s jedným pokusom je vidno len jeden bod.</p>
+<div style="display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;gap:16px"><div style="flex:0 0 110px;font-size:14px;font-weight:700">{{r.name}}</div><div style="flex:1;position:relative;height:22px"><div style="position:absolute;left:0;right:0;top:50%;height:2px;background:#333333"></div><div style="{{r.line}}"></div><div class="dt" style="{{r.d1}}"></div><div class="dt" style="{{r.d2}}"></div></div></div>
+</sc-for>
+</div>
+<div style="display:flex;margin:10px 0 0 126px;font-size:12px" class="muted"><span style="flex:1">1</span><span style="flex:1;text-align:center">5,5</span><span style="flex:1;text-align:right">10</span></div>
+</div>
+
+<div class="card" style="margin-bottom:20px;overflow-x:auto">
+<h2 class="h" style="font-size:24px;margin-bottom:12px">Zoznam tímov</h2>
+<table><thead><tr><th>Tím</th><th>Pokusy</th><th>Skóre</th><th>Trend</th><th>Najslabšia kategória</th><th>Signál</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><tr><td><b>{{r.name}}</b></td><td>{{r.att}}</td><td>{{r.score}}</td><td style="{{r.tcol}}"><b>{{r.trend}}</b></td><td>{{r.weak}}</td><td><span class="tag" style="{{r.sig}}">{{r.sigT}}</span></td></tr></sc-for></tbody></table>
+</div>
+
+<div class="card">
+<h2 class="h" style="font-size:24px;margin-bottom:6px">Kde zasiahnuť</h2>
+<p class="muted" style="margin:0 0 18px;font-size:14px">Tímy podľa kategórie, v ktorej majú najnižšie skóre.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+<sc-for list="{{weak}}" as="w" hint-placeholder-count="5"><div style="border:1px solid #333333;border-radius:16px;padding:18px;background:#1E1E22"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:18px">{{w.cat}}</b><span class="muted" style="font-size:13px">{{w.n}}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px"><sc-for list="{{w.teams}}" as="t" hint-placeholder-count="2"><span class="chip">{{t.n}}</span></sc-for></div></div></sc-for>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#AAFF00"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+state = { f: 'Všetko' };
+T = [
+  { n: 'Tím Alfa', a: 4, f: 5.2, l: 7.1, w: 'Trh' }, { n: 'Tím Beta', a: 3, f: 4.8, l: 6.6, w: 'Traction' },
+  { n: 'Tím Gama', a: 1, f: 5.5, l: null, w: 'Ask' }, { n: 'Tím Delta', a: 5, f: 6.1, l: 7.8, w: 'Trh' },
+  { n: 'Tím Epsilon', a: 2, f: 4.0, l: 4.9, w: 'Problém' }, { n: 'Tím Zeta', a: 1, f: 5.8, l: null, w: 'Traction' },
+  { n: 'Tím Eta', a: 3, f: 6.6, l: 7.2, w: 'Ask' }, { n: 'Tím Théta', a: 2, f: 3.9, l: 5.4, w: 'Riešenie' },
+  { n: 'Tím Jota', a: 0, f: null, l: null, w: '' }
+];
+C = ['Problém', 'Riešenie', 'Trh', 'Traction', 'Ask'];
+fmt(x) { return x.toFixed(1).replace('.', ','); }
+pos(x) { return ((x - 1) / 9) * 100; }
+renderVals() {
+  const s = this.state, T = this.T;
+  const tried = T.filter((t) => t.a > 0), multi = T.filter((t) => t.a > 1);
+  const imp = multi.reduce((a, t) => a + (t.l - t.f), 0) / (multi.length || 1);
+  const rows = T.filter((t) => s.f === 'Všetko' || t.w === s.f).map((t) => {
+    const d = t.l !== null ? t.l - t.f : null;
+    const low = t.a <= 1;
+    const sig = low ? ['Málo pokusov', 'background:#3A1F1A;color:#FF9A85;border:1px solid #FF7A59'] : d >= 1.5 ? ['Zlepšuje sa', 'background:#2B380E;color:#D2FF6B;border:1px solid #7AB800'] : ['Stagnuje', 'background:#2A2A32;color:#B4B4BE;border:1px solid #4A4A52'];
+    return {
+      name: t.n, att: t.a, weak: t.w || '–',
+      score: t.f === null ? '–' : t.l === null ? this.fmt(t.f) : this.fmt(t.f) + ' → ' + this.fmt(t.l),
+      trend: d === null ? '–' : '+' + this.fmt(d), tcol: d === null ? 'color:#B4B4BE' : 'color:#AAFF00',
+      sig: sig[1], sigT: t.a === 0 ? 'Nespustil' : sig[0],
+      d1: t.f === null ? 'display:none' : 'left:' + this.pos(t.f) + '%;background:#7D51FE',
+      d2: t.l === null ? 'display:none' : 'left:' + this.pos(t.l) + '%;background:#AAFF00',
+      line: t.l === null ? 'display:none' : 'position:absolute;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:linear-gradient(90deg,#7D51FE,#AAFF00);left:' + this.pos(t.f) + '%;width:' + (this.pos(t.l) - this.pos(t.f)) + '%'
+    };
+  });
+  return {
+    accent: this.props.accent ?? '#AAFF00',
+    k: { tried: tried.length, total: T.length, imp: '+' + this.fmt(imp), low: T.filter((t) => t.a <= 1).length },
+    filters: ['Všetko', ...this.C].map((l) => ({ l, sel: s.f === l ? 'true' : 'false', pick: () => this.setState({ f: l }) })),
+    rows,
+    weak: this.C.map((c) => { const tt = T.filter((t) => t.w === c); return { cat: c, n: tt.length + (tt.length === 1 ? ' tím' : tt.length >= 2 && tt.length <= 4 ? ' tímy' : ' tímov'), teams: tt.map((t) => ({ n: t.n })) }; })
+  };
+}
+}
+</script>
+</body>
+</html>

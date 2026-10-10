@@ -1,0 +1,179 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Feedback.dc.html": {
+      "expand": "fill",
+      "h": 2332,
+      "is_interactive": true,
+      "title": "3 · Feedback",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "FeedbackLight.dc.html": {
+      "expand": "fill",
+      "h": 2300,
+      "is_interactive": true,
+      "title": "Svetlý · Feedback",
+      "w": 1440,
+      "x": 1520,
+      "y": 6527
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 4780,
+      "is_interactive": true,
+      "title": "Landing page",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "MainLight.dc.html": {
+      "expand": "fill",
+      "h": 5347,
+      "is_interactive": true,
+      "title": "Svetlý · Úvodná stránka",
+      "w": 1440,
+      "x": 0,
+      "y": 5507
+    },
+    "Mentor.dc.html": {
+      "expand": "fill",
+      "h": 1779,
+      "is_interactive": true,
+      "title": "4 · Mentor dashboard",
+      "w": 1440,
+      "x": 3040,
+      "y": 1020
+    },
+    "MentorLight.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Svetlý · Mentor dashboard",
+      "w": 1440,
+      "x": 3040,
+      "y": 6527
+    },
+    "Onboarding.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "1 · Onboarding",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "OnboardingLight.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Svetlý · Onboarding",
+      "w": 1440,
+      "x": 1520,
+      "y": 5507
+    },
+    "Record.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "2 · Nahrávanie a analýza",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "RecordLight.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Svetlý · Nahrávanie",
+      "w": 1440,
+      "x": 3040,
+      "y": 5507
+    },
+    "SignIn.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Prihlásenie",
+      "w": 1440,
+      "x": 4560,
+      "y": 1020
+    },
+    "SignInLight.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Svetlý · Prihlásenie",
+      "w": 1440,
+      "x": 4560,
+      "y": 6527
+    },
+    "SignUp.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Registrácia",
+      "w": 1440,
+      "x": 4560,
+      "y": 2040
+    },
+    "SignUpLight.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Svetlý · Registrácia",
+      "w": 1440,
+      "x": 4560,
+      "y": 7547
+    },
+    "Workspace.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "2b · Nahrávanie s kamerou",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "WorkspaceLight.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Svetlý · Pracovný priestor",
+      "w": 1440,
+      "x": 4560,
+      "y": 5507
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-10T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {},
+  "order": [
+    "Main.dc.html",
+    "Onboarding.dc.html",
+    "Record.dc.html",
+    "Workspace.dc.html",
+    "Feedback.dc.html",
+    "Mentor.dc.html",
+    "SignIn.dc.html",
+    "SignUp.dc.html",
+    "MainLight.dc.html",
+    "OnboardingLight.dc.html",
+    "RecordLight.dc.html",
+    "WorkspaceLight.dc.html",
+    "FeedbackLight.dc.html",
+    "MentorLight.dc.html",
+    "SignInLight.dc.html",
+    "SignUpLight.dc.html"
+  ],
+  "pages": [],
+  "title": "PitchIt – Landing Page"
+}

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchIt – Onboarding (svetlý)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&amp;family=DM+Sans:wght@400;500;700&amp;family=Outfit:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+.h{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.muted{color:#54545E}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid #8A8A82;background:transparent;color:#15151A;transition:transform .15s,filter .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,#D2FF6B,var(--accent) 55%,#7AB800);color:#141414;border-color:#5E9E00}
+.btn-p:hover{filter:brightness(1.08)}
+.card{background:#FFFFFF;border:1px solid #DCDCD5;border-radius:20px;padding:24px}
+.chip{display:inline-block;padding:7px 14px;border:1px solid #8A8A82;border-radius:999px;font-size:13px;color:#2E2E38}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#2F6B00;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+textarea{width:100%;box-sizing:border-box;padding:14px 16px;border-radius:12px;border:1px solid #8A8A82;background:#FFFFFF;color:#15151A;font:inherit;font-size:15px;line-height:1.55;resize:vertical;min-height:170px}
+textarea:focus{outline:2px solid #AAFF00;outline-offset:1px}
+input[type=text],input[type=email]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid #8A8A82;background:#FFFFFF;color:#15151A;font:inherit}
+label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.opt{font:inherit;text-align:left;cursor:pointer;background:#FFFFFF;color:#15151A;border:1px solid #DCDCD5;border-radius:16px;padding:18px;min-height:56px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#7D51FE}
+.opt[aria-pressed=true]{border-color:#4C9A00;background:#EAF6D3}
+.opt small{display:block;color:#54545E;margin-top:6px;font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.bar{display:flex;gap:6px;margin-bottom:28px}
+.bar i{flex:1;height:5px;border-radius:3px;background:#DCDCD5;transition:background .3s}
+.bar i.on{background:#4C9A00}
+.btn:disabled{cursor:not-allowed}
+@media (prefers-reduced-motion:no-preference){.ov{animation:ovf .25s ease both}.mdl{animation:mdl .45s cubic-bezier(.2,.8,.2,1) both}@keyframes ovf{from{opacity:0}to{opacity:1}}@keyframes mdl{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}}
+.dk{color:#F5F5F7}.dk .muted{color:#B4B4BE}.dk .eyebrow{color:#AAFF00}.dk .btn{color:#F5F5F7;border-color:#4A4A52}.dk .btn-p{color:#141414;border-color:#AAFF00}.dk .chip{color:#DEDEE6;border-color:#4A4A52}
+</style>
+</helmet>
+<div style="--accent:{{accent}};background:radial-gradient(900px 600px at 90% 0,rgba(125,81,254,.13),transparent 60%),radial-gradient(700px 500px at 0 20%,rgba(170,255,0,.22),transparent 60%),#F5F5F1;color:#15151A;font-family:'DM Sans',sans-serif;min-height:900px;position:relative">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 28px;border-bottom:1px solid #DCDCD5"><a href="MainLight.dc.html" aria-label="PitchIt domov"><span style="display:inline-flex;align-items:center;gap:10px"><svg width="26" height="36" viewBox="-4 -4 216 292" aria-hidden="true"><path d="M8 52C5 42 10 36 20 31L52 6C62 -1 72 0 82 4L158 41C190 57 212 90 205 126C202 146 193 158 185 165C183 149 178 140 168 134L12 58C10 57 9 55 8 52Z" fill="#4C9A00"></path><path d="M73 100V214C73 232 64 242 50 250L9 281C5 284 2 282 2 278V140C2 128 8 120 18 114Z" fill="#3A7A00"></path><path d="M99 130L166 161L101 211Z" fill="#6BBF00" stroke="#6BBF00" stroke-width="10" stroke-linejoin="round"></path></svg><span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.03em;color:#15151A">Pitch<span style="color:#3F8A00">It</span></span></span></a></div>
+<div style="display:flex;flex-wrap:wrap;gap:48px;justify-content:center;align-items:flex-start;padding:48px 32px">
+<div style="flex:1 1 520px;max-width:700px;min-width:0">
+<div class="bar" aria-label="Priebeh"><i class="on"></i><i class="{{b2}}"></i><i class="{{b3}}"></i></div>
+<div class="eyebrow">Otázka {{num}} zo 3</div>
+<h1 class="h" style="font-size:44px;margin:12px 0">{{q.t}}</h1>
+<p class="muted" style="margin:0 0 28px;font-size:17px">{{q.s}}</p>
+<div class="grid2">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="2">
+<button class="opt" type="button" aria-pressed="{{o.sel}}" onClick="{{o.pick}}">{{o.l}}<small>{{o.d}}</small></button>
+</sc-for>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:40px;flex-wrap:wrap">
+<button class="btn" type="button" onClick="{{back}}" style="min-width:130px;opacity:{{backOp}}">Späť</button>
+<sc-if value="{{notLast}}" hint-placeholder-val="{{ true }}"><button class="btn btn-p" type="button" onClick="{{next}}" disabled="{{noAnswer}}" style="min-width:220px;opacity:{{nextOp}}">Pokračovať</button></sc-if>
+<sc-if value="{{isLast}}" hint-placeholder-val="{{ false }}"><button class="btn btn-p" type="button" onClick="{{confirm}}" disabled="{{noAnswer}}" style="min-width:220px;opacity:{{nextOp}}">Potvrdiť</button></sc-if>
+</div>
+
+</div>
+
+</div>
+<sc-if value="{{showPlan}}" hint-placeholder-val="{{ false }}">
+<div class="ov" style="position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,10,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)">
+<div class="card mdl" role="dialog" aria-modal="true" aria-labelledby="pt" style="position:relative;width:100%;max-width:480px;padding:36px;box-shadow:0 40px 100px rgba(0,0,0,.6)">
+<button type="button" onClick="{{restart}}" aria-label="Zavrieť a začať od prvej otázky" style="position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:1px solid #8A8A82;background:transparent;color:#15151A;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
+<div class="eyebrow">Tvoj plán</div>
+<h2 id="pt" class="h" style="font-size:30px;margin:12px 0 22px">Nastavíme to na mieru.</h2>
+<div style="display:flex;flex-direction:column;gap:14px;font-size:15px">
+<div style="display:flex;justify-content:space-between;gap:12px"><span class="muted">Pitchuješ</span><b>{{s0}}</b></div>
+<div style="display:flex;justify-content:space-between;gap:12px"><span class="muted">Dĺžka</span><b>{{s1}}</b></div>
+<div style="display:flex;justify-content:space-between;gap:12px"><span class="muted">Najprv ukážeme</span><b>{{s2}}</b></div>
+</div>
+<div style="margin-top:22px;padding-top:18px;border-top:1px solid #DCDCD5;font-size:14px;line-height:1.55" class="muted">Podľa dĺžky nastavíme časovač a cieľové tempo. Podľa publika zmeníme váhu kategórií v obsahovom skóre.</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px"><button type="button" class="btn btn-p" onClick="{{toNotes}}" style="flex:1 1 100%;min-height:52px">Pokračovať</button></div>
+</div></div>
+</sc-if>
+<sc-if value="{{showNotes}}" hint-placeholder-val="{{ false }}">
+<div class="ov" style="position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,10,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)">
+<div class="card mdl" role="dialog" aria-modal="true" aria-labelledby="nt" style="position:relative;width:100%;max-width:560px;padding:36px;box-shadow:0 40px 100px rgba(0,0,0,.6)">
+<button type="button" onClick="{{restart}}" aria-label="Zavrieť a začať od prvej otázky" style="position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:1px solid #8A8A82;background:transparent;color:#15151A;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
+<div class="eyebrow">Poznámky k pitchu</div>
+<h2 id="nt" class="h" style="font-size:30px;margin:12px 0 10px">Vlož si text alebo osnovu.</h2>
+<p class="muted" style="margin:0 0 18px;font-size:15px;line-height:1.55">Voliteľné. Poznámky ti budú nad kamerou počas nahrávania, aby si nestratila niť. Analýza ich použije na porovnanie, čo si naozaj povedala.</p>
+<label for="nta" style="display:block;font-size:14px;font-weight:700;margin-bottom:8px">Tvoje poznámky</label>
+<textarea id="nta" onInput="{{setNote}}" placeholder="Napr. Problém: …&#10;Riešenie: …&#10;Trh: …&#10;Traction: …&#10;Ask: …"></textarea>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+<a class="btn" href="WorkspaceLight.dc.html" style="flex:1 1 150px;min-height:52px">Preskočiť</a>
+<a class="btn btn-p" href="WorkspaceLight.dc.html" style="flex:2 1 240px;min-height:52px">Začať nahrávať s kamerou</a>
+</div>
+<div class="muted" style="margin-top:14px;font-size:13px;text-align:center">Nahrávanie prebehne cez kameru, so sledovaním reči tela.</div>
+</div></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#AAFF00"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+state = { step: 0, a: [-1, -1, -1], plan: false, notes: false };
+setNote = (e) => { try { localStorage.setItem('pitchit.notes', e.target.value); } catch (x) {} };
+toNotes = () => this.setState({ notes: true });
+Q = [
+  { t: 'Komu pitchuješ?', s: 'Podľa toho zmeníme, čo skórujeme.', sum: ['Investorovi', 'Tímu'], o: [['Investorovi', 'Väčší dôraz na Ask a Traction'], ['Tímu', 'Dôraz na jasnosť a príbeh']] },
+  { t: 'Aká dlhá má byť tvoja prezentácia?', s: 'Nastavíme časovač a cieľové tempo reči.', sum: ['30 sekúnd', '60 sekúnd'], o: [['30 sekúnd', 'Výťahový pitch'], ['60 sekúnd', 'Najčastejšia dĺžka']] },
+  { t: 'Čo ťa najviac straší?', s: 'Tú metriku ti ukážeme ako prvú.', sum: ['Tempo', 'Obsah'], o: [['Tempo a zajakávanie', 'Rýchlosť, pauzy a vypĺňacie slová'], ['Obsah a štruktúra', 'Problém, Riešenie, Trh, Traction, Ask']] }
+];
+confirm = () => this.setState({ plan: true });
+restart = () => { try { localStorage.removeItem('pitchit.notes'); } catch (x) {} this.setState({ plan: false, notes: false, step: 0, a: [-1, -1, -1] }); };
+next = () => this.setState({ step: Math.min(2, this.state.step + 1) });
+back = () => this.setState({ step: Math.max(0, this.state.step - 1) });
+renderVals() {
+  const s = this.state, q = this.Q[s.step];
+  const cur = s.a[s.step] >= 0, allDone = s.a.every((x) => x >= 0);
+  const sum = (k) => (s.a[k] >= 0 ? this.Q[k].sum[s.a[k]] : '');
+  return {
+    accent: this.props.accent ?? '#AAFF00',
+    q: { t: q.t, s: q.s }, num: s.step + 1,
+    b2: s.step >= 1 ? 'on' : '', b3: s.step >= 2 ? 'on' : '',
+    opts: q.o.map((o, i) => ({ l: o[0], d: o[1], sel: s.a[s.step] === i ? 'true' : 'false', pick: () => { const a = s.a.slice(); a[s.step] = i; this.setState({ a }); } })),
+    notLast: s.step < 2, isLast: s.step === 2,
+    noAnswer: !cur, nextOp: cur ? 1 : 0.45, showPlan: s.plan && allDone && !s.notes, showNotes: s.plan && allDone && s.notes, setNote: this.setNote, toNotes: this.toNotes, confirm: this.confirm, restart: this.restart,
+    backOp: s.step === 0 ? 0.35 : 1, back: this.back, next: this.next,
+    s0: sum(0), s1: sum(1), s2: sum(2)
+  };
+}
+}
+</script>
+</body>
+</html>

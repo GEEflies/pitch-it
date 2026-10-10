@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchIt – Feedback (svetlý)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&amp;family=DM+Sans:wght@400;500;700&amp;family=Outfit:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+.h{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-0.02em;margin:0}
+.muted{color:#54545E}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;padding:13px 22px;min-height:46px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid #8A8A82;background:transparent;color:#15151A;transition:transform .15s,filter .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:linear-gradient(135deg,#D2FF6B,var(--accent) 55%,#7AB800);color:#141414;border-color:#5E9E00}
+.btn-p:hover{filter:brightness(1.08)}
+.card{background:#FFFFFF;border:1px solid #DCDCD5;border-radius:20px;padding:24px}
+.chip{display:inline-block;padding:7px 14px;border:1px solid #8A8A82;border-radius:999px;font-size:13px;color:#2E2E38}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#2F6B00;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+input[type=text],input[type=email],input[type=password]{width:100%;box-sizing:border-box;padding:13px 16px;min-height:46px;border-radius:12px;border:1px solid #8A8A82;background:#FFFFFF;color:#15151A;font:inherit}
+label.l{display:block;font-size:14px;font-weight:700;margin:16px 0 8px}
+.fill{background:rgba(255,201,77,.4);border-bottom:2px solid #B97A00;color:#4D3200;border-radius:3px;padding:0 2px}
+.pz{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;margin:0 4px;vertical-align:1px}
+.pz-e{background:#ECE6FF;color:#4A25C9;border:1px solid #7D51FE}
+.pz-w{background:#ECECE6;color:#54545E;border:1px dashed #6A6A74}
+.sc{height:10px;border-radius:5px;background:#DCDCD5;overflow:hidden}
+.sc i{display:block;height:100%;border-radius:5px}
+@media (prefers-reduced-motion:no-preference){.rv{animation:rv .7s cubic-bezier(.2,.8,.2,1) both}@keyframes rv{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}}
+.big{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:44px;line-height:1}
+:focus-visible{outline:none}
+input[type=text]:focus,input[type=email]:focus,input[type=password]:focus{outline:none;border-color:#4C9A00;box-shadow:0 0 0 3px rgba(170,255,0,.18)}
+input:-webkit-autofill{-webkit-text-fill-color:#15151A;-webkit-box-shadow:0 0 0 100px #FFFFFF inset;caret-color:#15151A}
+.dk{color:#F5F5F7}.dk .muted{color:#B4B4BE}.dk .eyebrow{color:#AAFF00}.dk .btn{color:#F5F5F7;border-color:#4A4A52}.dk .btn-p{color:#141414;border-color:#AAFF00}.dk .chip{color:#DEDEE6;border-color:#4A4A52}
+</style>
+</helmet>
+<div style="--accent:{{accent}};background:radial-gradient(900px 600px at 90% 0,rgba(125,81,254,.13),transparent 60%),radial-gradient(700px 500px at 0 20%,rgba(170,255,0,.22),transparent 60%),#F5F5F1;color:#15151A;font-family:'DM Sans',sans-serif;min-height:900px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 28px;border-bottom:1px solid #DCDCD5"><a href="MainLight.dc.html" aria-label="PitchIt domov"><span style="display:inline-flex;align-items:center;gap:10px"><svg width="26" height="36" viewBox="-4 -4 216 292" aria-hidden="true"><path d="M8 52C5 42 10 36 20 31L52 6C62 -1 72 0 82 4L158 41C190 57 212 90 205 126C202 146 193 158 185 165C183 149 178 140 168 134L12 58C10 57 9 55 8 52Z" fill="#4C9A00"></path><path d="M73 100V214C73 232 64 242 50 250L9 281C5 284 2 282 2 278V140C2 128 8 120 18 114Z" fill="#3A7A00"></path><path d="M99 130L166 161L101 211Z" fill="#6BBF00" stroke="#6BBF00" stroke-width="10" stroke-linejoin="round"></path></svg><span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.03em;color:#15151A">Pitch<span style="color:#3F8A00">It</span></span></span></a></div>
+<div class="wrap" style="padding-top:40px;padding-bottom:64px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:28px">
+<div><div class="eyebrow">Pokus 1</div><h1 class="h" style="font-size:48px;margin:10px 0 12px">Tvoj feedback je hotový.</h1><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">Investorovi</span><span class="chip">60 s</span><span class="chip">Slovenčina</span><span class="chip">Poradie podľa tvojej odpovede: {{firstLabel}} najprv</span></div></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-p" href="RecordLight.dc.html">Skús znova</a><a class="btn" href="#zdielat">Pošli mentorovi</a></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px">
+
+<section class="card rv" style="animation-delay:100ms;order:{{o.tempo}}">
+<div style="display:flex;flex-wrap:wrap;gap:32px">
+<div style="flex:1 1 440px">
+<h2 class="h" style="font-size:26px">Tempo</h2>
+<div style="display:flex;align-items:baseline;gap:10px;margin:16px 0 18px"><span class="big">{{v.tempo}}</span><span class="muted">slabiky za sekundu</span></div>
+<div style="position:relative;padding-top:26px">
+<div style="position:absolute;left:{{v.tpos}}%;top:0;transform:translateX(-50%);font-size:12px;font-weight:700;color:#2F6B00">Ty</div>
+<div style="display:flex;height:16px;border-radius:8px;overflow:hidden;gap:3px"><div style="flex:3;background:#DCDCD5"></div><div style="flex:4;background:linear-gradient(90deg,#5FAF00,#4C9A00)"></div><div style="flex:3;background:#DCDCD5"></div></div>
+<div style="position:absolute;left:{{v.tpos}}%;top:20px;width:4px;height:28px;margin-left:-2px;border-radius:2px;background:#15151A"></div>
+<div style="display:flex;margin-top:8px;font-size:13px" class="muted"><span style="flex:3">Pomaly</span><span style="flex:4;text-align:center;color:#2F6B00">V cieli</span><span style="flex:3;text-align:right">Rýchlo</span></div>
+</div>
+<p style="margin:18px 0 0;font-size:15px;line-height:1.55">Tempo máš v cieľovom okne. Pri čísle o trhu spomaľ, aby ho investor stihol zachytiť.</p>
+</div>
+<div style="flex:1 1 360px;border-left:1px solid #DCDCD5;padding-left:32px">
+<h2 class="h" style="font-size:26px">Pauzy</h2>
+<div style="display:flex;align-items:baseline;gap:10px;margin:16px 0 14px"><span class="big">{{v.pauzy}}</span><span class="muted">pauzy nad 1 sekundu, najdlhšia 2,4 s</span></div>
+<p style="margin:0 0 14px;font-size:15px;line-height:1.55">Dlhá pauza nemusí byť chyba. Rozhoduje, kde je.</p>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:14px"><div><span class="pz pz-e">dôraz</span><span class="muted">Po kľúčovej vete. Pôsobí sebavedomo.</span></div><div><span class="pz pz-w">zaváhanie</span><span class="muted">Uprostred vety. Stojí za to pozrieť.</span></div></div>
+</div>
+</div>
+</section>
+
+<section class="card rv" style="animation-delay:250ms;order:{{o.fillery}}">
+<div style="display:flex;flex-wrap:wrap;gap:32px">
+<div style="flex:0 1 300px">
+<h2 class="h" style="font-size:26px">Vypĺňacie slová</h2>
+<div style="display:flex;align-items:baseline;gap:10px;margin:16px 0 16px"><span class="big">{{v.fill}}</span><span class="muted">za 60 sekúnd</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">akože ×3</span><span class="chip">vlastne ×2</span><span class="chip">ehm ×1</span></div>
+</div>
+<div style="flex:1 1 480px">
+<div style="font-weight:700;margin-bottom:12px">Prepis s označením</div>
+<p style="margin:0;font-size:17px;line-height:2.1">Každý rok [X] zakladateľov pripravuje pitch bez spätnej väzby<span class="pz pz-e">2,4 s dôraz</span><span class="fill">akože</span> sa spoliehajú na šťastie. Naša appka<span class="pz pz-w">1,3 s zaváhanie</span><span class="fill">vlastne</span> počúva tvoj pitch a za pätnásť sekúnd ti povie, kde strácaš pozornosť. <span class="fill">Ehm</span>, trh, na ktorý ideme, má v Európe hodnotu [X] miliárd<span class="pz pz-w">1,1 s zaváhanie</span>a <span class="fill">akože</span> rastie každým rokom.</p>
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:13px" class="muted"><span><span class="fill">slovo</span> vypĺňacie slovo</span><span><span class="pz pz-e">dôraz</span></span><span><span class="pz pz-w">zaváhanie</span></span></div>
+</div>
+</div>
+</section>
+
+<section class="card rv" style="animation-delay:400ms;order:{{o.obsah}}">
+<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px"><h2 class="h" style="font-size:26px">Obsahové skóre</h2><span class="muted">Hodnotenie podľa pitch rubriky pre investora</span></div>
+<div style="margin-top:12px"><div style="padding:18px 0;border-top:1px solid #DCDCD5"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><b style="font-size:16px">Problém</b><span class="h" style="font-size:24px;color:#2F6B00">{{v.s0}}<span class="muted" style="font-size:14px"> / 10</span></span></div><div class="sc" style="margin:10px 0 10px"><i style="width:{{v.w0}}%;background:#4C9A00"></i></div><div class="muted" style="font-size:14px;line-height:1.55">Problém je jasný a konkrétny. Pridaj jedno číslo, ktoré ukáže, aký je veľký.</div></div><div style="padding:18px 0;border-top:1px solid #DCDCD5"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><b style="font-size:16px">Riešenie</b><span class="h" style="font-size:24px;color:#2F6B00">{{v.s1}}<span class="muted" style="font-size:14px"> / 10</span></span></div><div class="sc" style="margin:10px 0 10px"><i style="width:{{v.w1}}%;background:#4C9A00"></i></div><div class="muted" style="font-size:14px;line-height:1.55">Je zrozumiteľné, čo produkt robí. Povedz, prečo je lepší ako súčasný spôsob.</div></div><div style="padding:18px 0;border-top:1px solid #DCDCD5"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><b style="font-size:16px">Trh</b><span class="h" style="font-size:24px;color:#8A5A00">{{v.s2}}<span class="muted" style="font-size:14px"> / 10</span></span></div><div class="sc" style="margin:10px 0 10px"><i style="width:{{v.w2}}%;background:#C98A00"></i></div><div class="muted" style="font-size:14px;line-height:1.55">Veľkosť trhu je spomenutá len okrajovo. Uveď zdroj a konkrétny segment, ktorý oslovíš ako prvý.</div></div><div style="padding:18px 0;border-top:1px solid #DCDCD5"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><b style="font-size:16px">Traction</b><span class="h" style="font-size:24px;color:#B4361A">{{v.s3}}<span class="muted" style="font-size:14px"> / 10</span></span></div><div class="sc" style="margin:10px 0 10px"><i style="width:{{v.w3}}%;background:#E5522B"></i></div><div class="muted" style="font-size:14px;line-height:1.55">Chýbajú konkrétne výsledky. Povedz počet používateľov, tržby alebo prvé pilotné testy.</div></div><div style="padding:18px 0;border-top:1px solid #DCDCD5"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><b style="font-size:16px">Ask</b><span class="h" style="font-size:24px;color:#8A5A00">{{v.s4}}<span class="muted" style="font-size:14px"> / 10</span></span></div><div class="sc" style="margin:10px 0 10px"><i style="width:{{v.w4}}%;background:#C98A00"></i></div><div class="muted" style="font-size:14px;line-height:1.55">Žiadosť zaznela, ale chýba suma a na čo ju použiješ. Zakonči jednou jasnou vetou.</div></div></div>
+</section>
+
+<section class="card rv" style="animation-delay:550ms;order:3"><div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px"><h2 class="h" style="font-size:26px">Reč tela</h2><span class="muted">Z videa pitchu</span></div><div style="display:flex;flex-wrap:wrap;gap:32px;margin-top:20px"><div style="flex:0 1 320px"><div style="display:flex;align-items:baseline;gap:10px"><span class="big">{{v.eye}} %</span><span class="muted">očný kontakt</span></div><div class="sc" style="margin:14px 0 18px"><i style="width:{{v.eye}}%;background:#4C9A00"></i></div><p style="margin:0;font-size:15px;line-height:1.55">Držanie tela je otvorené a pokojné. Najčastejšie sa objavili otvorené dlane, raz si ukázal prstom na kameru.</p></div><div style="flex:1 1 420px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;background:#FFFFFF;border:1px solid #DCDCD5"><span class="muted" style="flex:0 0 40px;font-size:13px">0:42</span><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#FF7A59"></circle><circle cx="15.5" cy="19" r="2.5" fill="#141414"></circle><circle cx="28.5" cy="19" r="2.5" fill="#141414"></circle><path d="M0 0" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"></path><path d="M19 30a3.4 3.4 0 106.8 0a3.4 3.4 0 10-6.8 0Z" fill="#141414" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><div><div style="font-weight:700;font-size:15px">Ukazovanie na kameru</div><div style="font-size:12px;font-weight:700;color:#B4361A">Upozornenie</div></div></div><div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;background:#FFFFFF;border:1px solid #DCDCD5"><span class="muted" style="flex:0 0 40px;font-size:13px">1:12</span><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#4C9A00"></circle><circle cx="15.5" cy="19" r="2.5" fill="#141414"></circle><circle cx="28.5" cy="19" r="2.5" fill="#141414"></circle><path d="M0 0" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"></path><path d="M14 27Q22 35 30 27" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><div><div style="font-weight:700;font-size:15px">Otvorené dlane</div><div style="font-size:12px;font-weight:700;color:#2F6B00">Sebavedomo</div></div></div><div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;background:#FFFFFF;border:1px solid #DCDCD5"><span class="muted" style="flex:0 0 40px;font-size:13px">1:31</span><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="#FFC94D"></circle><circle cx="15.5" cy="19" r="2.5" fill="#141414"></circle><circle cx="28.5" cy="19" r="2.5" fill="#141414"></circle><path d="M12 14L18 16M32 14L26 16" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"></path><path d="M14 31Q22 24 30 31" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg><div><div style="font-weight:700;font-size:15px">Nepokojné ruky</div><div style="font-size:12px;font-weight:700;color:#8A5A00">Pozor</div></div></div></div></div><div style="display:flex;gap:4px;margin-top:22px;height:10px"><span style="flex:3;background:#ECECE6;border-radius:5px"></span><span style="flex:1;background:#E5522B;border-radius:5px"></span><span style="flex:4;background:#ECECE6;border-radius:5px"></span><span style="flex:1;background:#4C9A00;border-radius:5px"></span><span style="flex:3;background:#ECECE6;border-radius:5px"></span><span style="flex:1;background:#C98A00;border-radius:5px"></span><span style="flex:2;background:#ECECE6;border-radius:5px"></span></div></section>
+
+</div>
+
+<div class="card" id="zdielat" style="margin-top:20px;padding:28px">
+<div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+<div style="flex:1 1 320px"><h2 class="h" style="font-size:28px;margin-bottom:10px">Chceš výsledok zdieľať s mentorom?</h2><p class="muted" style="margin:0;font-size:15px;line-height:1.55">Tvoj pokus sa uložil do histórie. Ak ho chceš poslať mentorovi, doplň tri údaje. Dovtedy sme o teba nepotrebovali nič.</p></div>
+<div style="flex:1 1 420px">
+<sc-if value="{{notShared}}" hint-placeholder-val="{{ true }}">
+<label class="l" for="mn" style="margin-top:0">Meno</label><input id="mn" type="text" placeholder="Tvoje meno">
+<label class="l" for="mf">Firma alebo tím</label><input id="mf" type="text" placeholder="Názov tímu">
+<label class="l" for="me">E-mail</label><input id="me" type="email" placeholder="ty@startup.sk">
+<button class="btn btn-p" type="button" onClick="{{share}}" style="margin-top:20px;width:100%">Uložiť a zdieľať s mentorom</button>
+</sc-if>
+<sc-if value="{{shared}}" hint-placeholder-val="{{ false }}"><div style="padding:24px;border:1px solid #4C9A00;border-radius:16px;background:#ECECE6"><b style="font-size:18px">Hotovo.</b><p class="muted" style="margin:8px 0 16px">Mentor teraz vidí tvoj pokus a ďalšie, ktoré spravíš.</p><a class="btn" href="RecordLight.dc.html">Skús znova</a></div></sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#AAFF00"},"first":{"editor":"enum","options":["tempo","fillery","obsah"],"default":"tempo"},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+state = { shared: false, t: 0 };
+D = 2600;
+componentDidMount() {
+  let reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (reduce) { this.setState({ t: this.D }); return; }
+  this.t0 = Date.now();
+  this.timer = setInterval(() => {
+    const t = Math.min(this.D, Date.now() - this.t0);
+    this.setState({ t });
+    if (t >= this.D) clearInterval(this.timer);
+  }, 40);
+}
+componentWillUnmount() { clearInterval(this.timer); }
+share = () => this.setState({ shared: true });
+renderVals() {
+  const first = this.props.first ?? 'tempo';
+  const ms = this.state.t;
+  const p = (delay, dur) => { const x = Math.max(0, Math.min(1, (ms - delay) / dur)); return 1 - Math.pow(1 - x, 3); };
+  const a = p(300, 1500), b = p(550, 1500), c = p(800, 1500), d = p(1000, 1500);
+  const sc = [8, 7, 5, 4, 6];
+  const v = { tempo: (4.6 * a).toFixed(1).replace('.', ','), tpos: Math.round(55 * a), pauzy: Math.round(5 * b), fill: Math.round(6 * c), eye: Math.round(82 * d) };
+  sc.forEach((x, i) => { const q = p(900 + i * 180, 1100); v['s' + i] = Math.round(x * q); v['w' + i] = Math.round(x * 10 * q); });
+  const base = ['tempo', 'fillery', 'obsah'];
+  const ord = [first, ...base.filter((x) => x !== first)];
+  const L = { tempo: 'Tempo', fillery: 'Vypĺňacie slová', obsah: 'Obsah' };
+  return {
+    accent: this.props.accent ?? '#AAFF00', v,
+    o: { tempo: ord.indexOf('tempo'), fillery: ord.indexOf('fillery'), obsah: ord.indexOf('obsah') },
+    firstLabel: L[first], shared: this.state.shared, notShared: !this.state.shared, share: this.share
+  };
+}
+}
+</script>
+</body>
+</html>

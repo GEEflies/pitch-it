@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Kopírované súbory tretej strany (scripts/setup-mediapipe.mjs).
     "public/mediapipe/**",
+    // Samostatný balík s prototypom z dizajnu (vlastné závislosti a testy).
+    "landing/**",
   ]),
 ]);
 
