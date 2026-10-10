@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- záložný obrázok z dizajnu, ak nie je dostupné WebGL */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -9,6 +9,7 @@ import {
   Group,
   LineBasicMaterial,
   LineSegments,
+  Matrix4,
   PerspectiveCamera,
   Points,
   Scene,
@@ -41,51 +42,98 @@ uniform float uTime;
 uniform float uProgress;
 uniform float uScale;
 uniform float uSize;
+uniform float uDpr;
+uniform float uVariant; // 0 neural, 1 scan, 2 mono
 uniform vec4 uPulses[${MAX_PULSES}];
+uniform vec4 uMouse; // xyz = bod v priestore mozgu, w = sila hoveru
+uniform vec4 uShock; // xyz = stred vlny, w = čas spustenia (s)
+uniform vec4 uFocus; // xyz = oblasť zvýraznená štítkom, w = sila
 attribute vec3 aScatter;
 attribute float aDelay;
 attribute float aSeed;
 attribute float aRidge;
 varying vec3 vColor;
 varying float vAlpha;
+varying float vPx;
 
 const vec3 PURPLE = vec3(0.490, 0.318, 0.996);
 const vec3 LILAC = vec3(0.725, 0.635, 1.0);
 const vec3 LIME = vec3(0.667, 1.0, 0.0);
 const vec3 LIME_SOFT = vec3(0.824, 1.0, 0.420);
+const vec3 WHITE = vec3(0.96, 1.0, 0.9);
 
 void main() {
   float t = clamp((uProgress - aDelay) / 0.55, 0.0, 1.0);
   float e = 1.0 - pow(1.0 - t, 4.0);
 
   vec3 p = mix(aScatter, position, e);
-  // vír: čím ďalej od zloženia, tým viac rotácie okolo Y
   float ang = (1.0 - e) * (1.0 - e) * 2.4;
   float c = cos(ang), s = sin(ang);
   p.xz = mat2(c, -s, s, c) * p.xz;
-  // jemné "dýchanie" jednotlivých bodiek
-  p += vec3(sin(uTime * 0.7 + aSeed * 40.0), cos(uTime * 0.6 + aSeed * 31.0), sin(uTime * 0.5 + aSeed * 23.0)) * 0.012 * e;
+  p += vec3(sin(uTime * 0.7 + aSeed * 40.0), cos(uTime * 0.6 + aSeed * 31.0), sin(uTime * 0.5 + aSeed * 23.0)) * 0.008 * e;
 
+  // signály
   float g = 0.0;
   for (int i = 0; i < ${MAX_PULSES}; i++) {
     vec3 d = position - uPulses[i].xyz;
-    g += uPulses[i].w * exp(-dot(d, d) / 0.022);
+    g += uPulses[i].w * exp(-dot(d, d) / 0.02);
   }
-  g = min(g, 1.0);
 
-  float twinkle = 0.78 + 0.22 * sin(uTime * 2.0 + aSeed * 60.0);
+  // hover: bodky pod kurzorom sa nadvihnú a rozsvietia
+  vec2 dm = position.xy - uMouse.xy;
+  float hm = uMouse.w * exp(-dot(dm, dm) / 0.16);
+  p += normalize(vec3(dm * 1.4, sign(position.z) + 0.001)) * hm * 0.16 * e;
+  g += hm * 0.55;
+
+  // klik: rázová vlna
+  float age = uTime - uShock.w;
+  if (age > 0.0 && age < 2.2) {
+    float r = age * 2.1;
+    float dist = length(position - uShock.xyz);
+    float band = exp(-pow(dist - r, 2.0) / 0.012) * (1.0 - age / 2.2);
+    g += band * 1.4;
+    p += normalize(position - uShock.xyz + 0.0001) * band * 0.12;
+  }
+
+  // štítok: zvýraznená oblasť
+  vec3 df = position - uFocus.xyz;
+  g += uFocus.w * exp(-dot(df, df) / 0.28) * 0.75;
+
+  // skenovacia rovina (variant scan)
+  float scan = 0.0;
+  if (uVariant > 0.5 && uVariant < 1.5) {
+    float sx = sin(uTime * 0.45) * 2.2;
+    scan = exp(-pow(position.x - sx, 2.0) / 0.006);
+    g += scan * 0.9;
+  }
+  g = min(g, 1.2);
+
+  float twinkle = 0.82 + 0.18 * sin(uTime * 2.0 + aSeed * 60.0);
   float ridge = smoothstep(0.45, 1.0, aRidge);
-  vec3 base = mix(PURPLE, LILAC, aRidge * 0.45);
-  base = mix(base, LIME, ridge * 0.7);
-  vColor = mix(base, LIME_SOFT, clamp(g, 0.0, 1.0)) * (1.0 + g * 0.45);
+  vec3 base;
+  if (uVariant > 1.5) {
+    base = mix(vec3(0.35, 0.42, 0.30), LIME_SOFT, 0.35 + ridge * 0.65);
+  } else if (uVariant > 0.5) {
+    base = mix(PURPLE * 0.8, LILAC, aRidge * 0.5);
+  } else {
+    base = mix(PURPLE, LILAC, aRidge * 0.45);
+    base = mix(base, LIME, ridge * 0.7);
+  }
+  vec3 hot = uVariant > 1.5 ? WHITE : LIME_SOFT;
+  vColor = mix(base, hot, clamp(g, 0.0, 1.0) * 0.85);
 
   vec4 world = modelMatrix * vec4(p, 1.0);
   float depth = clamp(world.z / 2.6 + 0.5, 0.0, 1.0);
-  vAlpha = (0.26 + 0.5 * aRidge) * twinkle * (0.42 + 0.58 * depth) * smoothstep(0.0, 0.35, t) + g * 0.18;
+  float dim = uVariant > 0.5 && uVariant < 1.5 ? 0.55 : 1.0;
+  vAlpha = ((0.16 + 0.78 * aRidge * aRidge) * dim * twinkle * (0.35 + 0.65 * depth) + g * 0.22) * smoothstep(0.0, 0.35, t);
 
   vec4 mv = viewMatrix * world;
-  float size = uSize * (0.65 + aRidge * 0.9) * (1.0 + g * 0.5) * smoothstep(0.0, 0.2, t);
-  gl_PointSize = max(size * uScale / -mv.z, 0.0);
+  float size = uSize * (0.8 + aRidge * 0.5) * (1.0 + g * 0.25) * smoothstep(0.0, 0.2, t);
+  float px = max(size * uScale / -mv.z, 0.0);
+  // aspoň ~1.6 CSS px, nech bodky nie sú subpixelová hmla
+  px = max(px, 1.25 * uDpr * step(0.001, t));
+  vPx = px;
+  gl_PointSize = px;
   gl_Position = projectionMatrix * mv;
 }
 `;
@@ -93,10 +141,13 @@ void main() {
 const POINTS_FRAG = /* glsl */ `
 varying vec3 vColor;
 varying float vAlpha;
+varying float vPx;
 void main() {
-  float d = length(gl_PointCoord - 0.5);
-  float a = smoothstep(0.5, 0.0, d);
-  a = a * a * 0.8 + exp(-d * d * 30.0) * 0.5;
+  // ostrý disk s 1px antialiasingom (bez gaussovskej hmly)
+  float d = length(gl_PointCoord - 0.5) * vPx;
+  float r = vPx * 0.5;
+  float a = clamp(r - d, 0.0, 1.0);
+  if (a <= 0.0) discard;
   gl_FragColor = vec4(vColor, a * vAlpha);
 }
 `;
@@ -119,7 +170,7 @@ const SIGNAL_FRAG = /* glsl */ `
 varying float vAmp;
 void main() {
   float d = length(gl_PointCoord - 0.5);
-  float a = exp(-d * d * 16.0) * smoothstep(0.5, 0.35, d);
+  float a = smoothstep(0.5, 0.42, d) * (0.55 + 0.45 * exp(-d * d * 30.0));
   vec3 lime = vec3(0.667, 1.0, 0.0);
   vec3 white = vec3(0.93, 1.0, 0.82);
   vec3 col = mix(lime, white, smoothstep(0.55, 1.0, vAmp));
@@ -204,7 +255,7 @@ async function sampleImage(count: number): Promise<Cloud | null> {
     const cum = new Float64Array(N);
     let acc = 0;
     for (let i = 0; i < N; i++) {
-      if (inside[i]) acc += 0.1 + 0.9 * Math.min(1, lum[i] * 1.8);
+      if (inside[i]) acc += 0.05 + Math.pow(Math.min(1, lum[i] * 1.6), 1.5);
       cum[i] = acc;
     }
 
@@ -491,10 +542,26 @@ function bezier(e: Edge, nodes: Float32Array, t: number, out: Vector3) {
 
 /* --------------------------------- komponent --------------------------------- */
 
-export function BrainScene() {
+export type BrainLabel = {
+  text: string;
+  /** kotva v súradniciach mozgu (x ±1.9, y ±1.3, z > 0 = privrátená strana) */
+  at: [number, number, number];
+  /** posun štítka od kotvy v CSS px */
+  offset: [number, number];
+};
+
+const VARIANTS = { neural: 0, scan: 1, mono: 2 } as const;
+
+export function BrainScene({ labels = [], style }: { labels?: BrainLabel[]; style?: CSSProperties }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fallbackRef = useRef<HTMLImageElement>(null);
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const focusRef = useRef<{ index: number; set: (i: number) => void }>({ index: -1, set: () => {} });
+  const anchors = useRef(labels.map((l) => l.at));
+  useEffect(() => {
+    anchors.current = labels.map((l) => l.at);
+  }, [labels]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -511,7 +578,9 @@ export function BrainScene() {
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const small = window.innerWidth < 700;
-    const pointCount = small ? 14000 : 34000;
+    const variantKey = new URLSearchParams(window.location.search).get("brain") as keyof typeof VARIANTS | null;
+    const variant = variantKey && variantKey in VARIANTS ? VARIANTS[variantKey] : 0;
+    const pointCount = small ? 16000 : 36000;
     const nodeCount = small ? 150 : 300;
 
     let renderer: WebGLRenderer;
@@ -522,8 +591,10 @@ export function BrainScene() {
       return;
     }
     renderer.setClearColor(0x000000, 0);
-    const maxDpr = small ? 1.5 : 2;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    // pri zoome prehliadača rastie devicePixelRatio; prepočítava sa v resize(), inak sa plátno rozmaže
+    const maxDpr = small ? 2.5 : 3;
+    let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+    renderer.setPixelRatio(dpr);
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(FOV, 1, 0.1, 100);
@@ -538,11 +609,11 @@ export function BrainScene() {
     let revealStart = -1;
     let camDist = 6;
 
-    // stav animácie
-    const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+    const mouse = { x: 0, y: 0, sx: 0, sy: 0, px: -1, py: -1, inside: false };
+    const hover = { str: 0, local: new Vector3(), timer: 0 };
+    const focus = { str: 0, pos: new Vector3(), timer: 0 };
     const state = { progress: reduced ? 1 : 0, activity: 0 };
 
-    // objekty vznikajú po načítaní obrázka
     let pointsMat: ShaderMaterial | null = null;
     let signalMat: ShaderMaterial | null = null;
     let lineMat: LineBasicMaterial | null = null;
@@ -555,21 +626,56 @@ export function BrainScene() {
     const impulses: Impulse[] = [];
     let spawnTimer = 0;
     const pulses = Array.from({ length: MAX_PULSES }, () => new Vector4(0, 0, 0, 0));
+    const uMouse = new Vector4(0, 0, 0, 0);
+    const uShock = new Vector4(0, 0, 0, -10);
+    const uFocus = new Vector4(0, 0, 0, 0);
     const tmp = new Vector3();
+    const ray = { o: new Vector3(), d: new Vector3() };
+    const inv = new Matrix4();
+    let time = 0;
 
     const resize = () => {
       const w = Math.max(1, wrap.clientWidth);
       const h = Math.max(1, wrap.clientHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      renderer.setPixelRatio(dpr);
       renderer.setSize(w, h, false);
+      if (pointsMat) pointsMat.uniforms.uDpr.value = dpr;
       camera.aspect = w / h;
       const tan = Math.tan((FOV * Math.PI) / 360);
-      camDist = Math.max(3.6 / (2 * tan), 5.0 / (2 * tan * camera.aspect));
+      camDist = Math.max(4.2 / (2 * tan), 5.3 / (2 * tan * camera.aspect));
       camera.position.set(0, 0, camDist);
       camera.updateProjectionMatrix();
       const scale = renderer.domElement.height / (2 * tan);
       if (pointsMat) pointsMat.uniforms.uScale.value = scale;
       if (signalMat) signalMat.uniforms.uScale.value = scale;
       if (ready) renderer.render(scene, camera);
+    };
+
+    /** lúč z kurzora do roviny z = 0.35 v súradniciach mozgu */
+    const pick = (cx: number, cy: number, out: Vector3) => {
+      const r = canvas.getBoundingClientRect();
+      const nx = ((cx - r.left) / r.width) * 2 - 1;
+      const ny = -((cy - r.top) / r.height) * 2 + 1;
+      group.updateMatrixWorld();
+      inv.copy(group.matrixWorld).invert();
+      ray.o.copy(camera.position).applyMatrix4(inv);
+      ray.d.set(nx, ny, 0.5).unproject(camera).applyMatrix4(inv).sub(ray.o).normalize();
+      if (Math.abs(ray.d.z) < 1e-4) return false;
+      const t = (0.35 - ray.o.z) / ray.d.z;
+      out.copy(ray.o).addScaledVector(ray.d, t);
+      return Math.abs(out.x) < BRAIN_W * 0.55 && Math.abs(out.y) < 1.45;
+    };
+
+    const nearestNodes = (pos: Vector3, k: number) => {
+      if (!network) return [];
+      const nn = network.nodes;
+      const out: { i: number; d: number }[] = [];
+      for (let i = 0; i < nn.length / 3; i++) {
+        const dx = nn[i * 3] - pos.x, dy = nn[i * 3 + 1] - pos.y, dz = nn[i * 3 + 2] - pos.z;
+        out.push({ i, d: dx * dx + dy * dy + dz * dz });
+      }
+      return out.sort((a, b) => a.d - b.d).slice(0, k).map((o) => o.i);
     };
 
     const spawn = (edge: number, dir: 1 | -1, depth: number, from?: number) => {
@@ -591,12 +697,11 @@ export function BrainScene() {
       }
     };
 
-    const update = (dt: number, time: number) => {
+    const update = (dt: number) => {
       if (!network || !pointsMat || !signalMat || !lineMat) return;
       const n = network.nodes.length / 3;
       const act = state.activity;
 
-      // spawn nových signálov
       if (act > 0.02) {
         spawnTimer -= dt * act;
         if (spawnTimer <= 0) {
@@ -606,7 +711,36 @@ export function BrainScene() {
         }
       }
 
-      // posun signálov
+      // hover: neuróny pod kurzorom strieľajú
+      const hit = mouse.inside && state.progress > 0.9 && pick(mouse.px, mouse.py, tmp);
+      if (hit) hover.local.lerp(tmp, Math.min(1, dt * 10));
+      hover.str += ((hit ? 1 : 0) - hover.str) * Math.min(1, dt * 5);
+      canvas.style.cursor = hit ? "pointer" : "";
+      if (hit) {
+        hover.timer -= dt;
+        if (hover.timer <= 0) {
+          hover.timer = 0.09;
+          const near = nearestNodes(hover.local, 3);
+          spawnFromNode(near[(Math.random() * near.length) | 0], 1);
+        }
+      }
+      uMouse.set(hover.local.x, hover.local.y, hover.local.z, hover.str);
+
+      // štítok: oblasť sa rozsvieti a odpaľuje
+      const fi = focusRef.current.index;
+      if (fi >= 0 && anchors.current[fi]) {
+        const a = anchors.current[fi];
+        focus.pos.set(a[0], a[1], a[2]);
+        focus.timer -= dt;
+        if (focus.timer <= 0) {
+          focus.timer = 0.12;
+          const near = nearestNodes(focus.pos, 6);
+          spawnFromNode(near[(Math.random() * near.length) | 0], 1);
+        }
+      }
+      focus.str += ((fi >= 0 ? 1 : 0) - focus.str) * Math.min(1, dt * 4);
+      uFocus.set(focus.pos.x, focus.pos.y, focus.pos.z, focus.str);
+
       for (let i = impulses.length - 1; i >= 0; i--) {
         const im = impulses[i];
         const e = network.edges[im.edge];
@@ -615,7 +749,6 @@ export function BrainScene() {
         if (im.t >= 1) {
           const arrive = im.dir === 1 ? e.b : e.a;
           flash[arrive] = 1;
-          // kaskáda: dorazený signál môže odpáliť 1–3 susedov
           if (im.depth < 3 && Math.random() < 0.6 - im.depth * 0.15) {
             spawnFromNode(arrive, im.depth + 1, im.edge);
           }
@@ -623,20 +756,18 @@ export function BrainScene() {
         }
       }
 
-      // vyhasínanie záblesku uzlov a zber pulzov pre shader
       const decay = Math.exp(-dt * 2.4);
       const cand: { x: number; y: number; z: number; w: number }[] = [];
       for (let i = 0; i < n; i++) {
         if (flash[i] > 0.003) {
           flash[i] *= decay;
           if (flash[i] > 0.06) {
-            cand.push({ x: network.nodes[i * 3], y: network.nodes[i * 3 + 1], z: network.nodes[i * 3 + 2], w: flash[i] * 1.3 });
+            cand.push({ x: network.nodes[i * 3], y: network.nodes[i * 3 + 1], z: network.nodes[i * 3 + 2], w: flash[i] * 1.2 });
           }
         } else flash[i] = 0;
-        sigAmp[i] = 0.12 + flash[i] * 0.9;
+        sigAmp[i] = 0.1 + flash[i] * 0.9;
       }
 
-      // hlavy a chvosty signálov
       const base = n;
       for (let s = 0; s < MAX_IMPULSES * TRAIL; s++) sigAmp[base + s] = 0;
       impulses.forEach((im, slot) => {
@@ -652,7 +783,7 @@ export function BrainScene() {
           trailPos[o + 1] = tmp.y;
           trailPos[o + 2] = tmp.z;
           sigAmp[base + slot * TRAIL + k] = Math.pow(1 - k / TRAIL, 1.7) * fade;
-          if (k === 0) cand.push({ x: tmp.x, y: tmp.y, z: tmp.z, w: 0.75 * fade });
+          if (k === 0) cand.push({ x: tmp.x, y: tmp.y, z: tmp.z, w: 0.7 * fade });
         }
       });
       cand.sort((p, q) => q.w - p.w);
@@ -664,14 +795,27 @@ export function BrainScene() {
 
       if (sigPosAttr) sigPosAttr.needsUpdate = true;
       if (sigAmpAttr) sigAmpAttr.needsUpdate = true;
-      lineMat.opacity = 0.13 * act;
+      lineMat.opacity = (0.1 + 0.08 * Math.max(hover.str, focus.str)) * act;
       pointsMat.uniforms.uTime.value = time;
+    };
+
+    /** štítky sledujú svoje kotvy pri otáčaní mozgu */
+    const placeLabels = () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      group.updateMatrixWorld();
+      anchors.current.forEach((a, i) => {
+        const el = labelRefs.current[i];
+        if (!el) return;
+        tmp.set(a[0], a[1], a[2]).applyMatrix4(group.matrixWorld).project(camera);
+        el.style.transform = `translate3d(${((tmp.x + 1) / 2) * w}px, ${((1 - tmp.y) / 2) * h}px, 0)`;
+        el.style.opacity = String(Math.min(1, Math.max(0, (state.progress - 0.75) / 0.25)));
+      });
     };
 
     const frame = (now: number) => {
       raf = 0;
       if (cancelled) return;
-      const time = now / 1000;
+      time = now / 1000;
       const dt = Math.min(0.05, (now - lastNow) / 1000);
       lastNow = now;
 
@@ -680,7 +824,6 @@ export function BrainScene() {
       }
       if (state.progress >= 0.85 && !reduced) state.activity = Math.min(1, state.activity + dt / 1.6);
 
-      // scroll: 0 = sekcia vstupuje zospodu, 1 = odchádza hore
       const rect = wrap.getBoundingClientRect();
       const vh = window.innerHeight || 1;
       const sp = Math.min(1, Math.max(0, (vh - rect.top) / (vh + rect.height)));
@@ -688,15 +831,18 @@ export function BrainScene() {
       mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3);
       mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3);
 
-      const sway = Math.sin(time * 0.28) * (25 * Math.PI) / 180;
-      group.rotation.y = sway + mouse.sx * 0.3 + (sp - 0.5) * 0.45;
-      group.rotation.x = mouse.sy * 0.16 + (sp - 0.5) * 0.08;
-      group.scale.setScalar(1 + 0.018 * Math.sin(time * 1.3));
-      camera.position.z = camDist * (1.08 - 0.14 * sp);
+      // pri hoveri sa otáčanie upokojí, aby sa dalo „dotýkať“
+      const calm = 1 - 0.6 * Math.max(hover.str, focus.str);
+      const sway = Math.sin(time * 0.28) * ((22 * Math.PI) / 180) * calm;
+      group.rotation.y = sway + mouse.sx * 0.22 + (sp - 0.5) * 0.4;
+      group.rotation.x = mouse.sy * 0.12 + (sp - 0.5) * 0.08;
+      group.scale.setScalar(1 + 0.015 * Math.sin(time * 1.3));
+      camera.position.z = camDist * (1.06 - 0.12 * sp);
 
       pointsMat!.uniforms.uProgress.value = state.progress;
-      update(dt, time);
+      update(dt);
       renderer.render(scene, camera);
+      placeLabels();
       schedule();
     };
 
@@ -718,6 +864,28 @@ export function BrainScene() {
     const onPointer = (ev: PointerEvent) => {
       mouse.x = (ev.clientX / window.innerWidth) * 2 - 1;
       mouse.y = (ev.clientY / window.innerHeight) * 2 - 1;
+      mouse.px = ev.clientX;
+      mouse.py = ev.clientY;
+      const r = canvas.getBoundingClientRect();
+      mouse.inside = ev.pointerType === "mouse" && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+    };
+    const onLeave = () => {
+      mouse.inside = false;
+    };
+
+    // klik / ťuknutie: rázová vlna + kaskáda z najbližších neurónov
+    const onDown = (ev: PointerEvent) => {
+      if (!ready || state.progress < 0.9 || (ev.target as HTMLElement | null)?.closest("a,button")) return;
+      if (!pick(ev.clientX, ev.clientY, tmp)) return;
+      uShock.set(tmp.x, tmp.y, tmp.z, time);
+      for (const node of nearestNodes(tmp, 5)) spawnFromNode(node, 0);
+      if (reduced) return;
+      schedule();
+    };
+
+    focusRef.current.set = (i: number) => {
+      focusRef.current.index = i;
+      focus.timer = 0;
     };
 
     const io = new IntersectionObserver(
@@ -741,7 +909,6 @@ export function BrainScene() {
       showFallback();
     };
     canvas.addEventListener("webglcontextlost", onContextLost);
-
     (async () => {
       const cloud = (await sampleImage(pointCount)) ?? proceduralCloud(pointCount);
       if (cancelled) return;
@@ -763,8 +930,13 @@ export function BrainScene() {
           uTime: { value: 0 },
           uProgress: { value: state.progress },
           uScale: { value: 400 },
-          uSize: { value: small ? 0.028 : 0.021 },
+          uSize: { value: small ? 0.016 : 0.0125 },
+          uDpr: { value: dpr },
+          uVariant: { value: variant },
           uPulses: { value: pulses },
+          uMouse: { value: uMouse },
+          uShock: { value: uShock },
+          uFocus: { value: uFocus },
         },
       });
       const brain = new Points(geo, pointsMat);
@@ -792,7 +964,7 @@ export function BrainScene() {
       const lineGeo = new BufferGeometry();
       lineGeo.setAttribute("position", new BufferAttribute(new Float32Array(lineVerts), 3));
       lineMat = new LineBasicMaterial({
-        color: 0xb9a2fe,
+        color: variant === 2 ? 0xd2ff6b : 0xb9a2fe,
         transparent: true,
         opacity: 0,
         blending: AdditiveBlending,
@@ -822,7 +994,7 @@ export function BrainScene() {
         transparent: true,
         depthWrite: false,
         blending: AdditiveBlending,
-        uniforms: { uScale: { value: 400 }, uSize: { value: small ? 0.06 : 0.048 } },
+        uniforms: { uScale: { value: 400 }, uSize: { value: small ? 0.05 : 0.04 } },
       });
       const signals = new Points(sigGeo, signalMat);
       signals.frustumCulled = false;
@@ -835,11 +1007,15 @@ export function BrainScene() {
       ro.observe(wrap);
       io.observe(wrap);
       window.addEventListener("pointermove", onPointer, { passive: true });
+      window.addEventListener("pointerdown", onDown);
+      window.addEventListener("resize", resize);
+      document.documentElement.addEventListener("pointerleave", onLeave);
       document.addEventListener("visibilitychange", onVisibility);
       if (reduced) {
         pointsMat.uniforms.uProgress.value = 1;
         group.rotation.y = -0.12;
         renderer.render(scene, camera);
+        placeLabels();
       }
     })();
 
@@ -849,6 +1025,9 @@ export function BrainScene() {
       io.disconnect();
       ro.disconnect();
       window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("resize", resize);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       disposables.forEach((d) => d.dispose());
@@ -861,15 +1040,7 @@ export function BrainScene() {
       ref={wrapRef}
       role="img"
       aria-label={IMG_ALT}
-      style={{
-        position: "relative",
-        width: "100%",
-        maxWidth: "900px",
-        margin: "0 auto",
-        height: "clamp(360px, 60vw, 560px)",
-        WebkitMaskImage: "radial-gradient(ellipse closest-side,#000 80%,transparent 100%)",
-        maskImage: "radial-gradient(ellipse closest-side,#000 80%,transparent 100%)",
-      }}
+      style={{ position: "relative", width: "100%", height: "100%", ...style }}
     >
       <canvas
         ref={canvasRef}
@@ -880,16 +1051,52 @@ export function BrainScene() {
         ref={fallbackRef}
         alt=""
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-          opacity: 0,
-          pointerEvents: "none",
-        }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", opacity: 0, pointerEvents: "none" }}
       />
+      {labels.map((l, i) => (
+        <div
+          key={l.text}
+          ref={(el) => {
+            labelRefs.current[i] = el;
+          }}
+          className="brain-anchor"
+          style={{ position: "absolute", left: 0, top: 0, opacity: 0, zIndex: 3, willChange: "transform" }}
+        >
+          <span className="brain-node" aria-hidden="true" />
+          <svg
+            aria-hidden="true"
+            width={Math.abs(l.offset[0]) + 2}
+            height={Math.abs(l.offset[1]) + 2}
+            style={{
+              position: "absolute",
+              left: Math.min(0, l.offset[0]),
+              top: Math.min(0, l.offset[1]),
+              overflow: "visible",
+              pointerEvents: "none",
+            }}
+          >
+            <line
+              className="brain-lead"
+              x1={l.offset[0] < 0 ? -l.offset[0] : 0}
+              y1={l.offset[1] < 0 ? -l.offset[1] : 0}
+              x2={l.offset[0] < 0 ? 0 : l.offset[0]}
+              y2={l.offset[1] < 0 ? 0 : l.offset[1]}
+            />
+          </svg>
+          <button
+            type="button"
+            className="brain-pill"
+            style={{ transform: `translate(${l.offset[0]}px, ${l.offset[1]}px) translate(${l.offset[0] < 0 ? "-100%" : "0"}, -50%)` }}
+            onPointerEnter={() => focusRef.current.set(i)}
+            onPointerLeave={() => focusRef.current.set(-1)}
+            onFocus={() => focusRef.current.set(i)}
+            onBlur={() => focusRef.current.set(-1)}
+          >
+            <span className="dotp" aria-hidden="true" />
+            {l.text}
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
