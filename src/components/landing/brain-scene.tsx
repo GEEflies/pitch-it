@@ -120,15 +120,15 @@ void main() {
     base = mix(base, LIME, ridge * 0.7);
   }
   vec3 hot = uVariant > 1.5 ? WHITE : LIME_SOFT;
-  vColor = mix(base, hot, clamp(g, 0.0, 1.0)) * (1.0 + g * 0.35);
+  vColor = mix(base, hot, clamp(g, 0.0, 1.0) * 0.85);
 
   vec4 world = modelMatrix * vec4(p, 1.0);
   float depth = clamp(world.z / 2.6 + 0.5, 0.0, 1.0);
   float dim = uVariant > 0.5 && uVariant < 1.5 ? 0.55 : 1.0;
-  vAlpha = ((0.16 + 0.78 * aRidge * aRidge) * dim * twinkle * (0.35 + 0.65 * depth) + g * 0.3) * smoothstep(0.0, 0.35, t);
+  vAlpha = ((0.16 + 0.78 * aRidge * aRidge) * dim * twinkle * (0.35 + 0.65 * depth) + g * 0.22) * smoothstep(0.0, 0.35, t);
 
   vec4 mv = viewMatrix * world;
-  float size = uSize * (0.7 + aRidge * 0.8) * (1.0 + g * 0.6) * smoothstep(0.0, 0.2, t);
+  float size = uSize * (0.8 + aRidge * 0.5) * (1.0 + g * 0.25) * smoothstep(0.0, 0.2, t);
   float px = max(size * uScale / -mv.z, 0.0);
   // aspoň ~1.6 CSS px, nech bodky nie sú subpixelová hmla
   px = max(px, 1.25 * uDpr * step(0.001, t));
@@ -591,7 +591,9 @@ export function BrainScene({ labels = [], style }: { labels?: BrainLabel[]; styl
       return;
     }
     renderer.setClearColor(0x000000, 0);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // pri zoome prehliadača rastie devicePixelRatio; prepočítava sa v resize(), inak sa plátno rozmaže
+    const maxDpr = small ? 2.5 : 3;
+    let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     renderer.setPixelRatio(dpr);
 
     const scene = new Scene();
@@ -635,7 +637,10 @@ export function BrainScene({ labels = [], style }: { labels?: BrainLabel[]; styl
     const resize = () => {
       const w = Math.max(1, wrap.clientWidth);
       const h = Math.max(1, wrap.clientHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      renderer.setPixelRatio(dpr);
       renderer.setSize(w, h, false);
+      if (pointsMat) pointsMat.uniforms.uDpr.value = dpr;
       camera.aspect = w / h;
       const tan = Math.tan((FOV * Math.PI) / 360);
       camDist = Math.max(4.2 / (2 * tan), 5.3 / (2 * tan * camera.aspect));
@@ -1003,6 +1008,7 @@ export function BrainScene({ labels = [], style }: { labels?: BrainLabel[]; styl
       io.observe(wrap);
       window.addEventListener("pointermove", onPointer, { passive: true });
       window.addEventListener("pointerdown", onDown);
+      window.addEventListener("resize", resize);
       document.documentElement.addEventListener("pointerleave", onLeave);
       document.addEventListener("visibilitychange", onVisibility);
       if (reduced) {
@@ -1020,6 +1026,7 @@ export function BrainScene({ labels = [], style }: { labels?: BrainLabel[]; styl
       ro.disconnect();
       window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("resize", resize);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
