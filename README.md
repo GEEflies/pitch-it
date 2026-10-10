@@ -31,7 +31,7 @@ Many founders have a great idea and then freeze up when they pitch it on stage. 
 ## Tech (planned)
 
 - **Frontend:** web app (desktop and webcam first)
-- **Live gesture tracking:** vision / pose model in the browser
+- **Live gesture tracking:** open-source pose / movement model from Hugging Face
 - **Feedback engine:** LLM + RAG over a startup-pitch knowledge base
 - **Audio:** text-to-speech for spoken lessons
 
