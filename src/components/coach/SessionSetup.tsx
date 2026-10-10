@@ -111,9 +111,14 @@ export default function SessionSetup({
     prompter.scriptId === "custom" ? prompter.customText : SCRIPTS.find((s) => s.id === prompter.scriptId)?.text;
   const canStart = canStartOuter && (prompter.scriptId !== "custom" || prompter.customText.trim().length > 0);
   let n = 0;
+  const settingsSummary = [
+    micMode ? "Mikrofón v ruke" : "Bez mikrofónu v ruke",
+    `${QUALITIES.find((q) => q.id === quality)?.title ?? ""} sledovanie`,
+    prompter.scriptId === null ? "bez telepromptra" : "s teleprompterom",
+  ].join(" · ");
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 py-10 md:px-8">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 md:px-8">
       <div className="flex flex-col gap-3">
         <Link href={backHref} className="text-sm font-bold uppercase tracking-[0.3em] text-signal">
           ← {backLabel}
@@ -152,135 +157,11 @@ export default function SessionSetup({
         </section>
       ) : null}
 
-      <section>
-        <SectionTitle n={++n}>Ako budeš hovoriť?</SectionTitle>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Card
-            active={!micMode}
-            onClick={() => onMic(false)}
-            title="Bez mikrofónu v ruke"
-            meta="obe ruky"
-            text="Obe ruky voľné. Hodnotíme gestá oboch rúk."
-          />
-          <Card
-            active={micMode}
-            onClick={() => onMic(true)}
-            title="Mikrofón v ruke"
-            meta="jedna ruka"
-            text="Ruku s mikrofónom vynecháme a sledujeme, či ho držíš pri ústach."
-          />
-        </div>
-
-        {micMode && (
-          <>
-            <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-widest text-faint">V ktorej ruke držíš mikrofón?</p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Card
-                active={micHand === "left"}
-                onClick={() => onMicHand("left")}
-                title="V ľavej"
-                meta="pravák"
-                text="Gestikuluješ pravou rukou."
-              />
-              <Card
-                active={micHand === "auto"}
-                onClick={() => onMicHand("auto")}
-                title="Rozpoznať automaticky"
-                meta="auto"
-                text="Vyberieme ruku, ktorá zostáva pri ústach."
-              />
-              <Card
-                active={micHand === "right"}
-                onClick={() => onMicHand("right")}
-                title="V pravej"
-                meta="ľavák"
-                text="Gestikuluješ ľavou rukou."
-              />
-            </div>
-          </>
-        )}
-
-        <p className="mb-3 mt-8 text-xs font-bold uppercase tracking-widest text-faint">Kvalita sledovania</p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {QUALITIES.map((q) => (
-            <Card key={q.id} active={quality === q.id} onClick={() => onQuality(q.id)} title={q.title} meta={q.meta} text={q.text} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <SectionTitle n={++n}>Teleprompter</SectionTitle>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Card
-            active={prompter.scriptId === null}
-            onClick={() => onPrompter({ ...prompter, scriptId: null })}
-            title="Bez textu"
-            meta="voľne"
-            text="Hovoríš spamäti."
-          />
-          {SCRIPTS.map((s) => (
-            <Card
-              key={s.id}
-              active={prompter.scriptId === s.id}
-              onClick={() => onPrompter({ ...prompter, scriptId: s.id })}
-              title={s.title.replace(/ \(.*\)$/, "")}
-              meta={s.title.match(/\((.*)\)/)?.[1] ?? ""}
-              text="Ukážkový text s pokynmi na gestá."
-            />
-          ))}
-          <Card
-            active={prompter.scriptId === "custom"}
-            onClick={() => onPrompter({ ...prompter, scriptId: "custom" })}
-            title="Môj vlastný text"
-            meta="vložiť"
-            text="Vlož svoj pitch. Pridaj pokyny ako [krok] alebo [otvorené dlane]."
-          />
-        </div>
-
-        {prompter.scriptId === "custom" && (
-          <textarea
-            value={prompter.customText}
-            onChange={(e) => onPrompter({ ...prompter, customText: e.target.value })}
-            placeholder="Sem vlož svoj pitch. Odseky oddeľ prázdnym riadkom, pokyny daj do hranatých zátvoriek, napr. [pauza] alebo [počítaj na prstoch]."
-            className="mt-4 h-48 w-full rounded-2xl border border-line bg-ink p-4 text-paper outline-none focus:border-signal"
-          />
-        )}
-
-        {prompter.scriptId !== null && (
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-3 text-mute">
-              Rýchlosť čítania
-              <select
-                value={prompter.wpm}
-                onChange={(e) => onPrompter({ ...prompter, wpm: Number(e.target.value) })}
-                className="rounded-lg border border-line bg-ink px-3 py-2"
-              >
-                <option value={110}>Pomaly · 110 slov/min</option>
-                <option value={130}>Pokojne · 130 slov/min</option>
-                <option value={150}>Tempo TED · 150 slov/min</option>
-                <option value={170}>Rýchlo · 170 slov/min</option>
-              </select>
-            </label>
-            <p className="text-sm text-faint">
-              Počas nahrávania: <b className="text-mute">medzerník</b> pozastaví, <b className="text-mute">↑ ↓</b> mení rýchlosť.
-            </p>
-          </div>
-        )}
-        {prompterText && prompter.scriptId !== "custom" && (
-          <p className="mt-4 line-clamp-3 max-w-3xl text-sm text-faint">{prompterText}</p>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionTitle n={++n}>Postav sa do záberu</SectionTitle>
-        <ul className="grid gap-2 text-mute sm:grid-cols-2">
+      <section className="flex flex-col gap-5 rounded-3xl border border-line bg-ink/60 p-6 md:p-8">
+        <ul className="grid gap-2 text-mute sm:grid-cols-3">
           <li>• Postav sa 2 až 3 m od kamery.</li>
-          <li>• Kamera musí vidieť trup, ideálne až po kolená.</li>
-          <li>• Počas odpočtu sa pozeraj rovno do kamery, nastavíme podľa toho polohu hlavy.</li>
-          <li>
-            • Farba siluety: <span className="text-signal">zelená</span> dobre, <span className="text-marker">žltá</span> pozor,{" "}
-            <span className="text-danger">červená</span> oprav to.
-          </li>
+          <li>• Kamera vidí trup, ideálne po kolená.</li>
+          <li>• Pri odpočte sa pozri do kamery.</li>
         </ul>
         {children}
         {error && <p className="rounded-xl bg-danger/15 p-4 text-coral">{error}</p>}
@@ -296,6 +177,140 @@ export default function SessionSetup({
           <p className="text-sm text-faint">Video sa spracúva iba v tvojom prehliadači a nikam sa neodosiela.</p>
         </div>
       </section>
+
+      {/* Pokročilé voľby sú predvolene zbalené; väčšina ľudí ich nemusí meniť. */}
+      <details className="group rounded-3xl border border-line">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 md:px-8 [&::-webkit-details-marker]:hidden">
+          <span className="flex flex-col gap-1">
+            <span className="font-bold">Nastavenia</span>
+            <span className="text-sm text-mute">{settingsSummary}</span>
+          </span>
+          <span className="text-sm font-bold text-signal">
+            <span className="group-open:hidden">Upraviť</span>
+            <span className="hidden group-open:inline">Zbaliť</span>
+          </span>
+        </summary>
+        <div className="flex flex-col gap-10 border-t border-line p-5 md:p-8">
+          <section>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Ako budeš hovoriť?</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Card
+                active={!micMode}
+                onClick={() => onMic(false)}
+                title="Bez mikrofónu v ruke"
+                meta="obe ruky"
+                text="Obe ruky voľné. Hodnotíme gestá oboch rúk."
+              />
+              <Card
+                active={micMode}
+                onClick={() => onMic(true)}
+                title="Mikrofón v ruke"
+                meta="jedna ruka"
+                text="Ruku s mikrofónom vynecháme a sledujeme, či ho držíš pri ústach."
+              />
+            </div>
+
+            {micMode && (
+              <>
+                <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-widest text-faint">V ktorej ruke držíš mikrofón?</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Card
+                    active={micHand === "left"}
+                    onClick={() => onMicHand("left")}
+                    title="V ľavej"
+                    meta="pravák"
+                    text="Gestikuluješ pravou rukou."
+                  />
+                  <Card
+                    active={micHand === "auto"}
+                    onClick={() => onMicHand("auto")}
+                    title="Rozpoznať automaticky"
+                    meta="auto"
+                    text="Vyberieme ruku, ktorá zostáva pri ústach."
+                  />
+                  <Card
+                    active={micHand === "right"}
+                    onClick={() => onMicHand("right")}
+                    title="V pravej"
+                    meta="ľavák"
+                    text="Gestikuluješ ľavou rukou."
+                  />
+                </div>
+              </>
+            )}
+
+            <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-widest text-faint">Kvalita sledovania</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {QUALITIES.map((q) => (
+                <Card key={q.id} active={quality === q.id} onClick={() => onQuality(q.id)} title={q.title} meta={q.meta} text={q.text} />
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Teleprompter</p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Card
+                active={prompter.scriptId === null}
+                onClick={() => onPrompter({ ...prompter, scriptId: null })}
+                title="Bez textu"
+                meta="voľne"
+                text="Hovoríš spamäti."
+              />
+              {SCRIPTS.map((s) => (
+                <Card
+                  key={s.id}
+                  active={prompter.scriptId === s.id}
+                  onClick={() => onPrompter({ ...prompter, scriptId: s.id })}
+                  title={s.title.replace(/ \(.*\)$/, "")}
+                  meta={s.title.match(/\((.*)\)/)?.[1] ?? ""}
+                  text="Ukážkový text s pokynmi na gestá."
+                />
+              ))}
+              <Card
+                active={prompter.scriptId === "custom"}
+                onClick={() => onPrompter({ ...prompter, scriptId: "custom" })}
+                title="Môj vlastný text"
+                meta="vložiť"
+                text="Vlož svoj pitch. Pridaj pokyny ako [krok] alebo [otvorené dlane]."
+              />
+            </div>
+
+            {prompter.scriptId === "custom" && (
+              <textarea
+                value={prompter.customText}
+                onChange={(e) => onPrompter({ ...prompter, customText: e.target.value })}
+                placeholder="Sem vlož svoj pitch. Odseky oddeľ prázdnym riadkom, pokyny daj do hranatých zátvoriek, napr. [pauza] alebo [počítaj na prstoch]."
+                className="mt-4 h-48 w-full rounded-2xl border border-line bg-ink p-4 text-paper outline-none focus:border-signal"
+              />
+            )}
+
+            {prompter.scriptId !== null && (
+              <div className="mt-4 flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-3 text-mute">
+                  Rýchlosť čítania
+                  <select
+                    value={prompter.wpm}
+                    onChange={(e) => onPrompter({ ...prompter, wpm: Number(e.target.value) })}
+                    className="rounded-lg border border-line bg-ink px-3 py-2"
+                  >
+                    <option value={110}>Pomaly · 110 slov/min</option>
+                    <option value={130}>Pokojne · 130 slov/min</option>
+                    <option value={150}>Tempo TED · 150 slov/min</option>
+                    <option value={170}>Rýchlo · 170 slov/min</option>
+                  </select>
+                </label>
+                <p className="text-sm text-faint">
+                  Počas nahrávania: <b className="text-mute">medzerník</b> pozastaví, <b className="text-mute">↑ ↓</b> mení rýchlosť.
+                </p>
+              </div>
+            )}
+            {prompterText && prompter.scriptId !== "custom" && (
+              <p className="mt-4 line-clamp-3 max-w-3xl text-sm text-faint">{prompterText}</p>
+            )}
+          </section>
+        </div>
+      </details>
     </div>
   );
 }
