@@ -1,5 +1,7 @@
 # Pitch It
 
+> Vzniklo na **Startup Weekend Žilina 2026** 🇸🇰
+
 Tréning investorských stretnutí. Founder nahrá podklady startupu, vyberie investora a scenár a naživo sa rozpráva s AI investorom (hlas, voliteľne kamera). Po tréningu dostane rozbor obsahu, prednesu a neverbálnych signálov a cvičenia na slabé miesta.
 
 ```
@@ -128,3 +130,7 @@ tests/                                                         unit testy + test
 - [ ] Staging test: registrácia → projekt → deck → hlasový tréning → report → cvičenie → porovnanie, na desktope aj mobile (Chrome, Safari).
 - [ ] 10 testovacích rozhovorov v slovenčine s meraním kvality prepisu a reálnej ceny za minútu (`training_sessions.provider_usage`).
 - [ ] Monitoring chýb (napríklad Sentry) a upozornenie na zlyhania reportov (`feedback_reports.status = 'failed'`).
+
+## Tím
+
+Tím zo Startup Weekend Žilina 2026. Príspevky sú vítané, otvor issue alebo PR.
