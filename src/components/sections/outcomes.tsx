@@ -62,7 +62,7 @@ export function Outcomes() {
             Čo získaš
           </h2>
           <p className="mt-5 max-w-[28rem] text-lg leading-relaxed text-mute">
-            Pitch It ti nezaručí investíciu. Jeho cieľom je, aby ťa na
+            PitchIt ti nezaručí investíciu. Jeho cieľom je, aby ťa na
             stretnutí nič podstatné nezaskočilo.
           </p>
         </div>

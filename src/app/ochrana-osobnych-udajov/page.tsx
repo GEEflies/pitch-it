@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Ochrana osobných údajov",
-  description: "Ako Pitch It spracúva osobné údaje: účet, podklady, hlasový tréning, kamera a early access.",
+  description: "Ako PitchIt spracúva osobné údaje: účet, podklady, hlasový tréning, kamera a early access.",
   alternates: { canonical: "/ochrana-osobnych-udajov" },
 };
 
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
     <LegalPage title="Ochrana osobných údajov" updated="10. 10. 2026">
       <LegalSection title="Kto údaje spracúva">
         <p>
-          Prevádzkovateľom je {legal.entityName ? <strong>{legal.entityName}</strong> : "prevádzkovateľ služby Pitch It"}
+          Prevádzkovateľom je {legal.entityName ? <strong>{legal.entityName}</strong> : "prevádzkovateľ služby PitchIt"}
           {legal.entityId ? <>, IČO {legal.entityId}</> : null}
           {legal.entityAddress ? <>, {legal.entityAddress}</> : null}.
           {contactEmail ? (

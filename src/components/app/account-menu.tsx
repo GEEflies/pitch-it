@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/lib/auth/actions";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getProfile } from "@/lib/db/profile";
@@ -22,7 +23,7 @@ export async function AccountMenu() {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-line bg-panel px-3 py-3">
+      <div className="surface-card rounded-xl px-3 py-3">
         <div className="flex items-center justify-between gap-2 text-xs">
           <span className="font-medium text-paper">Plán {billing.plan.name}</span>
           <span className="tabular-nums text-mute">
@@ -33,7 +34,7 @@ export async function AccountMenu() {
           <div className={`h-full rounded-full ${used >= limit ? "bg-marker" : "bg-signal"}`} style={{ width: `${ratio * 100}%` }} />
         </div>
         {billing.plan.id === "free" ? (
-          <Link href="/app/nastavenia#plan" className="mt-2.5 block text-xs font-medium text-signal-soft hover:text-paper">
+          <Link href="/app/nastavenia#plan" className="mt-2.5 block text-xs font-bold text-signal-soft hover:text-paper">
             Prejsť na Pro →
           </Link>
         ) : null}
@@ -57,7 +58,10 @@ export async function AccountMenu() {
             <path d="m6 12 4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </summary>
-        <div className="absolute inset-x-0 bottom-full z-50 mb-1 rounded-lg border border-line bg-panel p-1 shadow-lg">
+        <div className="absolute inset-x-0 bottom-full z-50 mb-1 rounded-xl border border-line bg-panel p-1 shadow-[var(--shadow-card)]">
+          <div className="px-1.5 pt-1.5 pb-2">
+            <ThemeToggle />
+          </div>
           <Link href="/app/nastavenia" className="block rounded-md px-2.5 py-1.5 text-sm text-mute hover:bg-panel-2 hover:text-paper">
             Nastavenia účtu
           </Link>

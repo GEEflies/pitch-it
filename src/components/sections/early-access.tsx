@@ -25,7 +25,7 @@ export function EarlyAccess() {
         className="pointer-events-none absolute -bottom-64 left-1/2 h-[760px] w-[1200px] -translate-x-1/2"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(59,130,246,0.22), rgba(59,130,246,0.06) 55%, transparent 78%)",
+            "radial-gradient(closest-side, rgba(125,81,254,0.22), rgba(125,81,254,0.06) 55%, transparent 78%)",
         }}
       />
 
@@ -38,7 +38,7 @@ export function EarlyAccess() {
             Ďalšie stretnutie si natrénuj vopred.
           </h2>
           <p className="mt-6 max-w-[28rem] text-lg leading-relaxed text-mute">
-            Pitch It pripravujeme. Zapíš sa na early access a medzi prvými si
+            PitchIt pripravujeme. Zapíš sa na early access a medzi prvými si
             vyskúšaš simuláciu na vlastných podkladoch.
           </p>
 

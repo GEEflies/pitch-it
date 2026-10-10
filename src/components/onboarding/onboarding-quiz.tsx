@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { LogoMark } from "@/components/wordmark";
+import { Wordmark } from "@/components/wordmark";
 import { buttonClasses } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/submit-button";
-import { siteConfig } from "@/config/site";
 import { STAGES, STAGE_LABELS, TRAINING_MODE_LABELS, type Stage } from "@/lib/domain/labels";
 import { INVESTOR_STYLES, SCENARIOS } from "@/lib/investor/catalog";
 import { skipOnboarding, submitOnboarding } from "@/lib/onboarding/actions";
@@ -78,14 +77,14 @@ function OptionButton({
       role={multi ? "checkbox" : "radio"}
       aria-checked={selected}
       onClick={onClick}
-      className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3.5 text-left transition-colors ${
-        selected ? "border-signal bg-signal/10" : "border-line bg-panel hover:border-line-strong hover:bg-panel-2"
+      className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors ${
+        selected ? "border-signal bg-signal/10" : "border-line-strong bg-panel hover:border-mute"
       }`}
     >
       <span
         aria-hidden="true"
         className={`inline-flex size-[18px] shrink-0 items-center justify-center border ${multi ? "rounded" : "rounded-full"} ${
-          selected ? "border-signal bg-signal text-white" : "border-line-strong"
+          selected ? "border-signal bg-signal text-on-signal" : "border-line-strong"
         }`}
       >
         {selected ? (
@@ -107,7 +106,7 @@ function Question({ step, title, hint, children }: { step: number; title: string
   useEffect(() => headingRef.current?.focus(), [step]);
   return (
     <div key={step} className="fade-up">
-      <p className="text-sm text-mute">
+      <p className="type-eyebrow">
         Otázka {step + 1} z {STEP_COUNT}
       </p>
       <h1 ref={headingRef} tabIndex={-1} className="type-display mt-2 text-[1.75rem] outline-none md:text-[2rem]">
@@ -164,7 +163,7 @@ function PlanView({
   const scenario = SCENARIOS[plan.firstSession.scenarioKey];
   return (
     <div className="fade-up">
-      <p className="text-sm font-medium text-mint">Plán je pripravený</p>
+      <p className="type-eyebrow">Plán je pripravený</p>
       <h1 className="type-display mt-2 text-[1.75rem] md:text-[2.25rem]">Tvoj plán pre {startupName} {plan.horizon}</h1>
 
       <dl className="mt-7 grid grid-cols-2 gap-3">
@@ -308,10 +307,7 @@ export function OnboardingQuiz({ freeMinutes, preview = false }: { freeMinutes: 
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-line">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <span className="inline-flex items-center gap-2 text-[15px] font-semibold">
-            <LogoMark className="size-7" />
-            {siteConfig.name}
-          </span>
+          <Wordmark />
           {phase === "quiz" && preview ? (
             <Link href={href("/app")} className="rounded-md px-2 py-1 text-sm text-mute hover:text-paper">
               Preskočiť
@@ -422,7 +418,7 @@ export function OnboardingQuiz({ freeMinutes, preview = false }: { freeMinutes: 
                     value={draft.startupName}
                     onChange={(event) => setDraft((current) => ({ ...current, startupName: event.target.value }))}
                     placeholder="Napr. Faktúrka"
-                    className="h-12 w-full rounded-lg border border-line-strong bg-panel px-4 text-[15px] text-paper outline-none placeholder:text-faint focus:border-signal-soft"
+                    className="min-h-[46px] w-full rounded-xl border border-line-strong bg-panel px-4 text-[15px] text-paper outline-none placeholder:text-faint focus:border-signal focus:shadow-[0_0_0_3px_rgba(170,255,0,0.18)]"
                   />
                   <button type="submit" disabled={pending || !draft.startupName.trim()} className={buttonClasses({ size: "lg", className: "mt-6 w-full" })}>
                     Vytvoriť môj plán

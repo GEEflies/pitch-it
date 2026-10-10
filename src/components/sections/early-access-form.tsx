@@ -272,7 +272,7 @@ export function EarlyAccessForm({ available, setupHint }: Props) {
           >
             <svg
               viewBox="0 0 16 16"
-              className={`size-3.5 text-white transition-opacity ${consent ? "opacity-100" : "opacity-0"}`}
+              className={`size-3.5 text-on-signal transition-opacity ${consent ? "opacity-100" : "opacity-0"}`}
             >
               <path
                 d="M3.5 8.5l3 3 6-7"
@@ -286,7 +286,7 @@ export function EarlyAccessForm({ available, setupHint }: Props) {
           </span>
           <span className="text-[14px] leading-relaxed text-mute">
             Súhlasím so spracovaním e-mailu a odpovedí z formulára na účely early
-            access a informovania o spustení Pitch It. Súhlas môžem kedykoľvek
+            access a informovania o spustení PitchIt. Súhlas môžem kedykoľvek
             odvolať. Viac v{" "}
             <Link href="/ochrana-osobnych-udajov" className="link-underline text-paper">
               zásadách ochrany osobných údajov

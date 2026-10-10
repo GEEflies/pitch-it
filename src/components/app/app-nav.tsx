@@ -29,10 +29,10 @@ function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavIt
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors duration-150 ${
-                active ? "bg-panel-2 font-medium text-paper" : "text-mute hover:bg-panel hover:text-paper"
+                active ? "bg-signal/10 font-medium text-paper" : "text-mute hover:bg-panel hover:text-paper"
               }`}
             >
-              <NavIcon d={item.icon} className={active ? "text-paper" : "text-faint"} />
+              <NavIcon d={item.icon} className={active ? "text-accent" : "text-faint"} />
               {item.label}
             </Link>
           </li>
@@ -47,7 +47,7 @@ function NewTrainingButton({ onNavigate }: { onNavigate?: () => void }) {
     <Link
       href="/app/trening/novy"
       onClick={onNavigate}
-      className="flex h-9 items-center justify-center gap-2 rounded-md bg-signal px-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-signal-hover"
+      className="flex h-10 items-center justify-center gap-2 rounded-full border border-signal bg-[linear-gradient(135deg,var(--color-signal-soft),var(--color-signal)_55%,var(--color-signal-deep))] px-4 text-sm font-bold text-on-signal transition-[filter,transform] hover:-translate-y-0.5 hover:brightness-[1.08]"
     >
       <NavIcon d={NEW_TRAINING_ICON} />
       Nový tréning
@@ -73,7 +73,7 @@ function SidebarBody({
         </div>
       ) : null}
       <nav aria-label="Aplikácia" className="mt-5 flex flex-1 flex-col">
-        <p className="mb-1.5 px-2.5 text-xs font-medium tracking-wide text-faint uppercase">Pracovný priestor</p>
+        <p className="mb-1.5 px-2.5 text-[11px] font-bold tracking-[0.12em] text-faint uppercase">Pracovný priestor</p>
         <NavLinks items={items} onNavigate={onNavigate} />
         {variant === "app" ? (
           <div className="mt-auto pt-6">
@@ -122,7 +122,7 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-ink-2 px-3 py-4 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-ink-2/80 px-3 py-4 backdrop-blur lg:flex">
         <Wordmark className="px-1.5" />
         <SidebarBody variant={variant} footer={account} />
       </aside>
@@ -136,7 +136,7 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
           aria-expanded={open}
           aria-controls={panelId}
           aria-label={open ? "Zavrieť menu" : "Otvoriť menu"}
-          className="inline-flex size-10 items-center justify-center rounded-md border border-line-strong text-paper"
+          className="inline-flex size-10 items-center justify-center rounded-full border border-line-strong text-paper"
         >
           <svg viewBox="0 0 20 20" aria-hidden="true" className="size-5">
             <path

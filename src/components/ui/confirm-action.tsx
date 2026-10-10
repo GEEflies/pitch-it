@@ -91,7 +91,7 @@ export function ConfirmAction({
               onClick={confirm}
               disabled={pending}
               className={buttonClasses({
-                className: tone === "danger" ? "bg-coral text-ink shadow-none hover:bg-coral/90" : "",
+                className: tone === "danger" ? "bg-coral text-on-signal shadow-none hover:bg-coral/90" : "",
               })}
             >
               {pending ? (

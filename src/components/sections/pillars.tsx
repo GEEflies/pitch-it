@@ -62,7 +62,7 @@ export function Pillars() {
             Tréning na otázky, nie generátor slidov
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-mute">
-            Pitch It ti neurobí deck a nebude ti chváliť každú odpoveď. Je to
+            PitchIt ti neurobí deck a nebude ti chváliť každú odpoveď. Je to
             sparingpartner na chvíľu po prezentácii, keď sa začnú otázky.
           </p>
         </div>

@@ -3,18 +3,18 @@ import { LegalPage, LegalSection } from "@/components/legal-page";
 
 export const metadata: Metadata = {
   title: "Podmienky používania",
-  description: "Podmienky používania služby Pitch It.",
+  description: "Podmienky používania služby PitchIt.",
   alternates: { canonical: "/podmienky" },
 };
 
 export default function TermsPage() {
   return (
     <LegalPage title="Podmienky používania" updated="10. 10. 2026">
-      <LegalSection title="Čo Pitch It je">
+      <LegalSection title="Čo PitchIt je">
         <p>
-          Pitch It je tréningový nástroj. Simulovaný investor kladie otázky podľa tvojich podkladov a po tréningu dostaneš rozbor. Simulácia nie je skutočný investor a rozbor nie je predpoveďou rozhodnutia žiadneho investora.
+          PitchIt je tréningový nástroj. Simulovaný investor kladie otázky podľa tvojich podkladov a po tréningu dostaneš rozbor. Simulácia nie je skutočný investor a rozbor nie je predpoveďou rozhodnutia žiadneho investora.
         </p>
-        <p>Pitch It neposkytuje investičné, právne, daňové ani finančné poradenstvo.</p>
+        <p>PitchIt neposkytuje investičné, právne, daňové ani finančné poradenstvo.</p>
       </LegalSection>
 
       <LegalSection title="Účet">

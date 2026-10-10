@@ -1,7 +1,30 @@
 import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, DM_Sans, Outfit } from "next/font/google";
 import { MotionProvider } from "@/components/motion-provider";
+import { THEME_INIT_SCRIPT } from "@/components/theme-toggle";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
+
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "700"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin", "latin-ext"],
+  weight: ["700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -30,13 +53,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090b",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#141414" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f5f1" },
+  ],
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="sk">
+    <html lang="sk" className={`${bricolage.variable} ${dmSans.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-dvh">
         <a
           href="#obsah"

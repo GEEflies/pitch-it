@@ -144,10 +144,18 @@ Headings end with a full stop: "Vytvor si účet.", "Tri kroky k lepšiemu pitch
 
 ---
 
-## Differences from the current codebase
+## Status in the app
 
-Things the team should decide before the brand goes into the app:
+Applied on 2026-10-10:
+- **Name:** `PitchIt` everywhere in `src`.
+- **Tokens:** in `src/app/globals.css`, using the existing token names. `accent` is accent-as-text, which is lime on dark and #2F6B00 on light. `on-signal` is dark text on lime.
+- **Fonts:** `src/app/layout.tsx`.
+- **Logo:** `src/components/wordmark.tsx`, plus the icons and OG image.
+- **Buttons:** pill buttons in `src/components/ui/button.ts`.
+- **Surfaces:** cards use `.surface-card` and eyebrows use `.type-eyebrow`.
+- **Light theme:** follows the system by default. Users can switch System, Light or Dark in the account menu (`src/components/theme-toggle.tsx`). The choice is kept in `localStorage`.
 
-1. **Name:** the design uses `PitchIt`; the code uses `Pitch It` (`src/config/site.ts` and copy in `src/content`, legal pages and the marketing sections).
-2. **Product shape:** the designs show a recorded-pitch coach (record 30 s to 3 min → analysis of tempo, pauses, filler words, content and body language → feedback, plus a mentor dashboard and an organiser role). The current app is a live voice conversation with a simulated investor, followed by a report. The design's onboarding has 3 questions (who you pitch to, length, what to show first) plus optional pitch notes; ours has 6.
-3. **Applying it:** values map onto the existing token names in `src/app/globals.css` (`ink` → #141414, `panel` → card colours, `line` → #333333, `paper` → #F5F5F7, `mute` → #B4B4BE, `signal` → #AAFF00 with dark text, `marker` → #FFC94D, `coral` → #FF7A59). Fonts go in `src/app/layout.tsx`, the logo in `src/components/wordmark.tsx`, and buttons become pills in `src/components/ui/button.ts`.
+Still open:
+1. **Product shape:** the designs show a recorded-pitch coach (record 30 s to 3 min, then analysis and feedback, plus a mentor dashboard). The app is a live voice conversation with a simulated investor, followed by a report.
+2. **Onboarding:** the design's onboarding has 3 questions; ours has 6.
+3. **Screen layouts:** the artboard layouts (landing, sign in/up, record, feedback, mentor) are not recreated one-to-one. Only the visual language is applied.

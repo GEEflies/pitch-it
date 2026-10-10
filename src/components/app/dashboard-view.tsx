@@ -33,8 +33,8 @@ export function DashboardView({ name, recommendation, sessions, exercises, billi
 
       <GettingStarted items={checklist} href={href} />
 
-      <section aria-labelledby="next-step" className="relative overflow-hidden rounded-xl border border-line bg-panel px-6 py-6 md:px-8 md:py-7">
-        <p id="next-step" className="text-sm font-medium text-signal-soft">
+      <section aria-labelledby="next-step" className="surface-card relative overflow-hidden px-6 py-6 shadow-[0_22px_50px_rgba(0,0,0,0.5)] md:px-8 md:py-7">
+        <p id="next-step" className="type-eyebrow">
           {name ? `${name}, tvoj ďalší krok` : "Tvoj ďalší krok"}
         </p>
         <h1 className="type-display mt-2 max-w-[40rem] text-[1.6rem] md:text-[1.85rem]">{recommendation.title}</h1>

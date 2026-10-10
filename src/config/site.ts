@@ -16,8 +16,8 @@ function optional(value: string | undefined): string | null {
 }
 
 export const siteConfig = {
-  name: "Pitch It",
-  title: "Pitch It – tréning investorských stretnutí",
+  name: "PitchIt",
+  title: "PitchIt – AI kouč pitchu pre zakladateľov",
   description:
     "Natrénuj si investorské stretnutie skôr, než príde naostro. Simulácia investora s doplňujúcimi otázkami a konkrétny feedback k tvojim odpovediam.",
   url: resolveSiteUrl(),

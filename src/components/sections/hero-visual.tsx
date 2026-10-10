@@ -61,7 +61,7 @@ export function HeroVisual() {
       <div aria-hidden="true">
         {/* Slide z decku */}
         <m.div
-          className="relative overflow-hidden rounded-[10px] bg-slide text-ink shadow-[0_50px_120px_-40px_rgba(59,130,246,0.6),0_0_0_1px_rgba(255,255,255,0.06)] md:w-[64%]"
+          className="relative overflow-hidden rounded-[10px] bg-slide text-on-signal shadow-[0_50px_120px_-40px_rgba(125,81,254,0.6),0_0_0_1px_rgba(255,255,255,0.06)] md:w-[64%]"
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1, ease, delay: 0.35 }}
@@ -75,10 +75,10 @@ export function HeroVisual() {
           />
           <div className="relative p-5 sm:p-7">
             <div className="flex items-baseline justify-between gap-4 text-[12px] sm:text-[13px]">
-              <span className="font-semibold text-ink/55">Slide 6</span>
-              <span className="text-ink/45 md:hidden">Ukážkový startup</span>
+              <span className="font-semibold text-on-signal/55">Slide 6</span>
+              <span className="text-on-signal/45 md:hidden">Ukážkový startup</span>
             </div>
-            <p className="type-heading mt-2 text-[1.5rem] text-ink sm:text-[1.75rem]">
+            <p className="type-heading mt-2 text-[1.5rem] text-on-signal sm:text-[1.75rem]">
               Trh a príležitosť
             </p>
 
@@ -101,7 +101,7 @@ export function HeroVisual() {
                   ?
                 </m.span>
               </p>
-              <p className="mt-1 text-[13px] leading-snug text-ink/60">
+              <p className="mt-1 text-[13px] leading-snug text-on-signal/60">
                 Celkový trh, európsky e-commerce
               </p>
             </div>
@@ -109,11 +109,11 @@ export function HeroVisual() {
             <div className="mt-6 flex gap-8">
               <div>
                 <p className="type-heading text-[1.35rem] whitespace-nowrap">380 mil. €</p>
-                <p className="mt-0.5 text-[13px] text-ink/60">Dostupný trh</p>
+                <p className="mt-0.5 text-[13px] text-on-signal/60">Dostupný trh</p>
               </div>
               <div>
                 <p className="type-heading text-[1.35rem] whitespace-nowrap">18 %</p>
-                <p className="mt-0.5 text-[13px] text-ink/60">Rast za mesiac</p>
+                <p className="mt-0.5 text-[13px] text-on-signal/60">Rast za mesiac</p>
               </div>
             </div>
 

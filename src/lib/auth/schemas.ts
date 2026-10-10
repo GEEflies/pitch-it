@@ -26,7 +26,7 @@ export const signUpSchema = z.object({
   email,
   password,
   accept_terms: checked("Na vytvorenie účtu potrebujeme tvoj súhlas s podmienkami."),
-  age_confirmed: checked("Pitch It je určený pre ľudí od 18 rokov."),
+  age_confirmed: checked("PitchIt je určený pre ľudí od 18 rokov."),
   product_emails: z.literal("on").optional(),
 });
 

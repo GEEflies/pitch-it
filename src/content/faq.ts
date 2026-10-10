@@ -11,7 +11,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     id: "pre-koho",
-    question: "Pre koho je Pitch It určený?",
+    question: "Pre koho je PitchIt určený?",
     answer: [
       "Pre founderov, ktorí sa chystajú na stretnutie s angel investorom alebo fondom. Najviac pomôže startupom v pre-seed a seed fáze.",
       "Oplatí sa aj vtedy, keď stretnutie ešte nemáš dohodnuté a chceš zistiť, kde máš medzery.",
@@ -30,12 +30,12 @@ export const faqItems: FaqItem[] = [
     question: "Je simulácia rovnaká ako skutočný investor?",
     answer: [
       "Nie. Simulácia vychádza z typov otázok, ktoré na investorských stretnutiach bežne zaznievajú, a prispôsobuje ich tvojim podkladom. Každý investor je však iný.",
-      "Pitch It ti pomôže odhaliť slabé miesta. Skutočný rozhovor nenahradí.",
+      "PitchIt ti pomôže odhaliť slabé miesta. Skutočný rozhovor nenahradí.",
     ],
   },
   {
     id: "garancia",
-    question: "Čo Pitch It nedokáže zaručiť?",
+    question: "Čo PitchIt nedokáže zaručiť?",
     answer: [
       "Nezaručí ti investíciu, konkrétne ohodnotenie ani to, že na stretnutí padnú presne tie otázky, ktoré si natrénuješ. Nie je to investičné, právne ani finančné poradenstvo.",
       "Jeho cieľom sú lepšie premyslené odpovede, s ktorými na stretnutie pôjdeš.",
@@ -43,9 +43,9 @@ export const faqItems: FaqItem[] = [
   },
   {
     id: "mentor",
-    question: "Nahradí Pitch It mentora alebo akcelerátor?",
+    question: "Nahradí PitchIt mentora alebo akcelerátor?",
     answer: [
-      "Nie. Mentor ti dá skúsenosť, kontakty a pohľad zvonku. Pitch It ti dá možnosť trénovať odpovede vtedy, keď to potrebuješ, aj večer pred stretnutím.",
+      "Nie. Mentor ti dá skúsenosť, kontakty a pohľad zvonku. PitchIt ti dá možnosť trénovať odpovede vtedy, keď to potrebuješ, aj večer pred stretnutím.",
     ],
   },
   {

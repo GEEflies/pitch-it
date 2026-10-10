@@ -65,7 +65,7 @@ export function SiteFooter() {
       <div className="border-t border-line/70">
         <div className="container-page flex flex-col gap-2 py-6 text-sm text-faint sm:flex-row sm:justify-between">
           <p>© {siteConfig.legal.entityName ?? siteConfig.name}</p>
-          <p>Pitch It nie je investičné ani finančné poradenstvo.</p>
+          <p>PitchIt nie je investičné ani finančné poradenstvo.</p>
         </div>
       </div>
     </footer>

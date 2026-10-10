@@ -59,7 +59,7 @@ export default function PricingPage() {
           <div className="mt-14 max-w-[44rem] space-y-3 text-[15px] leading-relaxed text-mute">
             <p>Platený plán zrušíš kedykoľvek, platí do konca zaplateného mesiaca. Nevyčerpané minúty sa neprenášajú.</p>
             <p>Textový tréning a cvičenia majú vlastné limity, ktoré bežný founder nevyčerpá. Presné čerpanie vidíš v aplikácii.</p>
-            <p>Pitch It nezaručuje investíciu. Pomáha ti pripraviť sa na otázky, ktoré na stretnutí padnú.</p>
+            <p>PitchIt nezaručuje investíciu. Pomáha ti pripraviť sa na otázky, ktoré na stretnutí padnú.</p>
           </div>
         </div>
       </main>

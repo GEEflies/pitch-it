@@ -8,7 +8,7 @@ export function GettingStarted({ items, href = (path) => path }: { items: Checkl
   if (items.length === 0 || done === items.length) return null;
   const next = items.find((item) => !item.done);
   return (
-    <section aria-labelledby="getting-started" className="rounded-xl border border-line bg-panel">
+    <section aria-labelledby="getting-started" className="surface-card overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 id="getting-started" className="font-semibold text-paper">
