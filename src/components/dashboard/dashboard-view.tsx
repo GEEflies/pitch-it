@@ -2,8 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { GettingStarted, type ChecklistItem } from "@/components/app/getting-started";
 import { Icon, PlayIcon, type IconName } from "@/components/app/icons";
-import { MicIllustration } from "@/components/dashboard/mic-illustration";
-import { ProgressCard } from "@/components/dashboard/progress-card";
 import type { ActivityItem, ProgressSeries, ReportTile, StatCard, Tip } from "@/lib/dashboard/overview";
 import { STAGE_LABELS, type Currency, type Stage } from "@/lib/domain/labels";
 
@@ -67,7 +65,9 @@ function CardHeader({ id, title, action }: { id: string; title: string; action?:
 function Hero({ recordHref, investorHref }: { recordHref: string; investorHref: string }) {
   return (
     <section aria-labelledby="hero-title" className="dash-hero relative isolate overflow-hidden rounded-[16px] border border-hero-line">
-      <MicIllustration className="pointer-events-none absolute top-0 right-0 -z-10 hidden h-full w-auto md:block" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- dekoratívne pozadie, rovnaký súbor ako na landingu */}
+      <img src="/landing/hero.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-[75%_center]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/85 to-ink/10" />
       <div className="relative px-6 pt-7 pb-7 sm:px-[30px] sm:pt-9 sm:pb-[27px] md:max-w-[58%]">
         <p className="text-[11px] font-semibold tracking-[0.1em] text-periwinkle uppercase">Tvoj rozvoj</p>
         <h2 id="hero-title" className="mt-3.5 text-[34px] leading-[1.06] font-extrabold tracking-[-0.015em] text-paper sm:text-[44px]">
@@ -330,64 +330,6 @@ function ReportsCard({ reports, href }: { reports: ReportTile[]; href: (path: st
 
 /* ───────────── Pravý stĺpec ───────────── */
 
-function QuickActions({ href, latestReportHref }: { href: (path: string) => string; latestReportHref: string | null }) {
-  const actions: Array<{ icon: IconName; title: string; detail: string; to: string }> = [
-    { icon: "mic", title: "Nacvičiť pitch", detail: "Prezentácia pred kamerou", to: "/app/nahravka" },
-    { icon: "chat", title: "Simulovať investora", detail: "Náročné otázky a dialóg", to: "/app/trening/novy?rezim=simulation" },
-    { icon: "file", title: "Pozrieť report", detail: "Analýza a odporúčania", to: latestReportHref ?? "/app/historia" },
-  ];
-  return (
-    <section aria-labelledby="quick-title" className="dash-card p-[18px]">
-      <h2 id="quick-title" className="text-[18px] font-bold tracking-[-0.01em] text-paper">
-        Rýchle akcie
-      </h2>
-      <ul className="mt-[18px] space-y-4">
-        {actions.map((action) => (
-          <li key={action.title}>
-            <Link
-              href={href(action.to)}
-              className="group flex items-center gap-[18px] rounded-[14px] border border-quick-line bg-quick px-3 py-3 transition-colors hover:border-line-strong hover:bg-panel-2"
-            >
-              <IconBadge icon={action.icon} tone="lime" size="lg" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold text-paper">{action.title}</span>
-                <span className="mt-1 block truncate text-[13px] text-mute">{action.detail}</span>
-              </span>
-              <Icon name="chevronRight" className="mr-1.5 size-5 text-mute transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function TipCard({ tip, href }: { tip: Tip; href: (path: string) => string }) {
-  return (
-    <section aria-labelledby="tip-title" className="dash-tip relative rounded-[14px] border border-tip-line p-[18px]">
-      <div className="flex gap-4">
-        <span aria-hidden="true" className="inline-flex size-[46px] shrink-0 items-center justify-center rounded-full bg-lime-tint text-accent">
-          <Icon name="bulbRays" className="size-[24px]" />
-        </span>
-        <div className="min-w-0 flex-1 pr-8">
-          <h2 id="tip-title" className="pt-1 text-[15px] font-bold text-accent">
-            Tip na dnes
-          </h2>
-          <p className="mt-3 text-[14.5px] font-semibold text-paper">{tip.title}</p>
-          <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-mute">{tip.detail}</p>
-        </div>
-      </div>
-      <Link
-        href={href(tip.href)}
-        aria-label={`${tip.title} Otvoriť`}
-        className="absolute right-4 bottom-[22px] inline-flex size-9 items-center justify-center rounded-full text-paper transition-colors after:absolute after:inset-0 hover:bg-panel-2"
-      >
-        <Icon name="arrowRight" className="size-5" />
-      </Link>
-    </section>
-  );
-}
-
 /* ───────────── Kompozícia ───────────── */
 
 export function DashboardView({
@@ -396,10 +338,6 @@ export function DashboardView({
   startup,
   activity,
   reports,
-  progress,
-  tip,
-  latestReportHref,
-  now,
   notice = null,
   checklist = [],
   href = (path) => path,
@@ -407,8 +345,7 @@ export function DashboardView({
   return (
     <div className="dash-enter space-y-5">
       {notice}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 space-y-[18px]">
+      <div className="min-w-0 space-y-[18px]">
           <Hero recordHref={href("/app/nahravka")} investorHref={href(trainingHref)} />
           <GettingStarted items={checklist} href={href} />
           <section aria-label="Výsledky posledného tréningu">
@@ -423,14 +360,6 @@ export function DashboardView({
             <ActivityCard items={activity} href={href} />
           </div>
           <ReportsCard reports={reports} href={href} />
-        </div>
-        <div className="grid min-w-0 content-start gap-5 md:grid-cols-2 xl:grid-cols-1">
-          <QuickActions href={href} latestReportHref={latestReportHref} />
-          <div className="grid content-start gap-5">
-            <ProgressCard series={progress} now={now} emptyHref={href(trainingHref)} />
-            <TipCard tip={tip} href={href} />
-          </div>
-        </div>
       </div>
     </div>
   );

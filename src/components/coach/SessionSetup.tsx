@@ -155,6 +155,14 @@ export default function SessionSetup({
         </section>
       ) : null}
 
+      <section className="rounded-3xl border border-line p-5 md:p-6">
+        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Než začneš</p>
+        <ul className="grid gap-2 text-mute sm:grid-cols-3">
+          <li>• Postav sa 2 až 3 m od kamery.</li>
+          <li>• Kamera vidí trup, ideálne po kolená.</li>
+          <li>• Pri odpočte sa pozri do kamery.</li>
+        </ul>
+      </section>
       <div className="flex flex-col items-start gap-3">
         {children}
         {error && <p className="rounded-xl bg-danger/15 p-4 text-coral">{error}</p>}
@@ -172,18 +180,10 @@ export default function SessionSetup({
       {/* Voľby a tipy sú zbalené; s predvolenými hodnotami sa dá rovno začať. */}
       <details className="group">
         <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-mute hover:text-paper [&::-webkit-details-marker]:hidden">
-          Nastavenia a tipy
+          Nastavenia
           <span className="transition group-open:rotate-180">▾</span>
         </summary>
         <div className="mt-4 flex flex-col gap-10 rounded-3xl border border-line p-5 md:p-8">
-          <section>
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Tipy na záber</p>
-            <ul className="grid gap-2 text-mute sm:grid-cols-3">
-              <li>• Postav sa 2 až 3 m od kamery.</li>
-              <li>• Kamera vidí trup, ideálne po kolená.</li>
-              <li>• Pri odpočte sa pozri do kamery.</li>
-            </ul>
-          </section>
           <section>
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-faint">Ako budeš hovoriť?</p>
             <div className="grid gap-3 sm:grid-cols-2">

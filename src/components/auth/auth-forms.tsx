@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId } from "react";
 import { useSearchParams } from "next/navigation";
 import { buttonClasses } from "@/components/ui/button";
 import { Checkbox, Field, Input } from "@/components/ui/field";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { requestPasswordReset, signIn, signInWithProvider, signUp, updatePassword } from "@/lib/auth/actions";
-import { initialAuthState, PASSWORD_MIN_LENGTH, type AccountType, type OAuthProvider } from "@/lib/auth/schemas";
+import { initialAuthState, PASSWORD_MIN_LENGTH, type OAuthProvider } from "@/lib/auth/schemas";
 
 function FormMessage({ status, message }: { status: string; message?: string }) {
   if (!message) return null;
@@ -107,14 +107,8 @@ export function SignInForm({ available }: { available: boolean }) {
   );
 }
 
-const ACCOUNT_TYPE_OPTIONS: Array<{ value: AccountType; label: string }> = [
-  { value: "participant", label: "Účastník" },
-  { value: "organizer", label: "Organizátor" },
-];
-
 export function SignUpForm({ available }: { available: boolean }) {
   const [state, action] = useActionState(signUp, initialAuthState);
-  const [accountType, setAccountType] = useState<AccountType>("participant");
   const id = useId();
 
   if (state.status === "success") {
@@ -129,22 +123,7 @@ export function SignUpForm({ available }: { available: boolean }) {
     <>
       <form action={action} className="space-y-4" noValidate>
         <FormMessage status={state.status} message={state.message} />
-        <input type="hidden" name="account_type" value={accountType} />
-        <div role="group" aria-label="Typ účtu" className="mt-[22px] mb-1 flex gap-1 rounded-full border border-line bg-ink p-1">
-          {ACCOUNT_TYPE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={accountType === option.value}
-              onClick={() => setAccountType(option.value)}
-              className={`min-h-11 flex-1 rounded-full px-3.5 py-2.5 text-sm font-bold transition-colors ${
-                accountType === option.value ? "bg-signal text-on-signal" : "text-mute hover:text-paper"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <input type="hidden" name="account_type" value="participant" />
         <Field id={`${id}-name`} label="Celé meno" error={state.fieldErrors?.display_name}>
           <Input
             id={`${id}-name`}

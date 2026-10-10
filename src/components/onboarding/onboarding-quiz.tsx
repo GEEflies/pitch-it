@@ -120,7 +120,7 @@ function Overlay({ children }: { children: React.ReactNode }) {
 export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boolean; previewHref?: string }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Array<string | number | null>>([null, null, null]);
-  const [stage, setStage] = useState<"quiz" | "plan" | "notes" | "personalize">("quiz");
+  const [stage, setStage] = useState<"intro" | "quiz" | "plan" | "notes" | "personalize">("intro");
   const [done, setDone] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const [notes, setNotes] = useState("");
@@ -146,7 +146,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
   };
 
   useEffect(() => {
-    if (stage === "quiz" || stage === "personalize") return;
+    if (stage === "intro" || stage === "quiz" || stage === "personalize") return;
     dialogRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") restart();
@@ -196,6 +196,22 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
       {stage === "personalize" && parsed ? (
         <main id="obsah" style={{ display: "flex", justifyContent: "center", padding: "48px 24px" }}>
           <Personalizing steps={personalizeSteps(parsed)} done={done} leaving={leaving} />
+        </main>
+      ) : stage === "intro" ? (
+        <main id="obsah" style={{ display: "flex", justifyContent: "center", padding: "72px 24px" }}>
+          <div style={{ maxWidth: "620px", textAlign: "center" }}>
+            <div className="eyebrow">Krátky dotazník</div>
+            <h1 className="h" style={{ fontSize: "44px", lineHeight: "1.1", margin: "12px 0 16px" }}>
+              Daj nám 20 sekúnd, dáme ti feedback na mieru
+            </h1>
+            <p className="muted" style={{ fontSize: "17px", lineHeight: "1.6", margin: "0 0 32px" }}>
+              Každý pitch je iný: tvoj cieľ, tvoje publikum, tvoj najväčší strach. Zodpovedz pár rýchlych otázok a všetko, čo ti
+              ukážeme potom, bude ušité presne na tvoju situáciu, nie generická rada z učebnice.
+            </p>
+            <button className="btn btn-p" type="button" onClick={() => setStage("quiz")} style={{ minWidth: "220px", minHeight: "52px" }}>
+              Začať
+            </button>
+          </div>
         </main>
       ) : (
       <main
@@ -265,9 +281,9 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
             style={{ position: "relative", width: "100%", maxWidth: "480px", padding: "36px", boxShadow: "var(--pi-hero-shadow)", outline: "none" }}
           >
             <CloseButton onClick={restart} />
-            <div className="eyebrow">Tvoj plán</div>
+            <div className="eyebrow">Ďakujeme za informácie</div>
             <h2 id="pt" className="h" style={{ fontSize: "30px", margin: "12px 0 22px" }}>
-              Nastavíme to na mieru.
+              Sme pripravení. A ty?
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "15px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
