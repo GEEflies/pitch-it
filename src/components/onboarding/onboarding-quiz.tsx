@@ -1,7 +1,6 @@
 "use client";
 
 import "@/styles/screens/onboarding.css";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
 import { submitOnboarding } from "@/lib/onboarding/actions";
@@ -119,7 +118,6 @@ function Overlay({ children }: { children: React.ReactNode }) {
 }
 
 export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boolean; previewHref?: string }) {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Array<string | number | null>>([null, null, null]);
   const [stage, setStage] = useState<"quiz" | "plan" | "notes" | "personalize">("quiz");
@@ -183,7 +181,9 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
       setDone(count);
       setLeaving(true);
       await new Promise((resolve) => window.setTimeout(resolve, reduced ? 0 : FADE_MS));
-      router.push(preview ? (previewHref ?? "/ukazka") : NEXT_HREF);
+      // Plné načítanie: klientsky router si pamätá starú odpoveď /app (presmerovanie na kvíz)
+      // a po uložení by nás vrátil späť sem. Prechod zakryje fade-out a vstupná animácia prehľadu.
+      window.location.assign(preview ? (previewHref ?? "/ukazka") : NEXT_HREF);
     });
   };
 
