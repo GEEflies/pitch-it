@@ -1,24 +1,21 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { isAuthConfigured } from "@/config/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readSession, SESSION_COOKIE } from "@/lib/auth/token";
 
 export type AuthUser = { id: string; email: string | null };
 
 /**
- * Aktuálny používateľ z overeného JWT (getClaims overí podpis). Raz za požiadavku.
+ * Aktuálny používateľ z podpísanej cookie relácie. Raz za požiadavku.
  * Volať iba vo vnútri <Suspense> (číta cookies).
  */
 export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   if (!isAuthConfigured()) return null;
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const sub = data?.claims?.sub;
-  if (error || typeof sub !== "string") return null;
-  const email = data?.claims?.email;
-  return { id: sub, email: typeof email === "string" ? email : null };
+  const session = await readSession((await cookies()).get(SESSION_COOKIE)?.value);
+  return session ? { id: session.sub, email: session.email } : null;
 });
 
 /** Pre stránky: bez prihlásenia presmeruje na prihlásenie. */

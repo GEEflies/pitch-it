@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { StoreError as PostgrestError } from "@/lib/store/db";
 
 export class DbError extends Error {
   constructor(
@@ -12,7 +12,7 @@ export class DbError extends Error {
   }
 }
 
-/** Preloží chybu PostgREST na DbError. Správu nelogujeme s údajmi používateľa. */
+/** Preloží chybu úložiska na DbError. Správu nelogujeme s údajmi používateľa. */
 export function toDbError(error: PostgrestError, context: string): DbError {
   if (error.code === "23505") return new DbError("conflict", `${context}: duplicitný záznam`);
   if (error.code === "42501") return new DbError("forbidden", `${context}: prístup zamietnutý`);

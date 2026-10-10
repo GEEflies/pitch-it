@@ -8,7 +8,7 @@ import { LEGAL_VERSION } from "@/lib/auth/schemas";
 import { MEDIA_CONSENT_VERSION } from "@/lib/privacy/consent-texts";
 import { deleteAccount, deleteAllSessions } from "@/lib/privacy/account";
 import type { FormState } from "@/lib/projects/actions";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { endSession } from "@/lib/auth/accounts";
 import { fieldErrors, settingsSchema } from "@/lib/validation/schemas";
 
 const SIGNED_OUT: FormState = { status: "error", message: "Relácia vypršala. Prihlás sa znova." };
@@ -65,8 +65,7 @@ export async function deleteAccountAction(): Promise<FormState> {
   if (!user) return SIGNED_OUT;
   try {
     await deleteAccount(user.id);
-    const supabase = await createSupabaseServerClient();
-    await supabase.auth.signOut();
+    await endSession();
   } catch (error) {
     console.error("[account] mazanie zlyhalo:", error instanceof Error ? error.message : error);
     return { status: "error", message: "Účet sa nepodarilo zmazať. Napíš nám a vybavíme to ručne." };

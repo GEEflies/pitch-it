@@ -9,8 +9,7 @@ import type {
   VisualAnalyticsRow,
 } from "@/lib/db/types";
 import type { EndReason, TrainingMode } from "@/lib/domain/labels";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 import type { FounderTurnMetrics, TurnPayload, VisualAggregate } from "@/lib/validation/schemas";
 
 /*
@@ -19,8 +18,8 @@ import type { FounderTurnMetrics, TurnPayload, VisualAggregate } from "@/lib/val
 */
 
 export async function getOwnedSession(sessionId: string, userId: string): Promise<SessionRow> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const db = await getUserDb();
+  const { data, error } = await db
     .from("training_sessions")
     .select("*")
     .eq("id", sessionId)
@@ -56,7 +55,7 @@ export type NewSession = {
 };
 
 export async function createSession(input: NewSession): Promise<SessionRow> {
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("training_sessions")
     .insert({
       user_id: input.userId,
@@ -79,7 +78,7 @@ export async function createSession(input: NewSession): Promise<SessionRow> {
 
 /** Uzavrie opustené živé relácie používateľa a vyúčtuje ich. */
 export async function closeStaleSessions(userId: string): Promise<void> {
-  const { error } = await getSupabaseAdmin().rpc("close_stale_sessions", { p_user_id: userId });
+  const { error } = await getAdminDb().rpc("close_stale_sessions", { p_user_id: userId });
   check({ error }, "sessions.closeStale");
 }
 
@@ -89,7 +88,7 @@ export async function markSessionLive(
   transport: "realtime" | "text",
 ): Promise<SessionRow> {
   const now = new Date().toISOString();
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("training_sessions")
     .update({
       status: "live",
@@ -109,7 +108,7 @@ export async function markSessionLive(
 }
 
 export async function touchHeartbeat(sessionId: string, userId: string): Promise<void> {
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("training_sessions")
     .update({ last_heartbeat_at: new Date().toISOString() })
     .eq("id", sessionId)
@@ -119,8 +118,8 @@ export async function touchHeartbeat(sessionId: string, userId: string): Promise
 }
 
 export async function listTurns(sessionId: string): Promise<TurnRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("conversation_turns")
     .select("*")
     .eq("session_id", sessionId)
@@ -131,8 +130,8 @@ export async function listTurns(sessionId: string): Promise<TurnRow[]> {
 
 /** Uloží ťahy (idempotentne podľa seq). RLS povolí zápis iba do vlastnej živej relácie. */
 export async function insertTurns(sessionId: string, userId: string, turns: TurnPayload[]): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("conversation_turns").upsert(
+  const db = await getUserDb();
+  const { error } = await db.from("conversation_turns").upsert(
     turns.map((turn) => ({
       session_id: sessionId,
       user_id: userId,
@@ -161,7 +160,7 @@ export type FounderMetricsRecord = {
 
 export async function upsertAudioMetrics(sessionId: string, userId: string, records: FounderMetricsRecord[]): Promise<void> {
   if (records.length === 0) return;
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("audio_delivery_metrics")
     .upsert(
       records.map((record) => ({
@@ -189,8 +188,8 @@ export async function upsertAudioMetrics(sessionId: string, userId: string, reco
 
 export async function listAudioMetrics(sessionIds: string[]): Promise<AudioMetricsRow[]> {
   if (sessionIds.length === 0) return [];
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("audio_delivery_metrics")
     .select("*")
     .in("session_id", sessionIds)
@@ -200,7 +199,7 @@ export async function listAudioMetrics(sessionIds: string[]): Promise<AudioMetri
 }
 
 export async function saveVisualAnalytics(sessionId: string, userId: string, visual: VisualAggregate): Promise<void> {
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("visual_analytics")
     .upsert(
       {
@@ -226,8 +225,8 @@ export async function saveVisualAnalytics(sessionId: string, userId: string, vis
 }
 
 export async function getVisualAnalytics(sessionId: string): Promise<VisualAnalyticsRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const db = await getUserDb();
+  const { data, error } = await db
     .from("visual_analytics")
     .select("*")
     .eq("session_id", sessionId)
@@ -251,7 +250,7 @@ export async function finishSession(
   const billable = session.transport === "realtime" ? Math.min(elapsed, session.target_duration_seconds + 120) : 0;
   const newlyBilledSeconds = Math.max(0, billable - session.billed_seconds);
 
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("training_sessions")
     .update({
       status: "completed",
@@ -280,8 +279,8 @@ export async function listSessions(options: {
   limit?: number;
   onlyCompleted?: boolean;
 }): Promise<SessionListItem[]> {
-  const supabase = await createSupabaseServerClient();
-  let query = supabase
+  const db = await getUserDb();
+  let query = db
     .from("training_sessions")
     .select("*, projects(name), feedback_reports(status)")
     .eq("user_id", options.userId)
@@ -301,8 +300,8 @@ export type SessionWithReport = SessionRow & {
 
 /** Dokončené tréningy s meraniami a hodnotením (história, grafy, porovnanie). */
 export async function listSessionsWithReports(userId: string, sessionIds?: string[]): Promise<SessionWithReport[]> {
-  const supabase = await createSupabaseServerClient();
-  let query = supabase
+  const db = await getUserDb();
+  let query = db
     .from("training_sessions")
     .select("*, projects(name), feedback_reports(status, measured, assessment)")
     .eq("user_id", userId)
@@ -315,15 +314,15 @@ export async function listSessionsWithReports(userId: string, sessionIds?: strin
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("training_sessions").delete().eq("id", sessionId).select("id");
+  const db = await getUserDb();
+  const { data, error } = await db.from("training_sessions").delete().eq("id", sessionId).select("id");
   check({ error }, "sessions.delete");
   if (!data || data.length === 0) throw new DbError("forbidden", "Živý tréning nemožno zmazať.");
 }
 
 export async function getReport(sessionId: string): Promise<ReportRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const db = await getUserDb();
+  const { data, error } = await db
     .from("feedback_reports")
     .select("*")
     .eq("session_id", sessionId)
@@ -333,7 +332,7 @@ export async function getReport(sessionId: string): Promise<ReportRow | null> {
 }
 
 export async function createPendingReport(sessionId: string, userId: string): Promise<void> {
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("feedback_reports")
     .upsert({ session_id: sessionId, user_id: userId, status: "pending" }, { onConflict: "session_id" });
   check({ error }, "reports.createPending");
@@ -343,19 +342,19 @@ export async function updateReport(
   sessionId: string,
   patch: Partial<Pick<ReportRow, "status" | "measured" | "assessment" | "model" | "prompt_version" | "error_code" | "attempts" | "completed_at">>,
 ): Promise<void> {
-  const { error } = await getSupabaseAdmin().from("feedback_reports").update(patch).eq("session_id", sessionId);
+  const { error } = await getAdminDb().from("feedback_reports").update(patch).eq("session_id", sessionId);
   check({ error }, "reports.update");
 }
 
 /* Admin čítania pre generovanie reportu na pozadí (po overení vlastníctva pri finish). */
 
 export async function adminGetSession(sessionId: string): Promise<SessionRow> {
-  const result = await getSupabaseAdmin().from("training_sessions").select("*").eq("id", sessionId).single<SessionRow>();
+  const result = await getAdminDb().from("training_sessions").select("*").eq("id", sessionId).single<SessionRow>();
   return must(result, "sessions.adminGet");
 }
 
 export async function adminListTurns(sessionId: string): Promise<TurnRow[]> {
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("conversation_turns")
     .select("*")
     .eq("session_id", sessionId)
@@ -365,7 +364,7 @@ export async function adminListTurns(sessionId: string): Promise<TurnRow[]> {
 }
 
 export async function adminListAudioMetrics(sessionId: string): Promise<AudioMetricsRow[]> {
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("audio_delivery_metrics")
     .select("*")
     .eq("session_id", sessionId)
@@ -375,7 +374,7 @@ export async function adminListAudioMetrics(sessionId: string): Promise<AudioMet
 }
 
 export async function adminGetVisual(sessionId: string): Promise<VisualAnalyticsRow | null> {
-  const { data, error } = await getSupabaseAdmin()
+  const { data, error } = await getAdminDb()
     .from("visual_analytics")
     .select("*")
     .eq("session_id", sessionId)

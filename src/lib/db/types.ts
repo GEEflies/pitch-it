@@ -13,8 +13,8 @@ import type {
 } from "@/lib/domain/labels";
 
 /*
-  Typy riadkov podľa supabase/migrations. Udržiavané ručne, kým nie je k dispozícii
-  `supabase gen types` nad reálnym projektom (pozri README → Tech debt).
+  Typy riadkov podľa db/migrations. Udržiavané ručne, kým nie je k dispozícii
+  `db gen types` nad reálnym projektom (pozri README → Tech debt).
 */
 
 export type ProfileRow = {

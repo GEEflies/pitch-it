@@ -8,7 +8,6 @@ import { ProjectTabs } from "@/components/projects/project-tabs";
 import { buttonClasses } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { PageHeader } from "@/components/ui/page-header";
-import { getSupabasePublicConfig } from "@/config/env";
 import { requireUser } from "@/lib/auth/session";
 import { getProject, listFacts, listIssues } from "@/lib/db/projects";
 import { getBillingContext } from "@/lib/db/usage";
@@ -16,7 +15,7 @@ import { checkEntitlement } from "@/lib/billing/plans";
 import { listDocuments } from "@/lib/documents/service";
 import { formatDateTime } from "@/lib/format";
 import { isUuid } from "@/lib/validation/ids";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserDb } from "@/lib/store/client";
 
 // Stránka závisí od URL a dát používateľa: navigácia smie počkať na server.
 export const instant = false;
@@ -31,16 +30,15 @@ export default async function MaterialsPage({ params, searchParams }: PageProps<
   const project = await getProject(projectId);
   if (!project) notFound();
 
-  const supabase = await createSupabaseServerClient();
+  const db = await getUserDb();
   const [documents, facts, issues, billing, role] = await Promise.all([
     listDocuments(projectId),
     listFacts(projectId),
     listIssues(projectId),
     getBillingContext(user.id),
-    supabase.rpc("can_edit_project", { p_project_id: projectId }),
+    db.rpc("can_edit_project", { p_project_id: projectId }),
   ]);
   const canEdit = role.data === true;
-  const config = getSupabasePublicConfig();
   const analysisAllowed = checkEntitlement(billing.plan, billing.usage, "deck_analysis").allowed;
 
   return (
@@ -76,18 +74,16 @@ export default async function MaterialsPage({ params, searchParams }: PageProps<
               Investor bude vychádzať z najnovšieho spracovaného podkladu a z faktov nižšie.
             </p>
             <div className="mt-6">
-              {canEdit && config ? (
+              {canEdit ? (
                 <DocumentUpload
                   projectId={project.id}
-                  supabaseUrl={config.url}
-                  publishableKey={config.publishableKey}
                   disabledReason={
                     analysisAllowed ? null : "Limit analýz podkladov je na tento mesiac vyčerpaný. Fakty môžeš pridať ručne."
                   }
                 />
-              ) : !canEdit ? (
+              ) : (
                 <p className="text-mute">Tento projekt môžeš iba čítať.</p>
-              ) : null}
+              )}
             </div>
             <DocumentList
               canEdit={canEdit}

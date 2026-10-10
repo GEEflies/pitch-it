@@ -20,8 +20,7 @@ import { extractPptx, PptxError, type ExtractedSlide } from "@/lib/documents/ext
 import { checkUploadRequest, isSha256Hex, MAX_DOCUMENT_BYTES, sniffDocumentKind } from "@/lib/documents/file-check";
 import { createUploadUrl, downloadDocument, removeDocumentFile, storagePathFor } from "@/lib/documents/storage";
 import { trackEvent } from "@/lib/events/track";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 
 export class DocumentServiceError extends Error {
   constructor(
@@ -43,8 +42,8 @@ const EXTRACTION_ERRORS: Record<string, string> = {
 };
 
 export async function listDocuments(projectId: string): Promise<DocumentRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("documents")
     .select("*")
     .eq("project_id", projectId)
@@ -54,8 +53,8 @@ export async function listDocuments(projectId: string): Promise<DocumentRow[]> {
 }
 
 async function getDocument(documentId: string): Promise<DocumentRow> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("documents").select("*").eq("id", documentId).maybeSingle<DocumentRow>();
+  const db = await getUserDb();
+  const { data, error } = await db.from("documents").select("*").eq("id", documentId).maybeSingle<DocumentRow>();
   check({ error }, "documents.get");
   if (!data) throw new DocumentServiceError("not_found", "Podklad neexistuje.", 404);
   return data;
@@ -80,8 +79,8 @@ export async function prepareUpload(
 
   const documentId = randomUUID();
   const path = storagePathFor(projectId, documentId, checked.kind);
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("documents").insert({
+  const db = await getUserDb();
+  const { error } = await db.from("documents").insert({
     id: documentId,
     project_id: projectId,
     uploaded_by: userId,
@@ -105,7 +104,7 @@ export async function prepareUpload(
 }
 
 async function setStatus(documentId: string, patch: Partial<DocumentRow>): Promise<void> {
-  const { error } = await getSupabaseAdmin().from("documents").update(patch).eq("id", documentId);
+  const { error } = await getAdminDb().from("documents").update(patch).eq("id", documentId);
   check({ error }, "documents.status");
 }
 
@@ -151,7 +150,7 @@ export async function extractUploadedDocument(documentId: string): Promise<{ doc
     throw new DocumentServiceError("invalid_file", EXTRACTION_ERRORS[code] ?? EXTRACTION_ERRORS.invalid);
   }
 
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("document_extractions")
     .upsert(
       slides.map((slide) => ({
@@ -176,7 +175,7 @@ export async function extractUploadedDocument(documentId: string): Promise<{ doc
  * Pri zlyhaní AI ostane dokument použiteľný (extrakcia), iba bez navrhnutých faktov.
  */
 export async function analyzeDocument(documentId: string, userId: string): Promise<void> {
-  const admin = getSupabaseAdmin();
+  const admin = getAdminDb();
   const documentResult = await admin.from("documents").select("*").eq("id", documentId).single<DocumentRow>();
   const document = must(documentResult, "analyze.document");
   if (document.status !== "analyzing") return;
@@ -203,8 +202,8 @@ export async function analyzeDocument(documentId: string, userId: string): Promi
     // PDF pošleme aj ako dokument: Claude prečíta grafy a slidy bez textovej vrstvy.
     let pdfBase64: string | null = null;
     if (document.file_type === "pdf" && document.size_bytes <= 20 * 1024 * 1024) {
-      const { data } = await admin.storage.from("pitch-documents").download(document.storage_path);
-      if (data) pdfBase64 = Buffer.from(await data.arrayBuffer()).toString("base64");
+      const data = await downloadDocument(document.storage_path).catch(() => null);
+      if (data) pdfBase64 = Buffer.from(data).toString("base64");
     }
 
     const result = await llm.generateStructured({
@@ -299,8 +298,8 @@ export async function requestReanalysis(documentId: string): Promise<DocumentRow
   if (document.status !== "ready") {
     throw new DocumentServiceError("processing_failed", "Podklad sa ešte spracúva.", 409);
   }
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.rpc("can_edit_project", { p_project_id: document.project_id });
+  const db = await getUserDb();
+  const { data } = await db.rpc("can_edit_project", { p_project_id: document.project_id });
   if (data !== true) throw new DocumentServiceError("forbidden", "Tento podklad nemôžeš upravovať.", 403);
   await setStatus(document.id, { status: "analyzing", error_code: null });
   return document;
@@ -309,12 +308,12 @@ export async function requestReanalysis(documentId: string): Promise<DocumentRow
 /** Zmaže podklad, jeho súbor a neskontrolované návrhy faktov. Potvrdené fakty ostanú. */
 export async function deleteDocument(documentId: string): Promise<void> {
   const document = await getDocument(documentId);
-  const supabase = await createSupabaseServerClient();
+  const db = await getUserDb();
   check(
-    await supabase.from("startup_facts").delete().eq("document_id", document.id).eq("status", "needs_review"),
+    await db.from("startup_facts").delete().eq("document_id", document.id).eq("status", "needs_review"),
     "documents.deleteFacts",
   );
-  const { data, error } = await supabase.from("documents").delete().eq("id", document.id).select("id");
+  const { data, error } = await db.from("documents").delete().eq("id", document.id).select("id");
   check({ error }, "documents.delete");
   if (!data || data.length === 0) throw new DocumentServiceError("forbidden", "Tento podklad nemôžeš zmazať.", 403);
   await removeDocumentFile(document.storage_path);

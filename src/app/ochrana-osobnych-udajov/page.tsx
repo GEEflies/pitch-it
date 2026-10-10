@@ -62,7 +62,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="Sprostredkovatelia">
         <ul>
-          <li>Supabase: databáza, autentifikácia a úložisko súborov (región EÚ).</li>
+          <li>Upstash (Redis): databáza, prihlasovanie a úložisko súborov (región EÚ).</li>
           <li>Anthropic: analýza podkladov, rozbor tréningu, nápoveda, textový režim a vyhodnotenie cvičení.</li>
           <li>OpenAI: hlasový rozhovor a prepis reči.</li>
           <li>Prevádzkovateľ hostingu: doručovanie webu.</li>

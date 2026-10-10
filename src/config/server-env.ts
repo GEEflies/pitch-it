@@ -10,10 +10,6 @@ function read(name: string): string | null {
   return value ? value : null;
 }
 
-export function getSupabaseSecretKey(): string | null {
-  return read("SUPABASE_SECRET_KEY") ?? read("SUPABASE_SERVICE_ROLE_KEY");
-}
-
 export type AnthropicConfig = { apiKey: string | null; model: string; fastModel: string };
 
 /**

@@ -5,13 +5,13 @@ import { fetchStartupContext } from "@/lib/db/context";
 import type { FactRow, IssueRow, ProjectRow } from "@/lib/db/types";
 import type { FactInput, ProjectInput } from "@/lib/validation/schemas";
 import type { StartupContext } from "@/lib/investor/context";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserDb } from "@/lib/store/client";
 
 /* Projekty: všetko cez klienta používateľa, RLS rozhoduje o prístupe. */
 
 export async function listProjects(): Promise<ProjectRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("projects")
     .select("*")
     .is("archived_at", null)
@@ -21,8 +21,8 @@ export async function listProjects(): Promise<ProjectRow[]> {
 }
 
 export async function getProject(projectId: string): Promise<ProjectRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("projects").select("*").eq("id", projectId).maybeSingle<ProjectRow>();
+  const db = await getUserDb();
+  const { data, error } = await db.from("projects").select("*").eq("id", projectId).maybeSingle<ProjectRow>();
   check({ error }, "projects.get");
   return data;
 }
@@ -34,8 +34,8 @@ export async function requireProject(projectId: string): Promise<ProjectRow> {
 }
 
 export async function countOwnedProjects(userId: string): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count, error } = await supabase
+  const db = await getUserDb();
+  const { count, error } = await db
     .from("projects")
     .select("id", { count: "exact", head: true })
     .eq("owner_id", userId)
@@ -45,8 +45,8 @@ export async function countOwnedProjects(userId: string): Promise<number> {
 }
 
 export async function createProject(userId: string, input: ProjectInput): Promise<ProjectRow> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("projects")
     .insert({ ...input, owner_id: userId })
     .select("*")
@@ -55,15 +55,15 @@ export async function createProject(userId: string, input: ProjectInput): Promis
 }
 
 export async function updateProject(projectId: string, input: ProjectInput): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("projects").update(input).eq("id", projectId).select("id");
+  const db = await getUserDb();
+  const { data, error } = await db.from("projects").update(input).eq("id", projectId).select("id");
   check({ error }, "projects.update");
   if (!data || data.length === 0) throw new DbError("forbidden", "Projekt nemôžeš upraviť.");
 }
 
 export async function deleteProject(projectId: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("projects").delete().eq("id", projectId).select("id");
+  const db = await getUserDb();
+  const { data, error } = await db.from("projects").delete().eq("id", projectId).select("id");
   check({ error }, "projects.delete");
   if (!data || data.length === 0) throw new DbError("forbidden", "Projekt môže zmazať iba jeho vlastník.");
 }
@@ -71,8 +71,8 @@ export async function deleteProject(projectId: string): Promise<void> {
 /* ───────────── Fakty a problémy ───────────── */
 
 export async function listFacts(projectId: string): Promise<FactRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("startup_facts")
     .select("*")
     .eq("project_id", projectId)
@@ -83,8 +83,8 @@ export async function listFacts(projectId: string): Promise<FactRow[]> {
 }
 
 export async function createUserFact(projectId: string, input: FactInput): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("startup_facts").insert({
+  const db = await getUserDb();
+  const { error } = await db.from("startup_facts").insert({
     project_id: projectId,
     category: input.category,
     label: input.label,
@@ -104,27 +104,27 @@ export async function reviewFact(
   decision: "confirm" | "reject",
   correctedValue: string | null,
 ): Promise<void> {
-  const supabase = await createSupabaseServerClient();
+  const db = await getUserDb();
   const patch =
     decision === "reject"
       ? { status: "rejected", reviewed_at: new Date().toISOString() }
       : correctedValue
         ? { status: "confirmed", source_type: "user", value_text: correctedValue, reviewed_at: new Date().toISOString() }
         : { status: "confirmed", reviewed_at: new Date().toISOString() };
-  const { data, error } = await supabase.from("startup_facts").update(patch).eq("id", factId).select("id");
+  const { data, error } = await db.from("startup_facts").update(patch).eq("id", factId).select("id");
   check({ error }, "facts.review");
   if (!data || data.length === 0) throw new DbError("forbidden", "Údaj nemôžeš upraviť.");
 }
 
 export async function deleteFact(factId: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("startup_facts").delete().eq("id", factId);
+  const db = await getUserDb();
+  const { error } = await db.from("startup_facts").delete().eq("id", factId);
   check({ error }, "facts.delete");
 }
 
 export async function listIssues(projectId: string): Promise<IssueRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("project_issues")
     .select("*")
     .eq("project_id", projectId)
@@ -135,8 +135,8 @@ export async function listIssues(projectId: string): Promise<IssueRow[]> {
 }
 
 export async function setIssueStatus(issueId: string, status: "open" | "resolved" | "dismissed"): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
+  const db = await getUserDb();
+  const { error } = await db
     .from("project_issues")
     .update({ status, resolved_at: status === "open" ? null : new Date().toISOString() })
     .eq("id", issueId);
@@ -151,11 +151,11 @@ export async function getMaterialCounts(
   for (const id of projectIds) counts[id] = { documents: 0, facts: 0, openIssues: 0 };
   if (projectIds.length === 0) return counts;
 
-  const supabase = await createSupabaseServerClient();
+  const db = await getUserDb();
   const [documents, facts, issues] = await Promise.all([
-    supabase.from("documents").select("project_id").in("project_id", projectIds).eq("status", "ready").limit(1000),
-    supabase.from("startup_facts").select("project_id").in("project_id", projectIds).neq("status", "rejected").limit(5000),
-    supabase.from("project_issues").select("project_id").in("project_id", projectIds).eq("status", "open").limit(2000),
+    db.from("documents").select("project_id").in("project_id", projectIds).eq("status", "ready").limit(1000),
+    db.from("startup_facts").select("project_id").in("project_id", projectIds).neq("status", "rejected").limit(5000),
+    db.from("project_issues").select("project_id").in("project_id", projectIds).eq("status", "open").limit(2000),
   ]);
   for (const row of (must(documents, "counts.documents") as Array<{ project_id: string }>)) counts[row.project_id].documents += 1;
   for (const row of (must(facts, "counts.facts") as Array<{ project_id: string }>)) counts[row.project_id].facts += 1;
@@ -166,6 +166,6 @@ export async function getMaterialCounts(
 /* ───────────── Kontext pre investora a report ───────────── */
 
 export async function loadStartupContext(projectId: string): Promise<{ project: ProjectRow; context: StartupContext }> {
-  const supabase = await createSupabaseServerClient();
-  return fetchStartupContext(supabase, projectId);
+  const db = await getUserDb();
+  return fetchStartupContext(db, projectId);
 }

@@ -5,8 +5,7 @@ import type { ExerciseAttemptRow, ExerciseRow, SessionRow } from "@/lib/db/types
 import type { ExerciseTemplate } from "@/lib/exercises/catalog";
 import { personalizePrompt } from "@/lib/exercises/catalog";
 import type { Assessment } from "@/lib/reports/assessment";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 
 /* Cvičenia vytvára server (z reportu alebo knižnice); používateľ mení stav a maže. */
 
@@ -26,7 +25,7 @@ export async function createExercisesFromReport(session: SessionRow, assessment:
     origin: "report" as const,
   }));
   if (rows.length === 0) return;
-  const { error } = await getSupabaseAdmin().from("exercises").insert(rows);
+  const { error } = await getAdminDb().from("exercises").insert(rows);
   check({ error }, "exercises.fromReport");
 }
 
@@ -36,7 +35,7 @@ export async function createLibraryExercise(
   projectName: string | null,
   template: ExerciseTemplate,
 ): Promise<ExerciseRow> {
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("exercises")
     .insert({
       user_id: userId,
@@ -56,8 +55,8 @@ export async function createLibraryExercise(
 }
 
 export async function listExercises(userId: string, status?: ExerciseRow["status"]): Promise<ExerciseRow[]> {
-  const supabase = await createSupabaseServerClient();
-  let query = supabase
+  const db = await getUserDb();
+  let query = db
     .from("exercises")
     .select("*")
     .eq("user_id", userId)
@@ -69,8 +68,8 @@ export async function listExercises(userId: string, status?: ExerciseRow["status
 }
 
 export async function getExercise(exerciseId: string): Promise<ExerciseRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("exercises").select("*").eq("id", exerciseId).maybeSingle<ExerciseRow>();
+  const db = await getUserDb();
+  const { data, error } = await db.from("exercises").select("*").eq("id", exerciseId).maybeSingle<ExerciseRow>();
   check({ error }, "exercises.get");
   return data;
 }
@@ -82,8 +81,8 @@ export async function requireExercise(exerciseId: string): Promise<ExerciseRow> 
 }
 
 export async function setExerciseStatus(exerciseId: string, status: ExerciseRow["status"]): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
+  const db = await getUserDb();
+  const { error } = await db
     .from("exercises")
     .update({ status, completed_at: status === "completed" ? new Date().toISOString() : null })
     .eq("id", exerciseId);
@@ -91,14 +90,14 @@ export async function setExerciseStatus(exerciseId: string, status: ExerciseRow[
 }
 
 export async function deleteExercise(exerciseId: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("exercises").delete().eq("id", exerciseId);
+  const db = await getUserDb();
+  const { error } = await db.from("exercises").delete().eq("id", exerciseId);
   check({ error }, "exercises.delete");
 }
 
 export async function listAttempts(exerciseId: string): Promise<ExerciseAttemptRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase
+  const db = await getUserDb();
+  const result = await db
     .from("exercise_attempts")
     .select("*")
     .eq("exercise_id", exerciseId)
@@ -120,7 +119,7 @@ export type NewAttempt = {
 
 /** Zápis pokusu (server, po overení vlastníctva cvičenia cez requireExercise). */
 export async function insertAttempt(attempt: NewAttempt): Promise<ExerciseAttemptRow> {
-  const result = await getSupabaseAdmin()
+  const result = await getAdminDb()
     .from("exercise_attempts")
     .insert({
       exercise_id: attempt.exerciseId,
@@ -141,6 +140,6 @@ export async function updateAttemptEvaluation(
   attemptId: string,
   patch: Pick<ExerciseAttemptRow, "evaluation_status"> & Partial<Pick<ExerciseAttemptRow, "evaluation" | "model">>,
 ): Promise<void> {
-  const { error } = await getSupabaseAdmin().from("exercise_attempts").update(patch).eq("id", attemptId);
+  const { error } = await getAdminDb().from("exercise_attempts").update(patch).eq("id", attemptId);
   check({ error }, "attempts.evaluation");
 }

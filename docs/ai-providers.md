@@ -19,7 +19,7 @@ FACT (overené 2026-10-10): Anthropic neponúka realtime speech-to-speech API pr
 
 ## Bezpečnosť kľúčov
 
-- `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` a `SUPABASE_SECRET_KEY` sa čítajú iba v `src/config/server-env.ts` (`server-only`).
+- `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` a `AUTH_SECRET` sa čítajú iba na serveri (`server-only`).
 - Prehliadač dostane iba krátkodobý `ek_…` token (`expires_after` 120 s) z `/v1/realtime/client_secrets`. Token vydá server po overení vlastníctva relácie, limitu minút a rate limitu.
 - Poskytovateľovi sa posiela pseudonymný `OpenAI-Safety-Identifier` (HMAC ID používateľa), nikdy e-mail.
 - Text z podkladov sa vkladá do ohraničených blokov (`<startup_data>`). Značky v ňom sa odstránia a prompt výslovne hovorí, že ide o dáta, nie inštrukcie.

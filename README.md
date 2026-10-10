@@ -8,7 +8,7 @@ Tréning investorských stretnutí. Founder nahrá podklady startupu, vyberie in
 Profil startupu → podklady → nastavenie tréningu → živý rozhovor → report → cvičenia → nový pokus → porovnanie
 ```
 
-Stack: Next.js 16 (App Router, Cache Components, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion, Supabase (Postgres, Auth, Storage), Claude (Anthropic) a OpenAI Realtime za vymeniteľnými rozhraniami, MediaPipe vo Web Workeri.
+Stack: Next.js 16 (App Router, Cache Components, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion, Upstash Redis (dáta, súbory) s vlastným prihlasovaním cez podpísanú cookie, Claude (Anthropic) a OpenAI Realtime za vymeniteľnými rozhraniami, MediaPipe vo Web Workeri.
 
 Architektúra: [docs/architecture.md](docs/architecture.md). Rozhodnutia: [docs/decision-log.md](docs/decision-log.md). AI poskytovatelia: [docs/ai-providers.md](docs/ai-providers.md). Právo a súkromie: [docs/legal-privacy-checklist.md](docs/legal-privacy-checklist.md).
 
@@ -24,28 +24,20 @@ Bez kľúčov aplikácia beží, ale povie, čo nefunguje. Nikdy nepredstiera v�
 
 | Chýba | Čo sa stane |
 |---|---|
-| Supabase | Prihlásenie a registrácia ukážu „Účty momentálne nefungujú“, `/app` presmeruje na prihlásenie |
+| Redis (`KV_REST_API_*`) | Lokálne sa dáta ukladajú do `.data/store.json`; v produkcii iba do pamäte (stratia sa) |
+| `AUTH_SECRET` (produkcia) | Prihlásenie a registrácia ukážu „Účty momentálne nefungujú“, `/app` presmeruje na prihlásenie |
 | `OPENAI_API_KEY` | Hlasový režim nie je dostupný, tréning ide textom (ak je Anthropic) |
 | `ANTHROPIC_API_KEY` | Report obsahuje iba objektívne merania (stav „Iba merania“), podklady sa prečítajú bez AI návrhov faktov, textový režim a nápoveda nie sú dostupné |
 | Stripe | Cenník funguje, tlačidlo platby oznámi, že platby nie sú zapnuté |
 
-## Nastavenie Supabase
+## Nastavenie úložiska a prihlasovania
 
-1. Vytvor projekt na supabase.com. **Zvoľ región EÚ** (napríklad Frankfurt).
-2. Spusti migrácie v poradí (SQL Editor alebo `supabase db push`):
-   - `supabase/migrations/20261010000000_early_access_signups.sql`
-   - `supabase/migrations/20261010100000_core_schema.sql` (tabuľky, RLS, súkromný bucket `pitch-documents`, funkcie)
-3. **Authentication → URL Configuration:** Site URL nastav na `SITE_URL` a do Redirect URLs pridaj `<SITE_URL>/auth/confirm`.
-4. **Authentication → Email Templates:** pre „Confirm signup“ a „Reset password“ použi odkaz
-   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type={{ .Type }}&next={{ .RedirectTo }}`.
-   Funguje aj predvolený `{{ .ConfirmationURL }}` (PKCE), ale iba v tom istom prehliadači.
-5. **Authentication → Providers → Email:** zapni potvrdenie e-mailu a ochranu proti uniknutým heslám (Leaked password protection).
-6. Voliteľne naplánuj čistenie podľa nastavenej doby uchovávania (vyžaduje rozšírenie `pg_cron`):
-   ```sql
-   select cron.schedule('pitch-it-retention', '17 3 * * *', $$select public.purge_expired_sessions()$$);
-   ```
+1. **Vercel → Storage → Upstash Redis** (región EÚ, napríklad Frankfurt). Integrácia doplní `KV_REST_API_URL` a `KV_REST_API_TOKEN`.
+2. Nastav `AUTH_SECRET` (`openssl rand -base64 32`). Podpisuje cookie relácie, odkazy na nové heslo a nahrávanie súborov.
+3. Voliteľne `RESEND_API_KEY` a `EMAIL_FROM` pre e-mail s novým heslom. Bez nich sa odkaz vypíše do logu servera.
+4. Voliteľne Google a LinkedIn (`GOOGLE_CLIENT_ID/SECRET`, `LINKEDIN_CLIENT_ID/SECRET`), redirect URI `<SITE_URL>/auth/callback/google` a `…/linkedin`.
 
-Typy riadkov v `src/lib/db/types.ts` sú písané ručne. Po vytvorení projektu ich nahraď výstupom `supabase gen types typescript`.
+Tabuľky, predvolené hodnoty, väzby a pravidlá prístupu sú v `src/lib/store/schema.ts`. Dotazy majú rovnaký tvar ako predtým (`from().select().eq()`), takže `src/lib/db/**` sa nemenil. Podklady sa ukladajú do Redisu po 2 MB kúskoch (limit požiadavky na Verceli je 4,5 MB).
 
 ## Nastavenie AI
 
@@ -69,7 +61,7 @@ Limity plánov sú v `src/lib/billing/plans.ts`. Cena Pro (29 €) je hypotéza 
 | `npm run dev` | vývojový server |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | unit testy a RLS testy na PGlite (`node --test`) |
+| `npm test` | unit testy vrátane úložiska a pravidiel prístupu (`node --test`) |
 | `npm run build` | produkčný build |
 | `npm run check` | všetko vyššie naraz |
 | `npm run mediapipe` | znova pripraví WASM a modely MediaPipe do `public/mediapipe` |
@@ -93,30 +85,29 @@ src/
     analytics/speech, analytics/audio, analytics/vision        merania (čisté funkcie) + AudioWorklet + MediaPipe worker
     reports/                                                   merania, pravidlá prednesu, AI hodnotenie, generovanie
     documents/                                                 kontrola súboru, PDF/PPTX extrakcia, AI analýza
-    exercises/, history/, billing/, privacy/, events/, db/, supabase/
+    exercises/, history/, billing/, privacy/, events/, db/, store/
 public/worklets/voice-analyzer.js                              analýza hlasu v audio vlákne
-supabase/migrations/                                           schéma, RLS, úložisko
-tests/                                                         unit testy + tests/db (RLS na PGlite)
+tests/                                                         unit testy (tests/store.test.ts: úložisko a prístup)
 ```
 
 ## Testy
 
 `npm test` spustí 94 testov:
 
-- **RLS a práva (PGlite, simulované `auth` a `storage`):** izolácia používateľov, roly v tíme, úložisko podľa projektu, iba čítanie systémových tabuliek, živá relácia, uzatváranie opustených relácií, uchovávanie a kaskádové mazanie účtu.
+- **Úložisko a práva:** predvolené hodnoty, filtre, unikátnosť, pravidlá prístupu, kaskádové mazanie, heslá a podpísané tokeny.
 - **Logika:** merania reči a hlasu, stavový automat relácie vrátane výpadku a obnovy, normalizácia realtime udalostí, výpočet reportu a overovanie citácií, porovnanie tréningov, limity plánov, podpis Stripe webhooku, kontrola a extrakcia PPTX, inštrukcie investora (zdroje faktov, prompt injection), odporúčanie na dashboarde, upozornenia trénera, fronta ukladania, signály z kamery a validácia vstupov.
 
 Čo testy nepokrývajú a treba overiť ručne so skutočnými kľúčmi je v časti Obmedzenia.
 
 ## Obmedzenia a známe medzery
 
-- **Neoverené end-to-end so skutočnými službami.** Na vývojovom stroji nebol Supabase projekt ani API kľúče. Realtime hovor, upload do Supabase Storage, e-maily a Stripe treba otestovať na staging projekte.
+- **Neoverené end-to-end so skutočnými službami.** Na vývojovom stroji nebol Redis ani API kľúče. Realtime hovor, upload do Redisu, e-maily a Stripe treba otestovať na staging projekte.
 - **Kvalita slovenčiny** v realtime hlase a prepise nie je overená (UNKNOWN). Návrh testu je v decision logu D2.
 - **AI prerušenie foundera** používa `input_audio_buffer.commit` a dočasné vypnutie `interrupt_response` cez WebRTC. Je to podľa dokumentácie, ale treba ho overiť v reálnom hovore.
 - **Výplňové slová** sú dolný odhad: modely prepisu zaváhania často vynechávajú. Report to uvádza.
 - **Kamera:** signály sú orientačné a závisia od kamery a svetla. Prahy (natočenie hlavy, vzdialenosť) sú ASSUMPTION a treba ich kalibrovať na dátach.
 - **Prahy prednesu** (tempo 95 až 175 slov/min, nábeh 4 s, výplne 5/100 slov) sú ASSUMPTION, nie norma.
-- **Tím:** databáza a RLS podporujú členov projektu (editor, viewer), UI na pozývanie zatiaľ nie je.
+- **Tím:** databáza a pravidlá prístupu podporujú členov projektu (editor, viewer), UI na pozývanie zatiaľ nie je.
 - **Angličtina:** štruktúra je pripravená (`profiles.locale`, jazyk v reláciách a promptoch, popisy v `src/lib/domain/labels.ts`), preklad UI nie je.
 - **Nahrávky:** zámerne sa neukladajú (D6), report preto neponúka spätné vypočutie úsekov.
 - **Rate limiting** v pamäti je per inštancia. Drahé operácie navyše chránia databázové limity (spotreba, počet pripojení).
@@ -126,7 +117,7 @@ tests/                                                         unit testy + test
 
 - [ ] Doplniť `CONTACT_EMAIL` a `LEGAL_ENTITY_*`.
 - [ ] Právna kontrola podmienok, zásad ochrany údajov a súhlasov ([docs/legal-privacy-checklist.md](docs/legal-privacy-checklist.md)).
-- [ ] DPA so Supabase, Anthropic, OpenAI, hostingom a Stripe. Overiť región EÚ a prenosy mimo EÚ.
+- [ ] DPA s Upstash, Anthropic, OpenAI, hostingom a Stripe. Overiť región EÚ a prenosy mimo EÚ.
 - [ ] Staging test: registrácia → projekt → deck → hlasový tréning → report → cvičenie → porovnanie, na desktope aj mobile (Chrome, Safari).
 - [ ] 10 testovacích rozhovorov v slovenčine s meraním kvality prepisu a reálnej ceny za minútu (`training_sessions.provider_usage`).
 - [ ] Monitoring chýb (napríklad Sentry) a upozornenie na zlyhania reportov (`feedback_reports.status = 'failed'`).

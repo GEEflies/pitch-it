@@ -12,12 +12,11 @@ import {
 } from "@/lib/billing/plans";
 import { check } from "@/lib/db/core";
 import type { SubscriptionRow } from "@/lib/db/types";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 
 export async function getSubscription(userId: string): Promise<SubscriptionRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const db = await getUserDb();
+  const { data, error } = await db
     .from("subscriptions")
     .select("*")
     .eq("user_id", userId)
@@ -27,8 +26,8 @@ export async function getSubscription(userId: string): Promise<SubscriptionRow |
 }
 
 export async function getUsageTotals(userId: string, since: Date): Promise<UsageTotals> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const db = await getUserDb();
+  const { data, error } = await db
     .from("usage_events")
     .select("kind, quantity")
     .eq("user_id", userId)
@@ -71,7 +70,7 @@ export async function recordUsage(
   sessionId: string | null = null,
 ): Promise<void> {
   if (quantity <= 0) return;
-  const { error } = await getSupabaseAdmin()
+  const { error } = await getAdminDb()
     .from("usage_events")
     .insert({ user_id: userId, kind, quantity: Math.round(quantity), session_id: sessionId });
   check({ error }, "usage.record");

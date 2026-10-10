@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSignupMode, isAuthConfigured } from "@/config/env";
 import { getHashSalt } from "@/config/server-env";
-import { siteConfig } from "@/config/site";
 import {
   LEGAL_VERSION,
   newPasswordSchema,
@@ -16,10 +15,12 @@ import {
   signUpSchema,
   type AuthFormState,
 } from "@/lib/auth/schemas";
-import { safeNextPath } from "@/lib/auth/session";
+import { createAccount, endSession, findAccountByEmail, sendPasswordReset, setPassword, startSession } from "@/lib/auth/accounts";
+import { checkPassword } from "@/lib/auth/password";
+import { authorizeUrl, isProviderConfigured } from "@/lib/auth/oauth";
+import { getCurrentUser, safeNextPath } from "@/lib/auth/session";
 import { trackEvent } from "@/lib/events/track";
 import { consumeRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fieldErrors } from "@/lib/validation/schemas";
 
 const NOT_CONFIGURED: AuthFormState = {
@@ -45,10 +46,6 @@ function text(formData: FormData, name: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function confirmUrl(next: string): string {
-  return `${siteConfig.url}/auth/confirm?next=${encodeURIComponent(next)}`;
-}
-
 export async function signUp(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {
   if (!isAuthConfigured()) return NOT_CONFIGURED;
   if (getSignupMode() === "waitlist") {
@@ -72,47 +69,33 @@ export async function signUp(_previous: AuthFormState, formData: FormData): Prom
     return { status: "error", message: "Skontroluj zvýraznené polia.", fieldErrors: fieldErrors(parsed.error), values };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      emailRedirectTo: confirmUrl("/app"),
-      data: {
-        display_name: parsed.data.display_name,
-        accepted_terms: "true",
-        age_confirmed: "true",
-        product_emails: parsed.data.product_emails ? "true" : "false",
-        account_type: parsed.data.account_type,
-        consent_version: LEGAL_VERSION,
-      },
-    },
-  });
-
-  if (error) {
-    if (error.code === "weak_password") {
-      return {
-        status: "error",
-        message: "Heslo je príliš slabé alebo sa objavilo v známych únikoch. Zvoľ iné.",
-        fieldErrors: { password: "Zvoľ silnejšie heslo." },
-        values,
-      };
-    }
-    if (error.code === "over_email_send_rate_limit" || error.status === 429) return TOO_MANY;
-    console.error("[auth] signUp:", error.code ?? error.status);
+  let account;
+  try {
+    account = await createAccount({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      displayName: parsed.data.display_name,
+      accountType: parsed.data.account_type,
+      consentVersion: LEGAL_VERSION,
+      acceptedTerms: true,
+      productEmails: Boolean(parsed.data.product_emails),
+    });
+  } catch (error) {
+    console.error("[auth] signUp:", error instanceof Error ? error.message : error);
     return { status: "error", message: "Účet sa nepodarilo vytvoriť. Skús to znova o chvíľu.", values };
   }
+  if (!account) {
+    return {
+      status: "error",
+      message: "Účet s týmto e-mailom už existuje. Prihlás sa.",
+      fieldErrors: { email: "Tento e-mail už má účet." },
+      values,
+    };
+  }
 
-  if (data.user) await trackEvent(data.user.id, "signup_completed", { email_confirmation: !data.session });
-
-  // Bez potvrdenia e-mailu (vypnuté v Supabase) je používateľ rovno prihlásený.
-  if (data.session) redirect("/app");
-
-  // Rovnaká odpoveď aj pre existujúci e-mail, aby sa nedalo zisťovať, kto má účet.
-  return {
-    status: "success",
-    message: `Poslali sme ti e-mail na ${parsed.data.email}. Klikni na odkaz v ňom a účet sa aktivuje.`,
-  };
+  await trackEvent(account.id, "signup_completed", { email_confirmation: false });
+  await startSession(account);
+  redirect("/app");
 }
 
 export async function signIn(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -125,19 +108,11 @@ export async function signIn(_previous: AuthFormState, formData: FormData): Prom
     return { status: "error", message: "Skontroluj zvýraznené polia.", fieldErrors: fieldErrors(parsed.error), values };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) {
-    if (error.code === "email_not_confirmed") {
-      return {
-        status: "error",
-        message: "E-mail ešte nie je potvrdený. Klikni na odkaz, ktorý sme ti poslali po registrácii.",
-        values,
-      };
-    }
-    if (error.status === 429) return TOO_MANY;
+  const account = await findAccountByEmail(parsed.data.email);
+  if (!account || !(await checkPassword(parsed.data.password, account.password_hash))) {
     return { status: "error", message: "Nesprávny e-mail alebo heslo.", values };
   }
+  await startSession(account);
 
   redirect(safeNextPath(text(formData, "next")));
 }
@@ -152,12 +127,8 @@ export async function requestPasswordReset(_previous: AuthFormState, formData: F
     return { status: "error", message: "Skontroluj e-mail.", fieldErrors: fieldErrors(parsed.error), values };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: confirmUrl("/nove-heslo"),
-  });
-  if (error && error.status === 429) return TOO_MANY;
-  if (error) console.error("[auth] reset:", error.code ?? error.status);
+  const account = await findAccountByEmail(parsed.data.email);
+  if (account) await sendPasswordReset(account).catch((error) => console.error("[auth] reset:", error instanceof Error ? error.message : error));
 
   // Vždy rovnaká odpoveď: nezverejňujeme, či účet existuje.
   return {
@@ -176,52 +147,29 @@ export async function updatePassword(_previous: AuthFormState, formData: FormDat
     return { status: "error", message: "Skontroluj zvýraznené polia.", fieldErrors: fieldErrors(parsed.error) };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  if (!claims?.claims?.sub) {
+  const user = await getCurrentUser();
+  if (!user) {
     return {
       status: "error",
       message: "Odkaz na zmenu hesla vypršal. Vypýtaj si nový.",
     };
   }
-
-  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
-  if (error) {
-    if (error.code === "weak_password") {
-      return { status: "error", message: "Heslo je príliš slabé.", fieldErrors: { password: "Zvoľ silnejšie heslo." } };
-    }
-    if (error.code === "same_password") {
-      return { status: "error", fieldErrors: { password: "Nové heslo musí byť iné ako staré." }, message: "Zvoľ iné heslo." };
-    }
-    return { status: "error", message: "Heslo sa nepodarilo zmeniť. Skús to znova." };
-  }
+  await setPassword(user.id, parsed.data.password);
   redirect("/app?heslo=zmenene");
 }
 
 export async function signOut(): Promise<void> {
-  if (isAuthConfigured()) {
-    const supabase = await createSupabaseServerClient();
-    await supabase.auth.signOut();
-  }
+  if (isAuthConfigured()) await endSession();
   redirect("/");
 }
 
 /**
- * Prihlásenie cez Google alebo LinkedIn (Supabase OAuth, PKCE).
- * Poskytovateľa treba zapnúť v Supabase → Authentication → Providers.
+ * Prihlásenie cez Google alebo LinkedIn (OpenID Connect).
+ * Zapína sa premennými GOOGLE_CLIENT_ID/SECRET a LINKEDIN_CLIENT_ID/SECRET.
  */
 export async function signInWithProvider(formData: FormData): Promise<void> {
   const provider = text(formData, "provider") as OAuthProvider;
-  if (!isAuthConfigured() || !OAUTH_PROVIDERS.includes(provider)) redirect("/prihlasenie?chyba=poskytovatel");
+  if (!isAuthConfigured() || !OAUTH_PROVIDERS.includes(provider) || !isProviderConfigured(provider)) redirect("/prihlasenie?chyba=poskytovatel");
   const next = safeNextPath(text(formData, "next") || "/app");
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: confirmUrl(next) },
-  });
-  if (error || !data.url) {
-    console.error("[auth] oauth:", provider, error?.code ?? error?.status);
-    redirect("/prihlasenie?chyba=poskytovatel");
-  }
-  redirect(data.url);
+  redirect(await authorizeUrl(provider, next));
 }

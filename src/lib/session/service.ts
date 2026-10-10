@@ -25,7 +25,7 @@ import {
 } from "@/lib/db/sessions";
 import type { SessionRow, TurnRow } from "@/lib/db/types";
 import { getBillingContext, recordUsage } from "@/lib/db/usage";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAdminDb } from "@/lib/store/client";
 import { trackEvent } from "@/lib/events/track";
 import { INVESTOR_STYLES, SCENARIOS, isInvestorKey, isScenarioKey } from "@/lib/investor/catalog";
 import { buildHintPrompt, HINT_SYSTEM, hintSchema, type Hint } from "@/lib/investor/hints";
@@ -270,7 +270,7 @@ export async function finishTraining(userId: string, sessionId: string, request:
   await createPendingReport(session.id, userId);
   if (session.exercise_id) {
     // Mini simulácia alebo prednes z cvičenia: absolvovanie uzavrie cvičenie.
-    await getSupabaseAdmin()
+    await getAdminDb()
       .from("exercises")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", session.exercise_id)

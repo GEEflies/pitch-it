@@ -17,8 +17,8 @@ Každý krok zapisuje dáta, z ktorých vychádza ďalší. Report nečíta nič
 | Verejná časť | `src/app/(marketing)`, `src/components/sections` | landing, cenník, FAQ, právne texty |
 | Autentifikácia | `src/app/(auth)`, `src/lib/auth` | registrácia, prihlásenie, reset hesla, súhlasy pri registrácii |
 | Aplikácia | `src/app/app/**` | dashboard, projekty, podklady, tréning, reporty, cvičenia, história, nastavenia |
-| Dátový prístup | `src/lib/db/**` | jediné miesto, kde sa číta a zapisuje do Supabase; overuje vlastníctvo |
-| Supabase klienti | `src/lib/supabase/**` | klient s reláciou používateľa (RLS) a admin klient (iba server, systémové zápisy) |
+| Dátový prístup | `src/lib/db/**` | jediné miesto, kde sa číta a zapisuje do úložiska; overuje vlastníctvo |
+| Úložisko | `src/lib/store/**` | Redis (Upstash) s dotazmi v tvare `from().select()`; klient používateľa (pravidlá prístupu) a admin klient (iba server, systémové zápisy) |
 | LLM provider | `src/lib/ai/llm/**` | rozhranie `LlmProvider`, implementácia Anthropic (Claude) |
 | Realtime provider | `src/lib/ai/realtime/**` | serverové vydanie krátkodobého tokenu + klientsky adaptér spojenia (OpenAI Realtime cez WebRTC) |
 | Investor | `src/lib/investor/**` | investorské štýly s metodikou, scenáre, skladanie inštrukcií z podkladov |
@@ -66,7 +66,7 @@ Textový fallback: rovnaké inštrukcie investora, odpovede generuje `LlmProvide
 
 ## Dátový model
 
-Migrácie: `supabase/migrations/`. Hlavné entity:
+Schéma: `src/lib/store/schema.ts`. Hlavné entity:
 
 ```
 auth.users ─┬─ profiles, user_settings, consents, subscriptions, usage_events
@@ -84,15 +84,15 @@ auth.users ─┬─ profiles, user_settings, consents, subscriptions, usage_eve
 
 Investorské štýly a scenáre sú v kóde (`src/lib/investor/catalog.ts`), nie v databáze: sú to produktové dáta s verziou v gite a s revíziou. Každá relácia si ukladá `config_snapshot` s verziou štýlu a promptu, takže starý report zostane interpretovateľný aj po zmene katalógu.
 
-### Pravidlá prístupu (RLS)
+### Pravidlá prístupu
 
-- Každá tabuľka má zapnuté RLS. Rola `anon` nemá prístup k ničomu.
-- Obsah používateľa (projekty, fakty, podklady, prepisy počas živej relácie, pokusy v cvičeniach) zapisuje server klientom s reláciou používateľa, takže RLS platí aj pre server.
-- Systémové údaje (stav a fakturácia relácie, merania, reporty, limity, predplatné, udalosti) môže používateľ iba čítať. Zapisuje ich server cez admin klienta po overení vlastníctva v `src/lib/db`.
-- Prístup k projektu: vlastník alebo člen (`editor`, `viewer`) cez funkcie `can_read_project` a `can_edit_project` (`security definer`, bez rekurzie politík).
-- Úložisko: súkromný bucket `pitch-documents`, cesta `{project_id}/{document_id}.{pdf|pptx}`, politiky cez rovnaké funkcie.
+- Každá tabuľka má v `src/lib/store/schema.ts` pravidlá `read`, `insert`, `update`, `remove`. Chýbajúce pravidlo znamená zákaz. Bez prihlásenia nie je prístup k ničomu.
+- Obsah používateľa (projekty, fakty, podklady, prepisy počas živej relácie, pokusy v cvičeniach) zapisuje server klientom používateľa (`getUserDb`), takže pravidlá platia aj pre server.
+- Systémové údaje (stav a fakturácia relácie, merania, reporty, limity, predplatné, udalosti) môže používateľ iba čítať. Zapisuje ich server cez admin klienta (`getAdminDb`) po overení vlastníctva v `src/lib/db`.
+- Prístup k projektu: vlastník alebo člen (`editor`, `viewer`).
+- Súbory: v Redise po kúskoch pod `{project_id}/{document_id}`, nahrávanie cez podpísaný token.
 
-Politiky testuje `tests/db/rls.test.ts` na PGlite (Postgres vo WASM) so simulovaným `auth` schémou.
+Pravidlá testuje `tests/store.test.ts`.
 
 ## AI vrstva
 

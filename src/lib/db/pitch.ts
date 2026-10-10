@@ -3,8 +3,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { check, DbError, must } from "@/lib/db/core";
 import type { PitchAttemptRow, PitchEventRow } from "@/lib/db/types";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAdminDb, getUserDb } from "@/lib/store/client";
 
 /*
   Nahrané pitche a akcie. Pokusy zapisuje server (service_role), čítanie ide cez RLS:
@@ -12,26 +11,26 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 */
 
 export async function insertPitchAttempt(row: Pick<PitchAttemptRow, "user_id" | "audience" | "target_seconds" | "focus" | "with_camera" | "duration_ms">): Promise<PitchAttemptRow> {
-  const result = await getSupabaseAdmin().from("pitch_attempts").insert(row).select("*").single<PitchAttemptRow>();
+  const result = await getAdminDb().from("pitch_attempts").insert(row).select("*").single<PitchAttemptRow>();
   return must(result, "pitch.insert");
 }
 
 export async function updatePitchAttempt(id: string, patch: Partial<Omit<PitchAttemptRow, "id" | "user_id" | "created_at">>): Promise<void> {
-  check(await getSupabaseAdmin().from("pitch_attempts").update(patch).eq("id", id), "pitch.update");
+  check(await getAdminDb().from("pitch_attempts").update(patch).eq("id", id), "pitch.update");
 }
 
 /** Pokus, ktorý smie vidieť prihlásený používateľ (vlastný alebo zdieľaný do jeho akcie). */
 export async function getPitchAttempt(id: string): Promise<PitchAttemptRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.from("pitch_attempts").select("*").eq("id", id).maybeSingle<PitchAttemptRow>();
+  const db = await getUserDb();
+  const { data, error } = await db.from("pitch_attempts").select("*").eq("id", id).maybeSingle<PitchAttemptRow>();
   if (error) throw new DbError("query_failed", `pitch.get: ${error.code}`);
   return data;
 }
 
 /** Poradové číslo pokusu používateľa (1 = prvý). */
 export async function attemptNumber(attempt: PitchAttemptRow): Promise<number> {
-  const supabase = await createSupabaseServerClient();
-  const { count, error } = await supabase
+  const db = await getUserDb();
+  const { count, error } = await db
     .from("pitch_attempts")
     .select("id", { count: "exact", head: true })
     .eq("user_id", attempt.user_id)
@@ -41,28 +40,28 @@ export async function attemptNumber(attempt: PitchAttemptRow): Promise<number> {
 }
 
 export async function listOwnPitchAttempts(userId: string, limit = 20): Promise<PitchAttemptRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase.from("pitch_attempts").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
+  const db = await getUserDb();
+  const result = await db.from("pitch_attempts").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
   return must(result, "pitch.list") as PitchAttemptRow[];
 }
 
 /** Posledné zdieľanie používateľa (na predvyplnenie formulára). */
 export async function lastShare(userId: string): Promise<Pick<PitchAttemptRow, "share_name" | "share_team" | "share_email" | "event_id"> | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
+  const db = await getUserDb();
+  const { data } = await db
     .from("pitch_attempts")
     .select("share_name, share_team, share_email, event_id")
     .eq("user_id", userId)
     .not("shared_at", "is", null)
     .order("shared_at", { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle<Pick<PitchAttemptRow, "share_name" | "share_team" | "share_email" | "event_id">>();
   return data;
 }
 
 /** Zdieľa pokus a všetky ďalšie pokusy používateľa s rovnakou akciou (mentor vidí progres). */
 export async function sharePitchAttempts(userId: string, attemptId: string, share: { eventId: string | null; name: string; team: string; email: string }): Promise<void> {
-  const admin = getSupabaseAdmin();
+  const admin = getAdminDb();
   const patch = { event_id: share.eventId, share_name: share.name, share_team: share.team, share_email: share.email, shared_at: new Date().toISOString() };
   check(await admin.from("pitch_attempts").update(patch).eq("user_id", userId).eq("id", attemptId), "pitch.share");
   // Staršie pokusy bez akcie pripojíme tiež, aby mentor videl 1. aj posledný pokus.
@@ -71,12 +70,12 @@ export async function sharePitchAttempts(userId: string, attemptId: string, shar
 }
 
 export async function findEventByCode(code: string): Promise<PitchEventRow | null> {
-  const { data } = await getSupabaseAdmin().from("pitch_events").select("*").eq("code", code.toUpperCase()).maybeSingle<PitchEventRow>();
+  const { data } = await getAdminDb().from("pitch_events").select("*").eq("code", code.toUpperCase()).maybeSingle<PitchEventRow>();
   return data;
 }
 
 export async function getEvent(id: string): Promise<PitchEventRow | null> {
-  const { data } = await getSupabaseAdmin().from("pitch_events").select("*").eq("id", id).maybeSingle<PitchEventRow>();
+  const { data } = await getAdminDb().from("pitch_events").select("*").eq("id", id).maybeSingle<PitchEventRow>();
   return data;
 }
 
@@ -85,7 +84,7 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 export async function createEvent(organizerId: string, name: string): Promise<PitchEventRow> {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = Array.from({ length: 6 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join("");
-    const result = await getSupabaseAdmin().from("pitch_events").insert({ organizer_id: organizerId, name, code }).select("*").single<PitchEventRow>();
+    const result = await getAdminDb().from("pitch_events").insert({ organizer_id: organizerId, name, code }).select("*").single<PitchEventRow>();
     if (!result.error) return result.data;
     if (result.error.code !== "23505") throw new DbError("query_failed", `event.create: ${result.error.code}`);
   }
@@ -93,14 +92,14 @@ export async function createEvent(organizerId: string, name: string): Promise<Pi
 }
 
 export async function listOwnEvents(): Promise<PitchEventRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase.from("pitch_events").select("*").order("created_at", { ascending: false });
+  const db = await getUserDb();
+  const result = await db.from("pitch_events").select("*").order("created_at", { ascending: false });
   return must(result, "event.list") as PitchEventRow[];
 }
 
 /** Zdieľané pokusy akcie (RLS pustí iba organizátora). */
 export async function listEventAttempts(eventId: string): Promise<PitchAttemptRow[]> {
-  const supabase = await createSupabaseServerClient();
-  const result = await supabase.from("pitch_attempts").select("*").eq("event_id", eventId).not("shared_at", "is", null).order("created_at", { ascending: true });
+  const db = await getUserDb();
+  const result = await db.from("pitch_attempts").select("*").eq("event_id", eventId).not("shared_at", "is", null).order("created_at", { ascending: true });
   return must(result, "event.attempts") as PitchAttemptRow[];
 }

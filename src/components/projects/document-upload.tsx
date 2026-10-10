@@ -6,7 +6,6 @@ import { Notice } from "@/components/ui/notice";
 import { Spinner } from "@/components/ui/submit-button";
 import { useToast } from "@/components/ui/toast";
 import { checkUploadRequest, DOCUMENT_MIME } from "@/lib/documents/file-check";
-import { getBrowserSupabase } from "@/lib/supabase/browser";
 
 type Phase = "idle" | "hashing" | "preparing" | "uploading" | "checking" | "error";
 
@@ -31,15 +30,14 @@ async function readError(response: Response): Promise<string> {
   }
 }
 
+/** Veľkosť časti pri nahrávaní (musí sedieť s UPLOAD_CHUNK_BYTES na serveri). */
+const UPLOAD_CHUNK = 2 * 1024 * 1024;
+
 export function DocumentUpload({
   projectId,
-  supabaseUrl,
-  publishableKey,
   disabledReason,
 }: {
   projectId: string;
-  supabaseUrl: string;
-  publishableKey: string;
   disabledReason: string | null;
 }) {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -75,11 +73,16 @@ export function DocumentUpload({
       const { documentId, path, token } = (await prepared.json()) as { documentId: string; path: string; token: string };
 
       setPhase("uploading");
-      const supabase = getBrowserSupabase(supabaseUrl, publishableKey);
-      const { error: uploadError } = await supabase.storage
-        .from("pitch-documents")
-        .uploadToSignedUrl(path, token, file, { contentType: DOCUMENT_MIME[checked.kind] });
-      if (uploadError) throw new Error("Súbor sa nepodarilo nahrať. Skontroluj pripojenie a skús to znova.");
+      const parts = Math.max(1, Math.ceil(file.size / UPLOAD_CHUNK));
+      for (let part = 0; part < parts; part++) {
+        const query = new URLSearchParams({ path, token, part: String(part), parts: String(parts) });
+        const sent = await fetch(`/api/documents/upload?${query}`, {
+          method: "PUT",
+          headers: { "Content-Type": DOCUMENT_MIME[checked.kind] },
+          body: file.slice(part * UPLOAD_CHUNK, (part + 1) * UPLOAD_CHUNK),
+        }).catch(() => null);
+        if (!sent?.ok) throw new Error("Súbor sa nepodarilo nahrať. Skontroluj pripojenie a skús to znova.");
+      }
 
       setPhase("checking");
       const processed = await fetch(`/api/documents/${documentId}/process`, { method: "POST" });

@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { EarlyAccessData } from "@/lib/early-access/schema";
+import { getAdminDb, type Db } from "@/lib/store/client";
 
 const TABLE = "early_access_signups";
 const UNIQUE_VIOLATION = "23505";
@@ -16,33 +16,13 @@ export class EarlyAccessStoreError extends Error {
   }
 }
 
-type Credentials = { url: string; key: string };
-
-function readCredentials(): Credentials | null {
-  const url = process.env.SUPABASE_URL?.trim();
-  // Nový „secret“ kľúč alebo starší service_role kľúč. Nikdy nie NEXT_PUBLIC_.
-  const key =
-    process.env.SUPABASE_SECRET_KEY?.trim() ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  return url && key ? { url, key } : null;
-}
-
+/** Úložisko je vždy dostupné (Redis, v dev pamäť). */
 export function isEarlyAccessConfigured(): boolean {
-  return readCredentials() !== null;
+  return true;
 }
 
-let client: SupabaseClient | null = null;
-
-function getClient(): SupabaseClient {
-  if (client) return client;
-  const credentials = readCredentials();
-  if (!credentials) {
-    throw new EarlyAccessStoreError("not_configured", "Supabase nie je nakonfigurovaný.");
-  }
-  client = createClient(credentials.url, credentials.key, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  });
-  return client;
+function getClient(): Db {
+  return getAdminDb();
 }
 
 export type SignupRecord = EarlyAccessData & {

@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Db } from "@/lib/store/client";
 import { DbError, must } from "@/lib/db/core";
 import type { ExtractionRow, FactRow, IssueRow, ProjectRow } from "@/lib/db/types";
 import { toNumber } from "@/lib/db/types";
@@ -65,7 +65,7 @@ export function toStartupContext(
 }
 
 export async function fetchStartupContext(
-  client: SupabaseClient,
+  client: Db,
   projectId: string,
 ): Promise<{ project: ProjectRow; context: StartupContext }> {
   const [projectResult, factsResult, extractionsResult, issuesResult] = await Promise.all([

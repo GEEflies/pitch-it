@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isAdminConfigured, getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAdminDb } from "@/lib/store/client";
 
 /*
   Interné produktové udalosti (bez tretích strán a cookies).
@@ -32,9 +32,8 @@ export async function trackEvent(
   name: ProductEventName,
   properties: EventProperties = {},
 ): Promise<void> {
-  if (!isAdminConfigured()) return;
   try {
-    const { error } = await getSupabaseAdmin()
+    const { error } = await getAdminDb()
       .from("product_events")
       .insert({ user_id: userId, name, properties });
     if (error) console.error("[events] zápis zlyhal:", error.code);

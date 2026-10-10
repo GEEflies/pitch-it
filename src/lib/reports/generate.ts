@@ -18,7 +18,7 @@ import { INVESTOR_STYLES, SCENARIOS, isInvestorKey, isScenarioKey } from "@/lib/
 import { ASSESSMENT_VERSION, assessmentSchema, validateAssessmentEvidence } from "@/lib/reports/assessment";
 import { computeMeasurements } from "@/lib/reports/measured";
 import { REPORT_SYSTEM, buildReportPrompt } from "@/lib/reports/prompt";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAdminDb } from "@/lib/store/client";
 
 /*
   Generovanie reportu na pozadí (after()). Vlastníctvo relácie overil route handler
@@ -116,7 +116,7 @@ export async function generateReport(sessionId: string): Promise<void> {
     return;
   }
 
-  const { context } = await fetchStartupContext(getSupabaseAdmin(), session.project_id);
+  const { context } = await fetchStartupContext(getAdminDb(), session.project_id);
   const transcript = turns.map((turn) => ({
     seq: turn.seq,
     speaker: turn.speaker,

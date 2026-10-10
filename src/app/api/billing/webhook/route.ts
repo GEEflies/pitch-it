@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getStripeConfig } from "@/config/server-env";
 import { mapSubscriptionStatus, verifyWebhookSignature, type StripeSubscription } from "@/lib/billing/stripe";
 import { trackEvent } from "@/lib/events/track";
-import { getSupabaseAdmin, isAdminConfigured } from "@/lib/supabase/admin";
+import { getAdminDb } from "@/lib/store/client";
 import { isUuid } from "@/lib/validation/ids";
 
 /*
@@ -13,7 +13,7 @@ import { isUuid } from "@/lib/validation/ids";
 type StripeEvent = { id: string; type: string; data: { object: Record<string, unknown> } };
 
 async function upsertFromSubscription(subscription: StripeSubscription, fallbackUserId: string | null) {
-  const admin = getSupabaseAdmin();
+  const admin = getAdminDb();
   let userId = subscription.metadata?.user_id ?? fallbackUserId;
   if (!isUuid(userId)) {
     const { data } = await admin
@@ -48,7 +48,7 @@ async function upsertFromSubscription(subscription: StripeSubscription, fallback
 
 export async function POST(request: Request) {
   const config = getStripeConfig();
-  if (!config || !isAdminConfigured()) return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  if (!config) return NextResponse.json({ error: "not_configured" }, { status: 503 });
 
   const payload = await request.text();
   if (!verifyWebhookSignature(payload, request.headers.get("stripe-signature"), config.webhookSecret)) {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as { client_reference_id?: string; customer?: string; subscription?: string };
       if (isUuid(session.client_reference_id) && typeof session.customer === "string") {
-        await getSupabaseAdmin()
+        await getAdminDb()
           .from("subscriptions")
           .update({ provider: "stripe", provider_customer_id: session.customer, provider_subscription_id: session.subscription ?? null })
           .eq("user_id", session.client_reference_id);

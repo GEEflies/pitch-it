@@ -22,7 +22,7 @@ export function AuthPage({
       {!configured ? (
         <Notice tone="attention" className="mt-6" title="Účty momentálne nefungujú">
           {process.env.NODE_ENV !== "production"
-            ? "Vývojárska poznámka: nastav NEXT_PUBLIC_SUPABASE_URL a NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY v .env.local a reštartuj server. Postup je v README."
+            ? "Vývojárska poznámka: nastav AUTH_SECRET v .env.local a reštartuj server. Postup je v README."
             : "Skús to prosím neskôr."}
         </Notice>
       ) : null}

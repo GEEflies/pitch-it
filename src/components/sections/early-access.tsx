@@ -11,7 +11,7 @@ export function EarlyAccess() {
   const available = isEarlyAccessConfigured();
   const setupHint =
     !available && process.env.NODE_ENV !== "production"
-      ? "Vývojárska poznámka: nastav SUPABASE_URL a SUPABASE_SECRET_KEY v .env.local a reštartuj server. Postup je v README."
+      ? "Vývojárska poznámka: nastav KV_REST_API_URL a KV_REST_API_TOKEN v .env.local a reštartuj server. Postup je v README."
       : null;
 
   return (

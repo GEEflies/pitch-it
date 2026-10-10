@@ -51,3 +51,6 @@ next-env.d.ts
 # z pôvodného tímového .gitignore
 dist/
 *.log
+
+# Lokálne dáta úložiska pri next dev
+/.data

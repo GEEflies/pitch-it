@@ -70,3 +70,10 @@ Formát: Decision · Context · Options · Chosen · Why · Evidence · Trade-of
 - **Unit economics (ESTIMATE):** Pro pri plnom čerpaní stojí 180 × 0,11 $ ≈ 20 $ za hlas a 40 × ~0,2 $ ≈ 8 $ za reporty, spolu ≈ 28 $ (~26 €). Pri 29 € a plnom čerpaní je marža takmer nulová. Vychádza iba pri priemernom čerpaní pod ~50 %. Pri 300 min by cena **nevychádzala**. Páky: `gpt-realtime-2.1-mini` pre tréningový režim (približne 3× lacnejší), cache inštrukcií, kratšie odpovede investora. Treba zmerať reálnu spotrebu tokenov na minútu z `usage` v `response.done`.
 - **Free plán (ESTIMATE):** 20 × 0,11 $ + 3 × 0,2 $ ≈ 2,8 $ na aktívneho free používateľa mesačne. Kill/kontrola: ak konverzia free → Pro < 3 %, free plán skrátiť alebo zaviesť pozvánky (`SIGNUP_MODE=waitlist`).
 - **Date:** 2026-10-10
+
+## D9: Redis namiesto Supabase pre MVP
+
+- **Context:** Pre MVP na verejnej Vercel doméne chceme čo najmenej nastavovania: bez SQL migrácií, bez externého auth projektu a bez šablón e-mailov.
+- **Chosen:** Upstash Redis (integrácia Vercelu) ako jediné úložisko. Vlastná malá dotazovacia vrstva s rovnakým tvarom ako klient Supabase (`src/lib/store`), takže `src/lib/db/**` ostal. Pravidlá prístupu ako kód v `schema.ts` namiesto RLS. Prihlásenie: scrypt heslo a podpísaná httpOnly cookie (`AUTH_SECRET`), voliteľne Google a LinkedIn cez OIDC. Podklady v Redise po 2 MB kúskoch. Nahrádza D7 (PGlite testy).
+- **Trade-offs:** Žiadne transakcie ani SQL dotazy; filtre a radenie bežia v pamäti nad indexmi, čo stačí pre stovky používateľov, nie pre veľké tabuľky. Súbory v Redise sú drahšie ako objektové úložisko. Pri raste presunúť na Postgres (tvar dotazov to uľahčí) a súbory na Blob.
+- **Date:** 2026-10-10

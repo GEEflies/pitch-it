@@ -8,18 +8,9 @@ function read(name: string): string | null {
   return value ? value : null;
 }
 
-export type SupabasePublicConfig = { url: string; publishableKey: string };
-
-/** URL a verejný kľúč Supabase (bezpečné aj pre prehliadač; chráni ich RLS). */
-export function getSupabasePublicConfig(): SupabasePublicConfig | null {
-  const url = read("NEXT_PUBLIC_SUPABASE_URL") ?? read("SUPABASE_URL");
-  const publishableKey =
-    read("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ?? read("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  return url && publishableKey ? { url, publishableKey } : null;
-}
-
+/** Prihlasovanie potrebuje tajomstvo na podpis cookies (AUTH_SECRET; v dev náhradné). */
 export function isAuthConfigured(): boolean {
-  return getSupabasePublicConfig() !== null;
+  return Boolean(read("AUTH_SECRET")) || process.env.NODE_ENV !== "production";
 }
 
 /** Režim registrácie: otvorená, alebo iba zápis na čakaciu listinu. */

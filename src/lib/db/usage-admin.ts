@@ -4,13 +4,13 @@ import { effectivePlan, emptyUsage, periodStart, type UsageKind } from "@/lib/bi
 import { check } from "@/lib/db/core";
 import type { SubscriptionRow } from "@/lib/db/types";
 import type { BillingContext } from "@/lib/db/usage";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAdminDb } from "@/lib/store/client";
 
 export { recordUsage } from "@/lib/db/usage";
 
 /** Fakturačný kontext pre úlohy na pozadí (bez cookies používateľa). */
 export async function getAdminBillingContext(userId: string, now = new Date()): Promise<BillingContext> {
-  const admin = getSupabaseAdmin();
+  const admin = getAdminDb();
   const start = periodStart(now);
   const [subscriptionResult, usageResult] = await Promise.all([
     admin.from("subscriptions").select("*").eq("user_id", userId).maybeSingle<SubscriptionRow>(),
