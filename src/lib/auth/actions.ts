@@ -9,6 +9,8 @@ import { siteConfig } from "@/config/site";
 import {
   LEGAL_VERSION,
   newPasswordSchema,
+  OAUTH_PROVIDERS,
+  type OAuthProvider,
   resetRequestSchema,
   signInSchema,
   signUpSchema,
@@ -63,7 +65,7 @@ export async function signUp(_previous: AuthFormState, formData: FormData): Prom
     email: values.email,
     password: text(formData, "password"),
     accept_terms: formData.get("accept_terms") ?? undefined,
-    age_confirmed: formData.get("age_confirmed") ?? undefined,
+    account_type: text(formData, "account_type"),
     product_emails: formData.get("product_emails") ?? undefined,
   });
   if (!parsed.success) {
@@ -81,6 +83,7 @@ export async function signUp(_previous: AuthFormState, formData: FormData): Prom
         accepted_terms: "true",
         age_confirmed: "true",
         product_emails: parsed.data.product_emails ? "true" : "false",
+        account_type: parsed.data.account_type,
         consent_version: LEGAL_VERSION,
       },
     },
@@ -201,4 +204,24 @@ export async function signOut(): Promise<void> {
     await supabase.auth.signOut();
   }
   redirect("/");
+}
+
+/**
+ * Prihlásenie cez Google alebo LinkedIn (Supabase OAuth, PKCE).
+ * Poskytovateľa treba zapnúť v Supabase → Authentication → Providers.
+ */
+export async function signInWithProvider(formData: FormData): Promise<void> {
+  const provider = text(formData, "provider") as OAuthProvider;
+  if (!isAuthConfigured() || !OAUTH_PROVIDERS.includes(provider)) redirect("/prihlasenie?chyba=poskytovatel");
+  const next = safeNextPath(text(formData, "next") || "/app");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: confirmUrl(next) },
+  });
+  if (error || !data.url) {
+    console.error("[auth] oauth:", provider, error?.code ?? error?.status);
+    redirect("/prihlasenie?chyba=poskytovatel");
+  }
+  redirect(data.url);
 }

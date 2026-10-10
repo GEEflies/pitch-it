@@ -1,29 +1,25 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Wordmark } from "@/components/wordmark";
 
+/** Prihlásenie a registrácia: panel v strede obrazovky s dvomi rozmazanými škvrnami farby. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="container-page flex h-16 items-center justify-between">
-        <Wordmark />
-        <Link href="/" className="rounded-md px-2 py-1 text-sm text-mute hover:text-paper">
-          Späť na úvod
-        </Link>
-      </header>
-      <main id="obsah" className="container-page grid flex-1 items-start gap-12 py-10 md:py-16 lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-5">{children}</div>
-        <aside aria-hidden="true" className="hidden lg:col-span-6 lg:col-start-7 lg:block">
-          <figure className="mt-10 border-l-2 border-marker/70 pl-8">
-            <blockquote className="type-investor text-[1.9rem] leading-[1.25] text-paper/90">
-              Na slide uvádzate trh štyri celé dva miliardy. Koľko z toho dokážete reálne osloviť za tri roky?
-            </blockquote>
-            <figcaption className="mt-6 text-[15px] text-faint">
-              Takéto otázky si natrénuješ skôr, než zaznejú naostro.
-            </figcaption>
-          </figure>
-        </aside>
-      </main>
-    </div>
+    <main
+      id="obsah"
+      className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-12"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-[120px] right-[8%] size-[420px] rounded-full bg-violet opacity-35 blur-[90px] light:opacity-20"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[120px] left-[10%] size-[360px] rounded-full bg-signal opacity-[0.14] blur-[90px]"
+      />
+      <Wordmark className="relative mb-7" />
+      <div className="relative w-full max-w-[460px] rounded-[28px] border border-line bg-[linear-gradient(160deg,color-mix(in_srgb,var(--card-from)_95%,transparent),color-mix(in_srgb,var(--card-to)_95%,transparent))] px-6 py-10 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:px-9 light:shadow-[0_30px_80px_rgba(30,30,70,0.14)]">
+        {children}
+      </div>
+    </main>
   );
 }

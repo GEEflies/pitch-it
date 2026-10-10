@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function NewPasswordPage() {
   return (
-    <AuthPage title="Nastav si nové heslo" description="Po uložení ťa rovno prihlásime.">
+    <AuthPage title="Nastav si nové heslo." description="Po uložení ťa rovno prihlásime.">
       <NewPasswordForm available={authAvailable()} />
     </AuthPage>
   );

@@ -21,12 +21,18 @@ const password = z
 const checked = (message: string) =>
   z.union([z.literal("on"), z.literal("true")], message).transform(() => true as const);
 
+export const ACCOUNT_TYPES = ["participant", "organizer"] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+
+export const OAUTH_PROVIDERS = ["google", "linkedin_oidc"] as const;
+export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
+
 export const signUpSchema = z.object({
   display_name: z.string().trim().max(80, "Najviac 80 znakov.").optional().default(""),
   email,
   password,
-  accept_terms: checked("Na vytvorenie účtu potrebujeme tvoj súhlas s podmienkami."),
-  age_confirmed: checked("PitchIt je určený pre ľudí od 18 rokov."),
+  accept_terms: checked("Na vytvorenie účtu potrebujeme tvoj súhlas s podmienkami a potvrdenie veku."),
+  account_type: z.enum(ACCOUNT_TYPES).catch("participant"),
   product_emails: z.literal("on").optional(),
 });
 

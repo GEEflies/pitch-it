@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* `light:` platí pre svetlú tému: ručne zvolenú aj systémovú (ak nie je vynútená tmavá). */
+@custom-variant light {
+  &:where([data-theme="light"], [data-theme="light"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: light) {
+    &:where(:root:not([data-theme="dark"]), :root:not([data-theme="dark"]) *) {
+      @slot;
+    }
+  }
+}
+
 /*
   PitchIt: tokeny značky (docs/brand/README.md, tmavá téma).
   ink     pozadie #141414 s fialovou a limetkovou žiarou

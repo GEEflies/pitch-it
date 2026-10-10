@@ -297,12 +297,15 @@ describe("validácia vstupov", () => {
     assert.equal(createSessionSchema.safeParse({ projectId: "11111111-1111-4111-8111-111111111111", mode: "coach", investorKey: "evil", scenarioKey: "first_meeting", durationMinutes: 12 }).success, false);
   });
 
-  test("registrácia vyžaduje súhlas, vek 18+ a silnejšie heslo", () => {
-    const base = { email: "Jana@Startup.sk", password: "dostatocne-dlhe", accept_terms: "on", age_confirmed: "on" };
+  test("registrácia vyžaduje súhlas (podmienky aj vek 18+), typ účtu a silnejšie heslo", () => {
+    const base = { email: "Jana@Startup.sk", password: "dostatocne-dlhe", accept_terms: "on", account_type: "organizer" };
     const parsed = signUpSchema.safeParse(base);
     assert.equal(parsed.success, true);
     if (parsed.success) assert.equal(parsed.data.email, "jana@startup.sk");
-    assert.equal(signUpSchema.safeParse({ ...base, age_confirmed: undefined }).success, false);
+    if (parsed.success) assert.equal(parsed.data.account_type, "organizer");
+    const fallback = signUpSchema.safeParse({ ...base, account_type: "admin" });
+    assert.equal(fallback.success && fallback.data.account_type, "participant");
+    assert.equal(signUpSchema.safeParse({ ...base, accept_terms: undefined }).success, false);
     assert.equal(signUpSchema.safeParse({ ...base, password: "kratke" }).success, false);
   });
 });

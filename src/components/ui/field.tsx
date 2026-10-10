@@ -6,9 +6,9 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 */
 
 const control =
-  "w-full rounded-[10px] border bg-ink-2 px-3.5 text-[15px] text-paper placeholder:text-faint " +
+  "w-full rounded-xl border bg-panel px-4 text-[15px] text-paper placeholder:text-faint " +
   "transition-[border-color,box-shadow] duration-150 outline-none " +
-  "focus:border-signal-soft focus:shadow-[0_0_0_3px_rgba(170,255,0,0.18)] disabled:opacity-60";
+  "focus:border-mint focus:shadow-[0_0_0_3px_rgba(170,255,0,0.18)] disabled:opacity-60";
 
 function borderFor(error?: string | null) {
   return error ? "border-coral/70" : "border-line-strong";
@@ -26,8 +26,8 @@ type FieldShellProps = {
 
 export function Field({ id, label, hint, error, optional, children, className = "" }: FieldShellProps) {
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label htmlFor={id} className="text-sm font-medium text-paper">
+    <div className={`flex flex-col gap-2 ${className}`}>
+      <label htmlFor={id} className="text-sm font-bold text-paper">
         {label}
         {optional ? <span className="ml-1.5 font-normal text-faint">nepovinné</span> : null}
       </label>
@@ -60,7 +60,7 @@ export function Input({ error, hint, className = "", id, ...props }: InputProps)
       id={id}
       aria-invalid={error ? true : undefined}
       aria-describedby={id ? describedBy(id, error, hint) : undefined}
-      className={`${control} h-11 ${borderFor(error)} ${className}`}
+      className={`${control} min-h-[46px] ${borderFor(error)} ${className}`}
       {...props}
     />
   );
@@ -75,7 +75,7 @@ export function Textarea({ error, hint, className = "", id, rows = 4, ...props }
       rows={rows}
       aria-invalid={error ? true : undefined}
       aria-describedby={id ? describedBy(id, error, hint) : undefined}
-      className={`${control} py-2.5 leading-relaxed ${borderFor(error)} ${className}`}
+      className={`${control} py-3 leading-relaxed ${borderFor(error)} ${className}`}
       {...props}
     />
   );
@@ -90,7 +90,7 @@ export function Select({ error, hint, className = "", id, children, ...props }: 
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={id ? describedBy(id, error, hint) : undefined}
-        className={`${control} h-11 appearance-none pr-10 ${borderFor(error)} ${className}`}
+        className={`${control} min-h-[46px] appearance-none pr-10 ${borderFor(error)} ${className}`}
         {...props}
       >
         {children}
@@ -114,7 +114,7 @@ type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
 export function Checkbox({ label, error, id, className = "", ...props }: CheckboxProps) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="flex items-start gap-3 text-[14.5px] leading-snug text-paper/90">
+      <label htmlFor={id} className="flex cursor-pointer items-start gap-3 text-sm leading-normal text-mute">
         <input
           id={id}
           type="checkbox"

@@ -11,10 +11,10 @@ export const metadata: Metadata = {
 export default function ResetPasswordPage() {
   return (
     <AuthPage
-      title="Nové heslo"
+      title="Nové heslo."
       description="Zadaj e-mail k účtu. Pošleme ti odkaz, cez ktorý si nastavíš nové heslo."
       footer={
-        <Link href="/prihlasenie" className="link-underline text-paper">
+        <Link href="/prihlasenie" className="font-bold text-accent hover:underline">
           Späť na prihlásenie
         </Link>
       }

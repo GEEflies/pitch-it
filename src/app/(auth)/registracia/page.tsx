@@ -15,7 +15,7 @@ export default function SignUpPage() {
   if (getSignupMode() === "waitlist") {
     return (
       <AuthPage
-        title="Zatiaľ púšťame po skupinách"
+        title="Zatiaľ púšťame po skupinách."
         description="Hlasový tréning stojí reálne peniaze, preto účty otvárame postupne. Zapíš sa a ozveme sa, keď príde rad na teba."
       >
         <EarlyAccessForm available={isEarlyAccessConfigured()} setupHint={null} />
@@ -25,13 +25,13 @@ export default function SignUpPage() {
 
   return (
     <AuthPage
-      title="Vytvor si účet"
-      description="Prvých 20 minút hlasového tréningu mesačne je zadarmo. Bez platobnej karty."
+      title="Vytvor si účet."
+      description="Začni zadarmo. Netreba kreditnú kartu."
       footer={
         <>
           Už máš účet?{" "}
-          <Link href="/prihlasenie" className="link-underline text-paper">
-            Prihlás sa
+          <Link href="/prihlasenie" className="font-bold text-accent hover:underline">
+            Prihlásiť sa
           </Link>
         </>
       }

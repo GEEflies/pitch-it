@@ -13,13 +13,13 @@ export const metadata: Metadata = {
 export default function SignInPage() {
   return (
     <AuthPage
-      title="Vitaj späť"
-      description="Prihlás sa a pokračuj v príprave na stretnutie."
+      title="Vitaj späť."
+      description="Prihlás sa a pokračuj v cvičení svojho pitchu."
       footer={
         <>
           Ešte nemáš účet?{" "}
-          <Link href="/registracia" className="link-underline text-paper">
-            Vytvor si ho
+          <Link href="/registracia" className="font-bold text-accent hover:underline">
+            Vytvoriť účet
           </Link>
         </>
       }

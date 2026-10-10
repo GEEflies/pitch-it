@@ -24,6 +24,7 @@ export type ProfileRow = {
   onboarding_completed_at: string | null;
   /** Odpovede z úvodného kvízu, tvar `OnboardingAnswers` (src/lib/onboarding/plan.ts). */
   onboarding_answers: Record<string, unknown> | null;
+  account_type: "participant" | "organizer";
   created_at: string;
 };
 
