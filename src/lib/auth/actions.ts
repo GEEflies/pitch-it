@@ -15,6 +15,7 @@ import {
   signUpSchema,
   type AuthFormState,
 } from "@/lib/auth/schemas";
+import { deleteAccount } from "@/lib/privacy/account";
 import { createAccount, endSession, findAccountByEmail, sendPasswordReset, setPassword, startSession } from "@/lib/auth/accounts";
 import { checkPassword } from "@/lib/auth/password";
 import { authorizeUrl, isProviderConfigured } from "@/lib/auth/oauth";
@@ -71,6 +72,11 @@ export async function signUp(_previous: AuthFormState, formData: FormData): Prom
 
   let account;
   try {
+    // Iba vo vývoji: opakovaná registrácia s tým istým e-mailom nahradí starý účet (testovanie onboardingu).
+    if (process.env.NODE_ENV === "development") {
+      const existing = await findAccountByEmail(parsed.data.email);
+      if (existing) await deleteAccount(existing.id);
+    }
     account = await createAccount({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -95,7 +101,7 @@ export async function signUp(_previous: AuthFormState, formData: FormData): Prom
 
   await trackEvent(account.id, "signup_completed", { email_confirmation: false });
   await startSession(account);
-  redirect("/app");
+  redirect("/app/vitaj");
 }
 
 export async function signIn(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {
