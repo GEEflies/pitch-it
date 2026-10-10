@@ -8,21 +8,21 @@ import { z } from "zod";
 
 export const ANSWERS_VERSION = 2;
 
-export const AUDIENCES = ["investor", "team"] as const;
+export const AUDIENCES = ["investor", "jury", "customer", "team"] as const;
 export type Audience = (typeof AUDIENCES)[number];
 
-export const PITCH_LENGTHS = [30, 60] as const;
+export const PITCH_LENGTHS = [30, 60, 180] as const;
 export type PitchLength = (typeof PITCH_LENGTHS)[number];
 
 /** Čo ukázať vo feedbacku ako prvé. */
-export const FIRST_FOCUS = ["tempo", "obsah"] as const;
+export const FIRST_FOCUS = ["tempo", "fillery", "obsah"] as const;
 export type FirstFocus = (typeof FIRST_FOCUS)[number];
 
 export const NOTES_MAX = 4000;
 
 export const onboardingAnswersSchema = z.object({
   audience: z.enum(AUDIENCES),
-  lengthSeconds: z.union([z.literal(30), z.literal(60)]),
+  lengthSeconds: z.union([z.literal(30), z.literal(60), z.literal(180)]),
   focus: z.enum(FIRST_FOCUS),
 });
 export type OnboardingAnswers = z.infer<typeof onboardingAnswersSchema>;
@@ -41,8 +41,10 @@ export const QUESTIONS = [
     title: "Komu pitchuješ?",
     subtitle: "Podľa toho zmeníme, čo skórujeme.",
     options: [
-      { value: "investor", label: "Investorovi", detail: "Väčší dôraz na Ask a Traction", summary: "Investorovi" },
-      { value: "team", label: "Tímu", detail: "Dôraz na jasnosť a príbeh", summary: "Tímu" },
+      { value: "investor", label: "Investorovi", detail: "Stretnutie s VC alebo angelom. Dôraz na Traction a Ask", summary: "Investorovi" },
+      { value: "jury", label: "Porote", detail: "Demo day, súťaž, akcelerátor. Jasný príbeh aj čísla", summary: "Porote" },
+      { value: "customer", label: "Zákazníkovi alebo partnerovi", detail: "Predaj či pilot. Dôraz na problém a prínos", summary: "Zákazníkovi" },
+      { value: "team", label: "Tímu", detail: "Interná prezentácia. Dôraz na jasnosť a víziu", summary: "Tímu" },
     ],
   } satisfies Question<Audience>,
   {
@@ -50,8 +52,9 @@ export const QUESTIONS = [
     title: "Aká dlhá má byť tvoja prezentácia?",
     subtitle: "Nastavíme časovač a cieľové tempo reči.",
     options: [
-      { value: 30, label: "30 sekúnd", detail: "Výťahový pitch", summary: "30 sekúnd" },
-      { value: 60, label: "60 sekúnd", detail: "Najčastejšia dĺžka", summary: "60 sekúnd" },
+      { value: 30, label: "30 sekúnd", detail: "Výťahový pitch, prvý dojem na evente", summary: "30 sekúnd" },
+      { value: 60, label: "1 minúta", detail: "Úvod na stretnutí, najčastejšia dĺžka", summary: "1 minúta" },
+      { value: 180, label: "3 minúty", detail: "Demo day alebo súťaž s celým príbehom", summary: "3 minúty" },
     ],
   } satisfies Question<PitchLength>,
   {
@@ -59,13 +62,14 @@ export const QUESTIONS = [
     title: "Čo ťa najviac straší?",
     subtitle: "Tú metriku ti ukážeme ako prvú.",
     options: [
-      { value: "tempo", label: "Tempo a zajakávanie", detail: "Rýchlosť, pauzy a vypĺňacie slová", summary: "Tempo" },
+      { value: "tempo", label: "Tempo a pauzy", detail: "Rozprávam príliš rýchlo alebo bez nádychu", summary: "Tempo" },
+      { value: "fillery", label: "Vypĺňacie slová", detail: "Ehm, akože, proste, vlastne…", summary: "Vypĺňacie slová" },
       { value: "obsah", label: "Obsah a štruktúra", detail: "Problém, Riešenie, Trh, Traction, Ask", summary: "Obsah" },
     ],
   } satisfies Question<FirstFocus>,
 ] as const;
 
-export const AUDIENCE_LABELS: Record<Audience, string> = { investor: "Investorovi", team: "Tímu" };
+export const AUDIENCE_LABELS: Record<Audience, string> = { investor: "Investorovi", jury: "Porote", customer: "Zákazníkovi", team: "Tímu" };
 
 /** Predvolené nastavenie pre používateľa bez odpovedí (preskočil kvíz). */
 export const DEFAULT_ANSWERS: OnboardingAnswers = { audience: "investor", lengthSeconds: 60, focus: "tempo" };

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { parseStoredCoach } from "@/lib/coach/stored";
 import { analyzePitch, MAX_PITCH_AUDIO_BYTES, PitchServiceError } from "@/lib/pitch/service";
+import { AUDIENCES } from "@/lib/onboarding/plan";
 import { apiError, apiOk, handleRouteError, rateLimited, requireApiUser } from "@/lib/http/route";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 
@@ -10,7 +11,7 @@ const AUDIO_TYPES = new Set(["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg
 
 const metaSchema = z.object({
   durationMs: z.coerce.number().int().min(1_000).max(4 * 60 * 1000),
-  audience: z.enum(["investor", "team"]),
+  audience: z.enum(AUDIENCES),
   targetSeconds: z.coerce.number().pipe(z.union([z.literal(30), z.literal(60), z.literal(180)])),
   focus: z.enum(["tempo", "fillery", "obsah"]),
 });

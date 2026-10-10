@@ -19,11 +19,23 @@ const PERSONALIZE_MS = 3600;
 const PERSONALIZE_MS_REDUCED = 1200;
 const FADE_MS = 420;
 
+const AUDIENCE_STEP: Record<OnboardingAnswers["audience"], string> = {
+  investor: "Ladíme hodnotenie pre investorov",
+  jury: "Ladíme hodnotenie pre porotu",
+  customer: "Ladíme hodnotenie pre zákazníkov",
+  team: "Ladíme hodnotenie pre tím",
+};
+const FOCUS_STEP: Record<OnboardingAnswers["focus"], string> = {
+  tempo: "Pripravujeme cvičenia na tempo a pauzy",
+  fillery: "Pripravujeme cvičenia proti vypĺňacím slovám",
+  obsah: "Pripravujeme cvičenia na štruktúru pitchu",
+};
+
 function personalizeSteps(answers: OnboardingAnswers) {
   return [
-    `Nastavujeme časovač na ${answers.lengthSeconds} s`,
-    answers.audience === "investor" ? "Ladíme hodnotenie pre investorov" : "Ladíme hodnotenie pre tím",
-    answers.focus === "tempo" ? "Pripravujeme cvičenia na tempo a pauzy" : "Pripravujeme cvičenia na štruktúru pitchu",
+    `Nastavujeme časovač na ${answers.lengthSeconds === 180 ? "3 min" : `${answers.lengthSeconds} s`}`,
+    AUDIENCE_STEP[answers.audience],
+    FOCUS_STEP[answers.focus],
     "Zostavujeme tvoj prehľad",
   ];
 }
@@ -123,7 +135,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
   const isLast = step === QUESTIONS.length - 1;
   const filled = answers.every((answer) => answer !== null);
   const parsed: OnboardingAnswers | null = filled
-    ? { audience: answers[0] as OnboardingAnswers["audience"], lengthSeconds: answers[1] as 30 | 60, focus: answers[2] as OnboardingAnswers["focus"] }
+    ? { audience: answers[0] as OnboardingAnswers["audience"], lengthSeconds: answers[1] as OnboardingAnswers["lengthSeconds"], focus: answers[2] as OnboardingAnswers["focus"] }
     : null;
   const summary = parsed ? planSummary(parsed) : null;
 
@@ -203,7 +215,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
           <p className="muted" style={{ margin: "0 0 28px", fontSize: "17px" }}>
             {question.subtitle}
           </p>
-          <div className="grid2">
+          <div className={`grid2${question.options.length === 4 ? " g4" : ""}`}>
             {question.options.map((option) => (
               <button
                 key={String(option.value)}

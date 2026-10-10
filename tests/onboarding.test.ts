@@ -9,9 +9,11 @@ import {
 } from "../src/lib/onboarding/plan.ts";
 
 describe("úvodný kvíz", () => {
-  test("má tri otázky po dvoch možnostiach ako v dizajne", () => {
-    assert.equal(QUESTIONS.length, 3);
-    for (const question of QUESTIONS) assert.equal(question.options.length, 2);
+  test("má tri otázky: 4 publiká, 3 dĺžky, 3 zamerania", () => {
+    assert.deepEqual(
+      QUESTIONS.map((question) => question.options.length),
+      [4, 3, 3],
+    );
   });
 
   test("zhrnutie plánu používa krátke názvy", () => {

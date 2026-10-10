@@ -3,7 +3,7 @@ import type { Audience } from "@/lib/onboarding/plan";
 
 /*
   Obsahové skóre podľa pitch rubriky: Problém, Riešenie, Trh, Traction, Ask (0–10).
-  Váhy sa menia podľa publika: investor = viac Ask a Traction, tím = viac Problém a Riešenie.
+  Váhy sa menia podľa publika: investor = viac Ask a Traction, porota = vyvážene, zákazník a tím = viac Problém a Riešenie.
 */
 
 export const CONTENT_CATEGORIES = ["problem", "solution", "market", "traction", "ask"] as const;
@@ -32,6 +32,8 @@ export type ContentScore = z.infer<typeof contentScoreSchema>;
 
 const WEIGHTS: Record<Audience, Record<ContentCategory, number>> = {
   investor: { problem: 1, solution: 1, market: 1, traction: 1.5, ask: 1.5 },
+  jury: { problem: 1.25, solution: 1.25, market: 1, traction: 1.25, ask: 0.75 },
+  customer: { problem: 1.5, solution: 1.5, market: 0.5, traction: 1.25, ask: 1 },
   team: { problem: 1.5, solution: 1.5, market: 1, traction: 0.75, ask: 0.75 },
 };
 
@@ -63,8 +65,15 @@ Pre každú kategóriu daj celé skóre 0–10 (0 = vôbec nezaznelo, 5 = spomen
 a jednu až dve krátke vety po slovensky v tykaní: čo funguje a jednu konkrétnu vec, ktorú zlepšiť. Tón: vľúdny, koučovací, nikdy karhajúci.
 Ak chceš navrhnúť číslo, ktoré nepoznáš, použi zástupný symbol [X].`;
 
+const AUDIENCE_BRIEF: Record<Audience, string> = {
+  investor: "investor (dôraz na Ask a Traction)",
+  jury: "porota na demo day alebo súťaži (vyvážený príbeh: jasný problém, riešenie a dôkaz trakcie)",
+  customer: "zákazník alebo partner (dôraz na jeho problém a prínos riešenia; Ask = ďalší krok, napr. pilot, nie investícia)",
+  team: "vlastný tím (dôraz na jasnosť a príbeh)",
+};
+
 export function buildContentPrompt(input: { transcript: string; audience: Audience; targetSeconds: number; notes: string | null }): string {
-  const audience = input.audience === "investor" ? "investor (dôraz na Ask a Traction)" : "vlastný tím (dôraz na jasnosť a príbeh)";
+  const audience = AUDIENCE_BRIEF[input.audience];
   return [
     `Publikum: ${audience}.`,
     `Cieľová dĺžka: ${input.targetSeconds} sekúnd.`,

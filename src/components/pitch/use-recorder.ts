@@ -10,7 +10,7 @@ import type { StoredCoach } from "@/lib/coach/stored";
 */
 
 export type RecorderSetup = {
-  audience: "investor" | "team";
+  audience: "investor" | "jury" | "customer" | "team";
   targetSeconds: 30 | 60 | 180;
   focus: "tempo" | "fillery" | "obsah";
 };

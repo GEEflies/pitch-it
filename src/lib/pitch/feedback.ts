@@ -19,7 +19,7 @@ export type FeedbackData = {
   attemptId: string;
   number: number;
   audienceLabel: string;
-  audience: "investor" | "team";
+  audience: "investor" | "jury" | "customer" | "team";
   targetSeconds: number;
   focus: FeedbackSection;
   retryHref: string;

@@ -9,13 +9,13 @@ export function DevResetButton() {
   const reset = async () => {
     setBusy(true);
     // Každý krok má strop, aby tlačidlo nikdy neostalo visieť.
-    const capped = (work: Promise<unknown>) => Promise.race([work.catch(() => null), new Promise((done) => setTimeout(done, 1500))]);
+    const capped = (work: Promise<unknown>, ms = 1500) => Promise.race([work.catch(() => null), new Promise((done) => setTimeout(done, ms))]);
     try {
       localStorage.clear();
       sessionStorage.clear();
     } catch {}
     await Promise.all([
-      capped(fetch("/api/dev/reset", { method: "POST" })),
+      capped(fetch("/api/dev/reset", { method: "POST" }), 6000),
       capped(caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))),
       capped(navigator.serviceWorker.getRegistrations().then((all) => Promise.all(all.map((worker) => worker.unregister())))),
       capped(indexedDB.databases().then((all) => all.forEach((db) => db.name && indexedDB.deleteDatabase(db.name)))),

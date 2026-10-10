@@ -19,7 +19,7 @@
 .pi-onb .opt:hover{border-color:var(--color-violet)}
 .pi-onb .opt[aria-pressed=true]{border-color:var(--color-mint);background:var(--pi-sel)}
 .pi-onb .opt small{display:block;color:var(--color-mute);margin-top:6px;font-size:13px}
-.pi-onb .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pi-onb .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.pi-onb .grid2.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
 .pi-onb .bar{display:flex;gap:6px;margin-bottom:28px}
 .pi-onb .bar i{flex:1;height:5px;border-radius:3px;background:var(--color-line);transition:background .3s}
 .pi-onb .bar i.on{background:var(--color-signal)}
