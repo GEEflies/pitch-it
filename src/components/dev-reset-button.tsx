@@ -8,14 +8,18 @@ export function DevResetButton() {
 
   const reset = async () => {
     setBusy(true);
-    await fetch("/api/dev/reset", { method: "POST" }).catch(() => null);
+    // Každý krok má strop, aby tlačidlo nikdy neostalo visieť.
+    const capped = (work: Promise<unknown>) => Promise.race([work.catch(() => null), new Promise((done) => setTimeout(done, 1500))]);
     try {
       localStorage.clear();
       sessionStorage.clear();
     } catch {}
-    if ("caches" in window) await Promise.all((await caches.keys()).map((key) => caches.delete(key))).catch(() => null);
-    const workers = await navigator.serviceWorker?.getRegistrations().catch(() => []);
-    await Promise.all((workers ?? []).map((worker) => worker.unregister()));
+    await Promise.all([
+      capped(fetch("/api/dev/reset", { method: "POST" })),
+      capped(caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))),
+      capped(navigator.serviceWorker.getRegistrations().then((all) => Promise.all(all.map((worker) => worker.unregister())))),
+      capped(indexedDB.databases().then((all) => all.forEach((db) => db.name && indexedDB.deleteDatabase(db.name)))),
+    ]);
     window.location.replace("/");
   };
 
