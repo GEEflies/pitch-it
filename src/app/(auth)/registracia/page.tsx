@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SignUpForm } from "@/components/auth/auth-forms";
 import { AuthPage, authAvailable } from "@/components/auth/auth-page";
 import { EarlyAccessForm } from "@/components/sections/early-access-form";
@@ -11,8 +12,16 @@ export const metadata: Metadata = {
   description: "Vytvor si účet a natrénuj investorské stretnutie na vlastných podkladoch.",
 };
 
-export default async function SignUpPage({ searchParams }: PageProps<"/registracia">) {
-  const staleAccount = (await searchParams)["stary-ucet"] === "1";
+const DEFAULT_DESCRIPTION = "Začni zadarmo. Netreba kreditnú kartu.";
+
+// searchParams sú runtime dáta: čítame ich až za Suspense, zvyšok stránky ostáva statický
+async function SignUpDescription({ searchParams }: { searchParams: PageProps<"/registracia">["searchParams"] }) {
+  return (await searchParams)["stary-ucet"] === "1"
+    ? "Po aktualizácii sme tvoj predošlý účet nenašli. Prepáč, zaregistruj sa prosím znova, tentoraz sa už všetko uloží."
+    : DEFAULT_DESCRIPTION;
+}
+
+export default function SignUpPage({ searchParams }: PageProps<"/registracia">) {
   if (getSignupMode() === "waitlist") {
     return (
       <AuthPage
@@ -28,9 +37,9 @@ export default async function SignUpPage({ searchParams }: PageProps<"/registrac
     <AuthPage
       title="Vytvor si účet."
       description={
-        staleAccount
-          ? "Po aktualizácii sme tvoj predošlý účet nenašli. Prepáč, zaregistruj sa prosím znova, tentoraz sa už všetko uloží."
-          : "Začni zadarmo. Netreba kreditnú kartu."
+        <Suspense fallback={DEFAULT_DESCRIPTION}>
+          <SignUpDescription searchParams={searchParams} />
+        </Suspense>
       }
       footer={
         <>
