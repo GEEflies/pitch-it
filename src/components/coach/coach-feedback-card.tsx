@@ -1,16 +1,21 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { CoachReport } from "@/components/coach/SessionSummaryView";
-import { getLocalSession } from "@/lib/coach/local-session";
+import { loadLocalSession } from "@/lib/coach/local-session";
 import { finalScoreFor, fromStoredCoach, type StoredCoach } from "@/lib/coach/stored";
-
-const noop = () => () => {};
 
 /** Karta „Reč tela“ na Feedbacku: výsledok živého trénera, s klipmi chýb, ak sú ešte v pamäti. */
 export function CoachFeedbackCard({ attemptId, coach }: { attemptId: string; coach: StoredCoach }) {
-  // video a fotky sú len v pamäti karty, na serveri ich nemáme
-  const local = useSyncExternalStore(noop, () => getLocalSession(attemptId), () => null);
+  // video a fotky sú len v tomto prehliadači (pamäť karty / IndexedDB), na serveri ich nemáme
+  const [local, setLocal] = useState<Awaited<ReturnType<typeof loadLocalSession>>>(null);
+  useEffect(() => {
+    let live = true;
+    void loadLocalSession(attemptId).then((s) => live && setLocal(s));
+    return () => {
+      live = false;
+    };
+  }, [attemptId]);
   const summary = local?.summary ?? fromStoredCoach(coach);
   const final = finalScoreFor(coach);
 
