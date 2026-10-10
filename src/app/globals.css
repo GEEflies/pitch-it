@@ -1,26 +1,304 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Pitch It: tokeny
+  ink     tmavá zasadačka (pozadie)
+  panel   povrchy produktu (simulácia, karty)
+  paper   text a premietaný slide
+  signal  značka a primárne akcie (elektrická modrá)
+  marker  zvýrazňovač investora = slabé miesto
+  coral   chýbajúca odpoveď
+*/
+@theme {
+  --color-ink: #0b1022;
+  --color-ink-2: #0e1430;
+  --color-panel: #141b38;
+  --color-panel-2: #1a2246;
+  --color-line: #263059;
+  --color-line-strong: #36427c;
+  --color-paper: #eef0f8;
+  --color-slide: #e6e9f4;
+  --color-mute: #a3acd0;
+  --color-faint: #7d87b1;
+  --color-signal: #3d5bff;
+  --color-signal-hover: #4a66ff;
+  --color-signal-soft: #93a5ff;
+  --color-marker: #ffc34d;
+  --color-coral: #ff8a78;
+  --color-mint: #6fdcb4;
+
+  /* Grafy: overené validátorom (tmavý povrch #141b38, CVD aj kontrast). */
+  --color-chart-1: #5f78ff;
+  --color-chart-attention: #b98018;
+  --color-chart-grid: #263059;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 4rem;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Jemné zrno, aby tmavé plochy nepôsobili digitálne ploché. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background-color: var(--color-marker);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal-soft);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  [role="tab"],
+  summary,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Hlas produktu a foundera: zúžený grotesk pre titulky. */
+  .type-display {
+    font-weight: 640;
+    font-variation-settings: "wdth" 86;
+    letter-spacing: -0.026em;
+    line-height: 0.98;
+  }
+
+  .type-heading {
+    font-weight: 620;
+    font-variation-settings: "wdth" 90;
+    letter-spacing: -0.018em;
+    line-height: 1.06;
+  }
+
+  /* Hlas investora: vždy pätkové písmo. */
+  .type-investor {
+    font-family: var(--font-serif);
+    font-weight: 450;
+    letter-spacing: -0.008em;
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 220ms var(--ease-out-quart), color 160ms ease;
+  }
+
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* Zvýrazňovač v reporte: jantárový pruh pod citáciou slabého miesta. */
+  .marker-highlight {
+    background-image: linear-gradient(
+      color-mix(in srgb, var(--color-marker) 34%, transparent),
+      color-mix(in srgb, var(--color-marker) 34%, transparent)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 0.42em;
+    background-position: 0 90%;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Zvýrazňovač investora na slide. */
+  .marker-sweep {
+    background-image: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--color-marker) 0%, transparent) 0%,
+      var(--color-marker) 6%,
+      var(--color-marker) 94%,
+      color-mix(in srgb, var(--color-marker) 0%, transparent) 100%
+    );
+    background-repeat: no-repeat;
+    background-position: 0 88%;
+  }
+}
+
+/* Úvodné odhalenie titulku: čisté CSS, aby nečakalo na hydratáciu. */
+@layer utilities {
+  .reveal-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+
+  .reveal-line > span {
+    display: block;
+    animation: line-up 1s var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 60ms);
+  }
+
+  .fade-up {
+    animation: fade-up 0.9s var(--ease-out-quart) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .typing-dot {
+    animation: typing 1s ease-in-out infinite;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 140ms;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 280ms;
+  }
+
+  .spin {
+    animation: spin 0.8s linear infinite;
+  }
+
+  .skeleton {
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Hlas investora: jemné stĺpce, iba keď hovorí. */
+  .voice-bar {
+    height: 30%;
+    animation: voice-bar 0.9s ease-in-out infinite;
+  }
+}
+
+@keyframes voice-bar {
+  0%,
+  100% {
+    height: 30%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes line-up {
+  from {
+    transform: translateY(108%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

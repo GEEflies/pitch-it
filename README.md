@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pitch It
 
-## Getting Started
+Tréning investorských stretnutí. Founder nahrá podklady startupu, vyberie investora a scenár a naživo sa rozpráva s AI investorom (hlas, voliteľne kamera). Po tréningu dostane rozbor obsahu, prednesu a neverbálnych signálov a cvičenia na slabé miesta.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Profil startupu → podklady → nastavenie tréningu → živý rozhovor → report → cvičenia → nový pokus → porovnanie
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Stack: Next.js 16 (App Router, Cache Components, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion, Supabase (Postgres, Auth, Storage), Claude (Anthropic) a OpenAI Realtime za vymeniteľnými rozhraniami, MediaPipe vo Web Workeri.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Architektúra: [docs/architecture.md](docs/architecture.md). Rozhodnutia: [docs/decision-log.md](docs/decision-log.md). AI poskytovatelia: [docs/ai-providers.md](docs/ai-providers.md). Právo a súkromie: [docs/legal-privacy-checklist.md](docs/legal-privacy-checklist.md).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Rýchly štart
 
-## Learn More
+```bash
+npm install                 # postinstall pripraví súbory MediaPipe do public/mediapipe
+cp .env.example .env.local  # doplň hodnoty
+npm run dev                 # http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+Bez kľúčov aplikácia beží, ale povie, čo nefunguje. Nikdy nepredstiera výsledok:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Chýba | Čo sa stane |
+|---|---|
+| Supabase | Prihlásenie a registrácia ukážu „Účty momentálne nefungujú“, `/app` presmeruje na prihlásenie |
+| `OPENAI_API_KEY` | Hlasový režim nie je dostupný, tréning ide textom (ak je Anthropic) |
+| `ANTHROPIC_API_KEY` | Report obsahuje iba objektívne merania (stav „Iba merania“), podklady sa prečítajú bez AI návrhov faktov, textový režim a nápoveda nie sú dostupné |
+| Stripe | Cenník funguje, tlačidlo platby oznámi, že platby nie sú zapnuté |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Nastavenie Supabase
 
-## Deploy on Vercel
+1. Vytvor projekt na supabase.com. **Zvoľ región EÚ** (napríklad Frankfurt).
+2. Spusti migrácie v poradí (SQL Editor alebo `supabase db push`):
+   - `supabase/migrations/20261010000000_early_access_signups.sql`
+   - `supabase/migrations/20261010100000_core_schema.sql` (tabuľky, RLS, súkromný bucket `pitch-documents`, funkcie)
+3. **Authentication → URL Configuration:** Site URL nastav na `SITE_URL` a do Redirect URLs pridaj `<SITE_URL>/auth/confirm`.
+4. **Authentication → Email Templates:** pre „Confirm signup“ a „Reset password“ použi odkaz
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type={{ .Type }}&next={{ .RedirectTo }}`.
+   Funguje aj predvolený `{{ .ConfirmationURL }}` (PKCE), ale iba v tom istom prehliadači.
+5. **Authentication → Providers → Email:** zapni potvrdenie e-mailu a ochranu proti uniknutým heslám (Leaked password protection).
+6. Voliteľne naplánuj čistenie podľa nastavenej doby uchovávania (vyžaduje rozšírenie `pg_cron`):
+   ```sql
+   select cron.schedule('pitch-it-retention', '17 3 * * *', $$select public.purge_expired_sessions()$$);
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Typy riadkov v `src/lib/db/types.ts` sú písané ručne. Po vytvorení projektu ich nahraď výstupom `supabase gen types typescript`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Nastavenie AI
+
+- **Anthropic:** `ANTHROPIC_API_KEY`. Predvolený model je `claude-opus-5-5` so štruktúrovaným výstupom a server-side fallbackom pri odmietnutí (`fallbacks: "default"`).
+- **OpenAI Realtime:** `OPENAI_API_KEY`. Predvolené sú `gpt-realtime-2.1`, prepis `gpt-4o-transcribe` a hlas podľa štýlu investora. Prehliadač dostane iba krátkodobý token `ek_…` (120 s) na nadviazanie WebRTC spojenia. API kľúč server neopustí.
+
+Detaily, ceny a výmena poskytovateľa sú v [docs/ai-providers.md](docs/ai-providers.md).
+
+## Platby (Stripe, voliteľné)
+
+1. Vytvor produkt Pro s mesačnou cenou a ulož jej ID do `STRIPE_PRICE_ID_PRO`.
+2. Webhook na `<SITE_URL>/api/billing/webhook` s udalosťami `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` a `customer.subscription.deleted`. Podpisové tajomstvo ulož do `STRIPE_WEBHOOK_SECRET`.
+3. Zapni Customer Portal (správa a zrušenie predplatného).
+
+Limity plánov sú v `src/lib/billing/plans.ts`. Cena Pro (29 €) je hypotéza na overenie, pozri decision log D8.
+
+## Príkazy
+
+| Príkaz | Čo robí |
+|---|---|
+| `npm run dev` | vývojový server |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | unit testy a RLS testy na PGlite (`node --test`) |
+| `npm run build` | produkčný build |
+| `npm run check` | všetko vyššie naraz |
+| `npm run mediapipe` | znova pripraví WASM a modely MediaPipe do `public/mediapipe` |
+
+## Čo je kde
+
+```
+src/
+  app/
+    page.tsx, cennik/, podmienky/, ochrana-osobnych-udajov/   verejná časť
+    (auth)/                                                    prihlásenie, registrácia, heslo
+    auth/confirm/                                              potvrdenie odkazov z e-mailu
+    app/(shell)/                                               dashboard, projekty, tréning, report, cvičenia, história, nastavenia
+    app/(focus)/miestnost/[sessionId]                          živá tréningová miestnosť
+    api/                                                       relácie, podklady, cvičenia, platby, export
+  components/                                                  UI (session/, report/, projects/, charts/, …)
+  lib/
+    ai/llm, ai/realtime, ai/transcription                      poskytovatelia za rozhraniami
+    investor/                                                  štýly, scenáre, inštrukcie, nápoveda, textový investor
+    session/                                                   stavový automat, kontrolér, fronta ukladania, serverová logika
+    analytics/speech, analytics/audio, analytics/vision        merania (čisté funkcie) + AudioWorklet + MediaPipe worker
+    reports/                                                   merania, pravidlá prednesu, AI hodnotenie, generovanie
+    documents/                                                 kontrola súboru, PDF/PPTX extrakcia, AI analýza
+    exercises/, history/, billing/, privacy/, events/, db/, supabase/
+public/worklets/voice-analyzer.js                              analýza hlasu v audio vlákne
+supabase/migrations/                                           schéma, RLS, úložisko
+tests/                                                         unit testy + tests/db (RLS na PGlite)
+```
+
+## Testy
+
+`npm test` spustí 94 testov:
+
+- **RLS a práva (PGlite, simulované `auth` a `storage`):** izolácia používateľov, roly v tíme, úložisko podľa projektu, iba čítanie systémových tabuliek, živá relácia, uzatváranie opustených relácií, uchovávanie a kaskádové mazanie účtu.
+- **Logika:** merania reči a hlasu, stavový automat relácie vrátane výpadku a obnovy, normalizácia realtime udalostí, výpočet reportu a overovanie citácií, porovnanie tréningov, limity plánov, podpis Stripe webhooku, kontrola a extrakcia PPTX, inštrukcie investora (zdroje faktov, prompt injection), odporúčanie na dashboarde, upozornenia trénera, fronta ukladania, signály z kamery a validácia vstupov.
+
+Čo testy nepokrývajú a treba overiť ručne so skutočnými kľúčmi je v časti Obmedzenia.
+
+## Obmedzenia a známe medzery
+
+- **Neoverené end-to-end so skutočnými službami.** Na vývojovom stroji nebol Supabase projekt ani API kľúče. Realtime hovor, upload do Supabase Storage, e-maily a Stripe treba otestovať na staging projekte.
+- **Kvalita slovenčiny** v realtime hlase a prepise nie je overená (UNKNOWN). Návrh testu je v decision logu D2.
+- **AI prerušenie foundera** používa `input_audio_buffer.commit` a dočasné vypnutie `interrupt_response` cez WebRTC. Je to podľa dokumentácie, ale treba ho overiť v reálnom hovore.
+- **Výplňové slová** sú dolný odhad: modely prepisu zaváhania často vynechávajú. Report to uvádza.
+- **Kamera:** signály sú orientačné a závisia od kamery a svetla. Prahy (natočenie hlavy, vzdialenosť) sú ASSUMPTION a treba ich kalibrovať na dátach.
+- **Prahy prednesu** (tempo 95 až 175 slov/min, nábeh 4 s, výplne 5/100 slov) sú ASSUMPTION, nie norma.
+- **Tím:** databáza a RLS podporujú členov projektu (editor, viewer), UI na pozývanie zatiaľ nie je.
+- **Angličtina:** štruktúra je pripravená (`profiles.locale`, jazyk v reláciách a promptoch, popisy v `src/lib/domain/labels.ts`), preklad UI nie je.
+- **Nahrávky:** zámerne sa neukladajú (D6), report preto neponúka spätné vypočutie úsekov.
+- **Rate limiting** v pamäti je per inštancia. Drahé operácie navyše chránia databázové limity (spotreba, počet pripojení).
+- **`npm audit`:** 5 high v dev závislostiach (`eslint-config-next` → `fast-glob` → `braces`). Netýka sa runtime, oprava čaká na upstream.
+
+## Pred spustením naostro
+
+- [ ] Doplniť `CONTACT_EMAIL` a `LEGAL_ENTITY_*`.
+- [ ] Právna kontrola podmienok, zásad ochrany údajov a súhlasov ([docs/legal-privacy-checklist.md](docs/legal-privacy-checklist.md)).
+- [ ] DPA so Supabase, Anthropic, OpenAI, hostingom a Stripe. Overiť región EÚ a prenosy mimo EÚ.
+- [ ] Staging test: registrácia → projekt → deck → hlasový tréning → report → cvičenie → porovnanie, na desktope aj mobile (Chrome, Safari).
+- [ ] 10 testovacích rozhovorov v slovenčine s meraním kvality prepisu a reálnej ceny za minútu (`training_sessions.provider_usage`).
+- [ ] Monitoring chýb (napríklad Sentry) a upozornenie na zlyhania reportov (`feedback_reports.status = 'failed'`).
