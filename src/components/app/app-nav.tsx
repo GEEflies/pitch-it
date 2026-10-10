@@ -2,24 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { APP_NAV, NEW_TRAINING_ICON, PREVIEW_NAV, SETTINGS_NAV, type NavItem } from "@/components/app/nav-items";
+import { Icon } from "@/components/app/icons";
+import { useMobileNav } from "@/components/app/mobile-nav";
+import { APP_NAV, PREVIEW_NAV, type NavItem } from "@/components/app/nav-items";
 import { Wordmark } from "@/components/wordmark";
 
-function NavIcon({ d, className = "" }: { d: string; className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" className={`size-[18px] shrink-0 ${className}`}>
-      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavItem[] }) {
+function Navigation({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <ul className="flex flex-col gap-0.5">
+    <nav aria-label="Aplikácia">
+    <ul className="flex flex-col gap-1">
       {items.map((item) => {
         const active = item.match(pathname);
         return (
@@ -28,127 +23,40 @@ function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavIt
               href={item.href}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors duration-150 ${
-                active ? "bg-signal/10 font-medium text-paper" : "text-mute hover:bg-panel hover:text-paper"
+              className={`group relative flex h-12 items-center gap-4 rounded-xl px-4 text-[15.5px] transition-colors duration-150 ${
+                active ? "bg-nav-active font-semibold text-paper" : "text-nav hover:bg-panel-2/70 hover:text-paper"
               }`}
             >
-              <NavIcon d={item.icon} className={active ? "text-accent" : "text-faint"} />
+              {active ? <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px] rounded-full bg-signal" /> : null}
+              <Icon name={item.icon} className={`size-[22px] ${active ? "text-accent" : "text-nav-icon group-hover:text-paper"}`} />
               {item.label}
             </Link>
           </li>
         );
       })}
     </ul>
-  );
-}
-
-function NewTrainingButton({ onNavigate }: { onNavigate?: () => void }) {
-  return (
-    <Link
-      href="/app/trening/novy"
-      onClick={onNavigate}
-      className="flex h-10 items-center justify-center gap-2 rounded-full border border-signal bg-[linear-gradient(135deg,var(--color-signal-soft),var(--color-signal)_55%,var(--color-signal-deep))] px-4 text-sm font-bold text-on-signal transition-[filter,transform] hover:-translate-y-0.5 hover:brightness-[1.08]"
-    >
-      <NavIcon d={NEW_TRAINING_ICON} />
-      Nový tréning
-    </Link>
-  );
-}
-
-function SidebarBody({
-  variant,
-  onNavigate,
-  footer,
-}: {
-  variant: "app" | "preview";
-  onNavigate?: () => void;
-  footer: ReactNode;
-}) {
-  const items = variant === "preview" ? PREVIEW_NAV : APP_NAV;
-  return (
-    <>
-      {variant === "app" ? (
-        <div className="mt-5">
-          <NewTrainingButton onNavigate={onNavigate} />
-        </div>
-      ) : null}
-      <nav aria-label="Aplikácia" className="mt-5 flex flex-1 flex-col">
-        <p className="mb-1.5 px-2.5 text-[11px] font-bold tracking-[0.12em] text-faint uppercase">Pracovný priestor</p>
-        <NavLinks items={items} onNavigate={onNavigate} />
-        {variant === "app" ? (
-          <div className="mt-auto pt-6">
-            <NavLinks items={SETTINGS_NAV} onNavigate={onNavigate} />
-          </div>
-        ) : null}
-      </nav>
-      <div className="mt-4 border-t border-line pt-4">{footer}</div>
-    </>
+    </nav>
   );
 }
 
 /**
- * Bočný panel na desktope, horná lišta s výsuvným menu na mobile.
- * `footer` je serverový obsah (plán, účet), preto sa podáva zvonku.
+ * Bočný panel na desktope a výsuvné menu na mobile (tlačidlo je v hornej lište).
+ * `footer` je serverový obsah (karta plánu), preto sa podáva zvonku.
  */
-export function AppNav({ account, variant = "app" }: { account: ReactNode; variant?: "app" | "preview" }) {
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const panelId = useId();
-  const toggleRef = useRef<HTMLButtonElement>(null);
-
-  // Po navigácii menu zavrieme (porovnanie počas renderu, nie v efekte).
-  const [lastPath, setLastPath] = useState(pathname);
-  if (lastPath !== pathname) {
-    setLastPath(pathname);
-    setOpen(false);
-  }
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        toggleRef.current?.focus();
-      }
-    };
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = overflow;
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+export function AppSidebar({ footer, variant = "app" }: { footer: ReactNode; variant?: "app" | "preview" }) {
+  const { open, setOpen, panelId } = useMobileNav();
+  const items = variant === "preview" ? PREVIEW_NAV : APP_NAV;
+  const homeHref = variant === "preview" ? "/ukazka/prehlad" : "/app";
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-ink-2/80 px-3 py-4 backdrop-blur lg:flex">
-        <Wordmark className="px-1.5" />
-        <SidebarBody variant={variant} footer={account} />
+      <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col border-r border-sidebar-line bg-ink-2 px-[18px] pt-8 pb-6 lg:flex">
+        <Wordmark href={homeHref} className="ml-[18px]" />
+        <div className="mt-9 flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <Navigation items={items} />
+        </div>
+        <div className="mt-6 px-[10px]">{footer}</div>
       </aside>
-
-      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-ink/95 px-4 backdrop-blur lg:hidden">
-        <Wordmark />
-        <button
-          ref={toggleRef}
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-controls={panelId}
-          aria-label={open ? "Zavrieť menu" : "Otvoriť menu"}
-          className="inline-flex size-10 items-center justify-center rounded-full border border-line-strong text-paper"
-        >
-          <svg viewBox="0 0 20 20" aria-hidden="true" className="size-5">
-            <path
-              d={open ? "M5 5l10 10M15 5 5 15" : "M3.5 6h13M3.5 10h13M3.5 14h13"}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      </div>
 
       <AnimatePresence>
         {open ? (
@@ -159,9 +67,10 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-x-0 top-14 bottom-0 z-40 flex flex-col overflow-y-auto bg-ink px-4 pb-6 lg:hidden"
+            className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col overflow-y-auto bg-ink px-4 pt-4 pb-6 lg:hidden"
           >
-            <SidebarBody variant={variant} footer={account} onNavigate={() => setOpen(false)} />
+            <Navigation items={items} onNavigate={() => setOpen(false)} />
+            <div className="mt-auto pt-6">{footer}</div>
           </m.div>
         ) : null}
       </AnimatePresence>

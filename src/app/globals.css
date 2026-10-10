@@ -56,6 +56,32 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-brand: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Shell a prehľad (návrh dashboardu), tmavé hodnoty; svetlé nižšie. */
+  --color-nav: #c3c6e0;
+  --color-nav-icon: #a5aacb;
+  --color-nav-active: #161c22;
+  --color-sidebar-line: #141823;
+  --color-header-line: #232838;
+  --color-hero-line: #2a3048;
+  --color-inner: #0d121d;
+  --color-inner-line: #222637;
+  --color-tile: #0f1320;
+  --color-quick: #131725;
+  --color-quick-line: #1f2333;
+  --color-plan: #11142a;
+  --color-plan-line: #1b1f33;
+  --color-tip-line: #3a5a1f;
+  --color-avatar: #1e1940;
+  --color-avatar-ring: #2c2560;
+  --color-avatar-ink: #958bf6;
+  --color-lime-tint: #1f2c1d;
+  --color-violet-tint: #221f48;
+  --color-amber-tint: #362f13;
+  --color-ring-track: #1c2131;
+  --color-periwinkle: #8f97d6;
+  --color-chart-violet: #8b6cff;
+  --color-chart-axis: #262b3c;
 }
 
 @theme inline {
@@ -165,6 +191,131 @@
   }
 }
 
+/*
+  Prehľad a shell aplikácie (návrh dashboardu). Tokeny shellu majú svetlú variantu;
+  v tmavej téme dostane shell navy paletu z návrhu (.app-shell), zvyšok webu ostáva v brand palete.
+*/
+:root {
+  --dash-card-bg: linear-gradient(180deg, #0f131f, #0d111b);
+  --dash-tip-bg: linear-gradient(135deg, rgb(190 248 60 / 0.07), rgb(190 248 60 / 0.015) 60%), #0d121b;
+  --dash-glow: rgb(88 62 214 / 0.2);
+  /* Používané cez var() v SVG, preto aj mimo @theme (Tailwind nepoužité premenné vynecháva). */
+  --color-chart-violet: #8b6cff;
+  --color-chart-axis: #262b3c;
+  --color-ring-track: #1c2131;
+}
+
+:root[data-theme="light"] {
+  --color-nav: #3a3a46;
+  --color-nav-icon: #6a6a74;
+  --color-nav-active: #eef5e1;
+  --color-sidebar-line: #dcdcd5;
+  --color-header-line: #dcdcd5;
+  --color-hero-line: #2a3048;
+  --color-inner: #f7f7f3;
+  --color-inner-line: #e4e4dd;
+  --color-tile: #fafaf7;
+  --color-quick: #f7f7f3;
+  --color-quick-line: #e4e4dd;
+  --color-plan: #f3f0ff;
+  --color-plan-line: #e2dcfb;
+  --color-tip-line: #b5d98a;
+  --color-avatar: #ece7ff;
+  --color-avatar-ring: #d9d0ff;
+  --color-avatar-ink: #5b34e0;
+  --color-lime-tint: #eaf6d3;
+  --color-violet-tint: #ece7ff;
+  --color-amber-tint: #fbf0d0;
+  --color-ring-track: #e4e4dd;
+  --color-periwinkle: #4f55a3;
+  --color-chart-violet: #6a46f0;
+  --color-chart-axis: #d4d4cc;
+  --dash-card-bg: #ffffff;
+  --dash-tip-bg: linear-gradient(135deg, rgb(170 255 0 / 0.16), rgb(170 255 0 / 0.04) 60%), #ffffff;
+  --dash-glow: rgb(125 81 254 / 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --color-nav: #3a3a46;
+    --color-nav-icon: #6a6a74;
+    --color-nav-active: #eef5e1;
+    --color-sidebar-line: #dcdcd5;
+    --color-header-line: #dcdcd5;
+    --color-hero-line: #2a3048;
+    --color-inner: #f7f7f3;
+    --color-inner-line: #e4e4dd;
+    --color-tile: #fafaf7;
+    --color-quick: #f7f7f3;
+    --color-quick-line: #e4e4dd;
+    --color-plan: #f3f0ff;
+    --color-plan-line: #e2dcfb;
+    --color-tip-line: #b5d98a;
+    --color-avatar: #ece7ff;
+    --color-avatar-ring: #d9d0ff;
+    --color-avatar-ink: #5b34e0;
+    --color-lime-tint: #eaf6d3;
+    --color-violet-tint: #ece7ff;
+    --color-amber-tint: #fbf0d0;
+    --color-ring-track: #e4e4dd;
+    --color-periwinkle: #4f55a3;
+    --color-chart-violet: #6a46f0;
+    --color-chart-axis: #d4d4cc;
+    --dash-card-bg: #ffffff;
+    --dash-tip-bg: linear-gradient(135deg, rgb(170 255 0 / 0.16), rgb(170 255 0 / 0.04) 60%), #ffffff;
+    --dash-glow: rgb(125 81 254 / 0.1);
+  }
+}
+
+/* Navy paleta z návrhu dashboardu: iba shell aplikácie a iba v tmavej téme. */
+:root[data-theme="dark"] .app-shell {
+  --color-ink: #0a0d16;
+  --color-ink-2: #090c14;
+  --color-panel: #0e121d;
+  --color-panel-2: #151a28;
+  --color-line: #1c2130;
+  --color-line-strong: #2a3044;
+  --color-paper: #f3f4f9;
+  --color-mute: #a1a5c2;
+  --color-faint: #767b98;
+  --color-signal: #bef83c;
+  --color-signal-hover: #cdfb63;
+  --color-accent: #bef83c;
+  --color-on-signal: #0b1004;
+  --color-marker: #f5be1e;
+  --color-chart-grid: #171c2a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .app-shell {
+    --color-ink: #0a0d16;
+    --color-ink-2: #090c14;
+    --color-panel: #0e121d;
+    --color-panel-2: #151a28;
+    --color-line: #1c2130;
+    --color-line-strong: #2a3044;
+    --color-paper: #f3f4f9;
+    --color-mute: #a1a5c2;
+    --color-faint: #767b98;
+    --color-signal: #bef83c;
+    --color-signal-hover: #cdfb63;
+    --color-accent: #bef83c;
+    --color-on-signal: #0b1004;
+    --color-marker: #f5be1e;
+    --color-chart-grid: #171c2a;
+  }
+}
+
+/* Úvodná karta prehľadu je tmavá v oboch témach (ilustrácia je navrhnutá na tmavé pozadie). */
+.dash-hero {
+  --color-paper: #f3f4f9;
+  --color-slide: #d6d9ea;
+  --color-periwinkle: #8f97d6;
+  --color-accent: #bef83c;
+  --color-signal: #bef83c;
+  --color-on-signal: #0b1004;
+}
+
 @layer base {
   html {
     color-scheme: dark;
@@ -226,6 +377,36 @@
 }
 
 @layer components {
+  /* Shell aplikácie: jemná fialová žiara v hornej časti (návrh dashboardu). */
+  .app-glow {
+    background:
+      radial-gradient(1100px 420px at 62% -12%, var(--dash-glow), transparent 70%),
+      var(--color-ink);
+  }
+
+  .dash-card {
+    border-radius: 14px;
+    border: 1px solid var(--color-line);
+    background: var(--dash-card-bg);
+  }
+
+  .dash-hero {
+    background:
+      radial-gradient(560px 320px at 80% 45%, rgb(92 64 230 / 0.3), transparent 72%),
+      radial-gradient(420px 260px at 8% 0%, rgb(80 70 180 / 0.12), transparent 70%),
+      linear-gradient(180deg, #0e1120, #0b0e19);
+  }
+
+  .dash-cta {
+    box-shadow:
+      0 0 0 1px rgb(190 248 60 / 0.4),
+      0 8px 28px rgb(190 248 60 / 0.28);
+  }
+
+  .dash-tip {
+    background: var(--dash-tip-bg);
+  }
+
   .container-page {
     width: 100%;
     max-width: 76rem;
@@ -357,10 +538,27 @@
     animation: skeleton-pulse 1.4s ease-in-out infinite;
   }
 
+  /* Zvukové vlny v ilustrácii mikrofónu na prehľade. */
+  .mic-bar {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mic-bar 2.6s ease-in-out infinite;
+  }
+
   /* Hlas investora: jemné stĺpce, iba keď hovorí. */
   .voice-bar {
     height: 30%;
     animation: voice-bar 0.9s ease-in-out infinite;
+  }
+}
+
+@keyframes mic-bar {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.62);
   }
 }
 

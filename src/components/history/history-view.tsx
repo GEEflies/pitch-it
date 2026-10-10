@@ -20,9 +20,13 @@ export type HistoryViewData = {
   href?: (path: string) => string;
   reportBase?: string;
   compareBase?: string;
+  /** list = Reporty (zoznam tréningov), trends = Progres (vývoj metrík). */
+  view?: "list" | "trends";
 };
 
-export function HistoryView({ sessions, comparable, mode, counts, notice = null, href = (path) => path, reportBase, compareBase }: HistoryViewData) {
+export function HistoryView({ sessions, comparable, mode, counts, notice = null, href = (path) => path, reportBase, compareBase, view = "list" }: HistoryViewData) {
+  const title = view === "trends" ? "Progres" : "Reporty";
+  const basePath = view === "trends" ? "/app/progres" : "/app/historia";
   const charts = METRICS.map((definition) => ({ definition, series: metricSeries(comparable, definition, mode) })).filter(
     (chart) => chart.series.length >= 2,
   );
@@ -30,7 +34,7 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
   if (sessions.length === 0) {
     return (
       <>
-        <PageHeader title="História" />
+        <PageHeader title={title} />
         <EmptyState
           title="Zatiaľ žiadny dokončený tréning"
           action={
@@ -48,8 +52,12 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
   return (
     <>
       <PageHeader
-        title="História"
-        description="Vývoj iba z nameraných hodnôt a iba v rámci rovnakého typu tréningu. Pri jednotlivých pokusoch nájdeš aj rozbor obsahu."
+        title={title}
+        description={
+          view === "trends"
+            ? "Vývoj iba z nameraných hodnôt a iba v rámci rovnakého typu tréningu. Cvičenia z rozborov nájdeš nižšie."
+            : "Všetky tréningy s rozborom. Dva pokusy rovnakého typu môžeš porovnať."
+        }
       />
       {notice}
 
@@ -57,7 +65,7 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
         {TRAINING_MODES.map((option) => (
           <Link
             key={option}
-            href={href(`/app/historia?rezim=${option}`)}
+            href={href(`${basePath}?rezim=${option}`)}
             aria-current={option === mode ? "page" : undefined}
             className={`rounded-full border px-4 py-2 text-sm transition-colors ${
               option === mode ? "border-signal bg-signal/10 text-paper" : "border-line-strong text-mute hover:text-paper"
@@ -68,6 +76,7 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
         ))}
       </nav>
 
+      {view === "trends" ? (
       <section aria-labelledby="trend" className="mb-14">
         <h2 id="trend" className="type-heading text-[1.4rem]">
           Vývoj
@@ -103,7 +112,9 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
           </div>
         )}
       </section>
+      ) : null}
 
+      {view === "list" ? (
       <section aria-labelledby="sessions">
         <h2 id="sessions" className="type-heading text-[1.4rem]">
           Tréningy
@@ -134,6 +145,7 @@ export function HistoryView({ sessions, comparable, mode, counts, notice = null,
           />
         </div>
       </section>
+      ) : null}
     </>
   );
 }

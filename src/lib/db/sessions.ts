@@ -313,6 +313,39 @@ export async function listSessionsWithReports(userId: string, sessionIds?: strin
   return must(result, "sessions.withReports") as SessionWithReport[];
 }
 
+export type DashboardSessionRow = SessionRow & {
+  feedback_reports: Pick<ReportRow, "status" | "measured" | "assessment" | "completed_at"> | null;
+};
+
+/** Posledné tréningy s rozborom pre prehľad (karty, aktivita, reporty, pokrok). */
+export async function listDashboardSessions(userId: string, limit = 40): Promise<DashboardSessionRow[]> {
+  const db = await getUserDb();
+  const result = await db
+    .from("training_sessions")
+    .select("*, feedback_reports(status, measured, assessment, completed_at)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return must(result, "sessions.dashboard") as DashboardSessionRow[];
+}
+
+export type NotificationSessionRow = Pick<SessionRow, "id" | "mode" | "created_at"> & {
+  feedback_reports: Pick<ReportRow, "status" | "completed_at"> | null;
+};
+
+/** Ľahký zoznam pre upozornenia v hornej lište: posledné dokončené tréningy a stav rozboru. */
+export async function listNotificationSessions(userId: string): Promise<NotificationSessionRow[]> {
+  const db = await getUserDb();
+  const result = await db
+    .from("training_sessions")
+    .select("id, mode, created_at, feedback_reports(status, completed_at)")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false })
+    .limit(8);
+  return must(result, "sessions.notifications") as unknown as NotificationSessionRow[];
+}
+
 export async function deleteSession(sessionId: string): Promise<void> {
   const db = await getUserDb();
   const { data, error } = await db.from("training_sessions").delete().eq("id", sessionId).select("id");
