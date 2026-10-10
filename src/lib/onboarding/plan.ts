@@ -69,6 +69,13 @@ export const QUESTIONS = [
   } satisfies Question<FirstFocus>,
 ] as const;
 
+/** Cieľ nahrávky podľa toho, čo používateľa najviac straší (zobrazí sa pred nahrávaním). */
+export const FOCUS_GOALS: Record<FirstFocus, string> = {
+  tempo: "Hovor pokojne a nechaj si priestor na pauzy.",
+  fillery: "Vynechaj ehm, akože a vlastne. Radšej sa na chvíľu odmlč.",
+  obsah: "Povedz problém, riešenie, trh, traction a čo od poslucháča chceš.",
+};
+
 export const AUDIENCE_LABELS: Record<Audience, string> = { investor: "Investorovi", jury: "Porote", customer: "Zákazníkovi", team: "Tímu" };
 
 /** Predvolené nastavenie pre používateľa bez odpovedí (preskočil kvíz). */

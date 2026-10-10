@@ -20,7 +20,7 @@ export default async function FeedbackPage({ params }: PageProps<"/app/nahravka/
 
   const attempt = await getPitchAttempt(attemptId);
   if (!attempt || attempt.user_id !== user.id) notFound();
-  const retryHref = attempt.with_camera ? "/app/nahravka/kamera" : "/app/nahravka";
+  const retryHref = attempt.with_camera ? "/app/nahravka" : "/app/nahravka/zvuk";
 
   if (attempt.status !== "ready") {
     return (

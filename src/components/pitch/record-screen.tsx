@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
 import { uploadPitch, usePitchRecorder, type RecorderSetup } from "@/components/pitch/use-recorder";
-import { AUDIENCE_LABELS } from "@/lib/onboarding/plan";
+import { AUDIENCE_LABELS, FOCUS_GOALS } from "@/lib/onboarding/plan";
 
 /*
   „2 · Nahrávanie a analýza“ 1:1 podľa dizajnu: pripravenosť a súhlas → odpočet →
@@ -37,10 +37,16 @@ export function RecordScreen({
   cameraHref,
   drillsHref,
   feedbackHref,
+  homeHref = "/app",
+  setupHref = "/app/vitaj",
   preview = false,
 }: {
   setup: RecorderSetup;
   cameraHref: string;
+  /** Návrat na prehľad. */
+  homeHref?: string;
+  /** Kvíz, kde sa mení publikum, dĺžka a cieľ. */
+  setupHref?: string;
   /** Cvičenia reči tela pred kamerou. */
   drillsHref?: string;
   /** Kam viesť po analýze; `{id}` sa nahradí id pokusu. */
@@ -146,16 +152,20 @@ export function RecordScreen({
 
   return (
     <div className="pi-rec" style={{ background: PI_BACKGROUND, color: "var(--color-paper)", minHeight: "100dvh" }}>
-      <PiTopbar />
+      <PiTopbar href={homeHref}>
+        <Link href={homeHref} className="text-sm font-bold text-mute hover:text-paper">
+          ← Späť na prehľad
+        </Link>
+      </PiTopbar>
       <main id="obsah" style={{ display: "flex", flexWrap: "wrap", gap: "32px", justifyContent: "center", padding: "40px 32px" }}>
         <div className="card" style={{ flex: "1 1 640px", maxWidth: "860px", minWidth: "0", padding: "32px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", marginBottom: "20px" }}>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <span className="chip">{AUDIENCE_LABELS[setup.audience]}</span>
-              <span className="chip">{setup.targetSeconds} s</span>
-              <span className="chip">Slovenčina</span>
-            </div>
-            <span className="chip">Cieľ: 3,5 až 5 slabík za sekundu</span>
+          <div className="muted" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px 12px", marginBottom: "20px", fontSize: "15px" }}>
+            <span>
+              Pitch {AUDIENCE_LABELS[setup.audience].toLowerCase()} · {setup.targetSeconds >= 60 ? `${setup.targetSeconds / 60} min` : `${setup.targetSeconds} s`}
+            </span>
+            <Link href={setupHref} style={{ color: "var(--color-accent)", fontWeight: 700 }}>
+              Zmeniť
+            </Link>
           </div>
 
           {phase === "ready" ? (
@@ -164,7 +174,7 @@ export function RecordScreen({
                 Si pripravený?
               </h1>
               <p className="muted" style={{ fontSize: "17px", lineHeight: "1.55", margin: "0 0 24px" }}>
-                Odstúp od notebooku a over, že ťa appka počuje. Hovor tak, ako budeš pitchovať naživo.
+                {FOCUS_GOALS[setup.focus]} Odstúp od notebooku a over, že ťa appka počuje.
               </p>
               <div className="bars" aria-hidden="true">
                 {IDLE.map((b, i) => (
@@ -184,7 +194,7 @@ export function RecordScreen({
                   }}
                   style={{ marginTop: "3px", width: "20px", height: "20px", accentColor: "var(--color-signal)" }}
                 />
-                Súhlasím, že môj pitch bude analyzovaný AI a výsledky budú viditeľné mentorom tejto akcie.
+                Súhlasím, že moju nahrávku vyhodnotí AI.
               </label>
               <button className="btn btn-p" type="button" onClick={start} style={{ width: "100%", minHeight: "54px", opacity: consent ? 1 : 0.45 }}>
                 Spustiť nahrávanie
@@ -194,7 +204,7 @@ export function RecordScreen({
               </div>
               <div style={{ textAlign: "center", marginTop: "8px" }}>
                 <Link href={cameraHref} style={{ fontSize: "14px", color: "var(--color-accent)", fontWeight: 700 }}>
-                  Nahrávať s kamerou a rečou tela
+                  Nahrávať radšej s kamerou
                 </Link>
                 {drillsHref ? (
                   <>

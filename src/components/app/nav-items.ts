@@ -31,7 +31,7 @@ export const APP_NAV: NavItem[] = [
 export const PREVIEW_NAV: NavItem[] = [
   { href: "/ukazka/prehlad", label: "Prehľad", icon: "home", match: (path) => path === "/ukazka/prehlad" },
   { href: "/ukazka/podklady", label: "Môj startup", icon: "presentation", match: (path) => path.startsWith("/ukazka/podklady") },
-  { href: "/ukazka/nahravka", label: "Tréning pitchu", icon: "mic", match: (path) => path.startsWith("/ukazka/nahravka") },
+  { href: "/ukazka/nahravka/kamera", label: "Tréning pitchu", icon: "mic", match: (path) => path.startsWith("/ukazka/nahravka") },
   { href: "/ukazka/novy-trening", label: "AI investor", icon: "chat", match: (path) => path.startsWith("/ukazka/novy-trening") },
   { href: "/ukazka/report", label: "Reporty", icon: "file", match: (path) => path.startsWith("/ukazka/report") || path.startsWith("/ukazka/historia") },
   { href: "/ukazka/progres", label: "Progres", icon: "trendUp", match: (path) => path.startsWith("/ukazka/progres") || path.startsWith("/ukazka/porovnanie") },

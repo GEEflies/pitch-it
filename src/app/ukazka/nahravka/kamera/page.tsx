@@ -7,6 +7,8 @@ export default function PreviewCameraRecord() {
   return (
     <CameraRecordScreen
       preview
+      homeHref="/ukazka/prehlad"
+      setupHref="/ukazka/vitaj"
       setup={{ audience: "investor", targetSeconds: 60, focus: "tempo" }}
       audioHref="/ukazka/nahravka"
       feedbackHref="/ukazka/nahravka/feedback"

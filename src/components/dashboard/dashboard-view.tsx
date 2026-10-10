@@ -409,7 +409,7 @@ export function DashboardView({
       {notice}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-[18px]">
-          <Hero recordHref={href("/app/nahravka/kamera")} investorHref={href(trainingHref)} />
+          <Hero recordHref={href("/app/nahravka")} investorHref={href(trainingHref)} />
           <GettingStarted items={checklist} href={href} />
           <section aria-label="Výsledky posledného tréningu">
             <ul className="grid grid-cols-1 gap-[18px] min-[420px]:grid-cols-2 2xl:grid-cols-4">

@@ -11,7 +11,7 @@ import { uploadPitch, usePitchRecorder, type RecorderSetup } from "@/components/
 import { keepLocalSession } from "@/lib/coach/local-session";
 import { ruleFilterFor, type TalkMode } from "@/lib/coach/modes";
 import { toStoredCoach } from "@/lib/coach/stored";
-import { AUDIENCE_LABELS } from "@/lib/onboarding/plan";
+import { AUDIENCE_LABELS, FOCUS_GOALS } from "@/lib/onboarding/plan";
 
 /*
   Nahrávanie pitchu s kamerou: živý tréner reči tela (silueta, rady nad hlavou, teleprompter)
@@ -31,11 +31,17 @@ export function CameraRecordScreen({
   setup,
   audioHref,
   feedbackHref,
+  homeHref = "/app",
+  setupHref = "/app/vitaj",
   preview = false,
 }: {
   setup: RecorderSetup;
   /** nahrávanie len so zvukom */
   audioHref: string;
+  /** Návrat na prehľad. */
+  homeHref?: string;
+  /** Kvíz, kde sa mení publikum, dĺžka a cieľ. */
+  setupHref?: string;
   /** Kam viesť po analýze; `{id}` sa nahradí id pokusu. */
   feedbackHref: string;
   preview?: boolean;
@@ -150,14 +156,14 @@ export function CameraRecordScreen({
 
   return (
     <div className="pi-rec" style={{ background: PI_BACKGROUND, color: "var(--color-paper)", minHeight: "100dvh" }}>
-      <PiTopbar />
+      <PiTopbar href={homeHref} />
       {phase === "setup" ? (
         <main id="obsah">
           <SessionSetup
             heading="Pitch pred kamerou"
-            lead={`${setup.targetSeconds >= 60 ? `${setup.targetSeconds / 60} min` : `${setup.targetSeconds} s`} pitch ${AUDIENCE_LABELS[setup.audience].toLowerCase()}. Tréner ti počas pitchu radí, na konci dostaneš spätnú väzbu.`}
-            backHref={audioHref}
-            backLabel="Nahrávať len zvuk"
+            lead={`${setup.targetSeconds >= 60 ? `${setup.targetSeconds / 60} min` : `${setup.targetSeconds} s`} pitch ${AUDIENCE_LABELS[setup.audience].toLowerCase()}. ${FOCUS_GOALS[setup.focus]} Tréner ti počas pitchu radí, na konci dostaneš spätnú väzbu.`}
+            backHref={homeHref}
+            backLabel="Prehľad"
             modes={null}
             mode={mode}
             onMode={() => {}}
@@ -165,9 +171,18 @@ export function CameraRecordScreen({
             error={error}
             startLabel="Spustiť nahrávanie"
             canStart={micReady}
-            finePrint="Spustením súhlasíš, že pitch analyzuje AI a výsledky uvidia mentori akcie."
+            finePrint="Spustením súhlasíš, že nahrávku vyhodnotí AI. Video zostáva v tvojom prehliadači."
             onStart={start}
           >
+            <p className="text-sm text-mute">
+              <Link href={setupHref} className="font-bold text-signal">
+                Zmeniť publikum a dĺžku
+              </Link>
+              {" · "}
+              <Link href={audioHref} className="font-bold text-signal">
+                Nahrať len zvuk
+              </Link>
+            </p>
             {micText ? (
               <p className="text-sm text-marker" role="status">
                 {micText}

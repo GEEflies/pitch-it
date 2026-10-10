@@ -11,7 +11,8 @@ export function previewHref(path: string): string {
   if (path.startsWith("/app/historia")) return path.replace("/app/historia", "/ukazka/historia");
   if (path.startsWith("/app/progres")) return path.replace("/app/progres", "/ukazka/progres");
   if (path.startsWith("/app/trening/novy")) return "/ukazka/novy-trening";
-  if (path.startsWith("/app/nahravka/kamera")) return "/ukazka/nahravka/kamera";
+  if (path.startsWith("/app/nahravka/zvuk")) return "/ukazka/nahravka";
+  if (path === "/app/nahravka" || path.startsWith("/app/nahravka/kamera")) return "/ukazka/nahravka/kamera";
   if (path.startsWith("/app/nahravka")) return "/ukazka/nahravka";
   if (path.startsWith("/app/trening/")) return "/ukazka/report";
   if (path.startsWith("/app/miestnost/")) return "/ukazka/miestnost";
