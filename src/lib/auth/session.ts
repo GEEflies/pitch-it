@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { isAuthConfigured } from "@/config/env";
 import { readSession, SESSION_COOKIE } from "@/lib/auth/token";
@@ -14,6 +15,8 @@ export type AuthUser = { id: string; email: string | null };
  */
 export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   if (!isAuthConfigured()) return null;
+  // Overenie tokenu číta Date.now(); počkáme na skutočnú požiadavku (Cache Components).
+  await connection();
   const session = await readSession((await cookies()).get(SESSION_COOKIE)?.value);
   return session ? { id: session.sub, email: session.email } : null;
 });

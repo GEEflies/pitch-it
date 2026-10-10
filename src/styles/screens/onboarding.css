@@ -25,3 +25,19 @@
 .pi-onb .bar i.on{background:var(--color-signal)}
 .pi-onb .btn:disabled{cursor:not-allowed}
 @media (prefers-reduced-motion:no-preference){.pi-onb .ov{animation:pi-onb-ovf .25s ease both}.pi-onb .mdl{animation:pi-onb-mdl .45s cubic-bezier(.2,.8,.2,1) both}@keyframes pi-onb-ovf{from{opacity:0}to{opacity:1}}@keyframes pi-onb-mdl{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}}
+
+/* Personalizácia po kvíze */
+.pi-onb .prs{display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px;margin-top:6vh;transition:opacity .42s ease,transform .42s ease}
+.pi-onb .prs.out{opacity:0;transform:translateY(-12px) scale(.98)}
+.pi-onb .prs-ring{--p:0;width:112px;height:112px;border-radius:50%;margin-bottom:28px;display:grid;place-items:center;background:conic-gradient(var(--color-accent) calc(var(--p)*1%),var(--color-line) 0);transition:--p .6s ease;position:relative}
+.pi-onb .prs-ring::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--color-ink-2)}
+.pi-onb .prs-ring span{position:relative;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.pi-onb .prs-list{list-style:none;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:12px}
+.pi-onb .prs-list li{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--color-line);border-radius:14px;font-size:16px;color:var(--color-mute);opacity:.45;transition:opacity .35s ease,border-color .35s ease,color .35s ease}
+.pi-onb .prs-list li i{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--color-line-strong);color:transparent;transition:background .3s ease,border-color .3s ease,color .3s ease}
+.pi-onb .prs-list li.now{opacity:1;color:var(--color-paper);border-color:var(--color-line-strong)}
+.pi-onb .prs-list li.now i{border-color:var(--color-accent);border-top-color:transparent}
+.pi-onb .prs-list li.ok{opacity:1;color:var(--color-paper)}
+.pi-onb .prs-list li.ok i{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-ink-2)}
+@property --p{syntax:"<number>";inherits:false;initial-value:0}
+@media (prefers-reduced-motion:no-preference){.pi-onb .prs{animation:pi-onb-mdl .5s cubic-bezier(.2,.8,.2,1) both}.pi-onb .prs-list li.now i{animation:pi-prs-spin .8s linear infinite}@keyframes pi-prs-spin{to{transform:rotate(360deg)}}}

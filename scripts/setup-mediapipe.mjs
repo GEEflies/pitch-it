@@ -11,12 +11,24 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.join(root, "node_modules", "@mediapipe", "tasks-vision", "wasm");
 const target = path.join(root, "public", "mediapipe");
 
-const WASM_FILES = ["vision_wasm_module_internal.js", "vision_wasm_module_internal.wasm"];
+// module_* používa worker analýzy kamery, internal_* živý tréner reči tela (hlavné vlákno)
+const WASM_FILES = [
+  "vision_wasm_module_internal.js",
+  "vision_wasm_module_internal.wasm",
+  "vision_wasm_internal.js",
+  "vision_wasm_internal.wasm",
+];
 const MODELS = {
   "face_landmarker.task":
     "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
   "pose_landmarker_lite.task":
     "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+  "pose_landmarker_full.task":
+    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+  "pose_landmarker_heavy.task":
+    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task",
+  "hand_landmarker.task":
+    "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
 };
 
 async function exists(file) {

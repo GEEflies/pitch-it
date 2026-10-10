@@ -35,11 +35,14 @@ const mmss = (x: number) => `${String(Math.floor(x / 60)).padStart(2, "0")}:${St
 export function RecordScreen({
   setup,
   cameraHref,
+  drillsHref,
   feedbackHref,
   preview = false,
 }: {
   setup: RecorderSetup;
   cameraHref: string;
+  /** Cvičenia reči tela pred kamerou. */
+  drillsHref?: string;
   /** Kam viesť po analýze; `{id}` sa nahradí id pokusu. */
   feedbackHref: string;
   preview?: boolean;
@@ -79,9 +82,12 @@ export function RecordScreen({
     } else setError(result.message);
   };
 
-  // Jeden tik za sekundu, ako v dizajne.
+  // Jeden tik za sekundu, ako v dizajne. Interval beží stabilne počas fázy,
+  // časté prekreslenia (napr. meradlo mikrofónu) ho nesmú resetovať;
+  // logika tiku sa číta cez ref, aby videla aktuálny stav.
+  const tickRef = useRef<() => void>(() => {});
   useEffect(() => {
-    const timer = setInterval(() => {
+    tickRef.current = () => {
       if (phase === "count") {
         if (cnt <= 1) {
           if (!preview) recorder.start();
@@ -95,9 +101,13 @@ export function RecordScreen({
         // Kroky analýzy postupujú, posledný sa uzavrie až po odpovedi servera.
         setK((value) => (preview ? Math.min(4, value + 1) : attemptId ? 4 : Math.min(3, value + 1)));
       }
-    }, 1000);
-    return () => clearInterval(timer);
+    };
   });
+  useEffect(() => {
+    if (phase === "ready") return;
+    const timer = setInterval(() => tickRef.current(), 1000);
+    return () => clearInterval(timer);
+  }, [phase]);
 
   const start = () => {
     if (!consent) {
@@ -186,6 +196,16 @@ export function RecordScreen({
                 <Link href={cameraHref} style={{ fontSize: "14px", color: "var(--color-accent)", fontWeight: 700 }}>
                   Nahrávať s kamerou a rečou tela
                 </Link>
+                {drillsHref ? (
+                  <>
+                    <span className="muted" style={{ margin: "0 10px" }} aria-hidden="true">
+                      ·
+                    </span>
+                    <Link href={drillsHref} style={{ fontSize: "14px", color: "var(--color-violet-soft)", fontWeight: 700 }}>
+                      Cvičenia reči tela
+                    </Link>
+                  </>
+                ) : null}
               </div>
             </>
           ) : null}

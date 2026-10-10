@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { RecordScreen } from "@/components/pitch/record-screen";
+import { CameraRecordScreen } from "@/components/pitch/camera-record-screen";
 
-export const metadata: Metadata = { title: "Nahrávanie" };
+export const metadata: Metadata = { title: "Nahrávanie s kamerou" };
 
-// Dočasne: kým nie je hotová obrazovka s kamerou (Workspace).
 export default function PreviewCameraRecord() {
   return (
-    <RecordScreen
+    <CameraRecordScreen
       preview
       setup={{ audience: "investor", targetSeconds: 60, focus: "tempo" }}
-      cameraHref="/ukazka/nahravka/kamera"
+      audioHref="/ukazka/nahravka"
       feedbackHref="/ukazka/nahravka/feedback"
     />
   );

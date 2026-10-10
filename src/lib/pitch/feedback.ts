@@ -1,4 +1,6 @@
 import { AUDIENCE_LABELS } from "@/lib/onboarding/plan";
+import { parseStoredCoach, type StoredCoach } from "@/lib/coach/stored";
+import { PREVIEW_COACH } from "@/lib/preview/coach";
 import { BODY_EVENT_LABELS, bodyNarrative, clock, type BodySummary } from "@/lib/pitch/body";
 import { CATEGORY_LABELS, orderedCategories, type ContentScore } from "@/lib/pitch/content";
 import { decimal, pausesLabel, TEMPO_ADVICE, tempoPosition, tempoVerdict, type PitchMetrics, type TranscriptToken } from "@/lib/pitch/metrics";
@@ -33,6 +35,8 @@ export type FeedbackData = {
     /** Pás udalostí: dĺžky úsekov (flex) a ich typ. */
     strip: Array<{ flex: number; tone: BodyTone | null }>;
   } | null;
+  /** Živý tréner reči tela z nahrávania s kamerou. */
+  coach: StoredCoach | null;
   shared: boolean;
   shareDefaults: { name: string; team: string; email: string };
 };
@@ -132,6 +136,7 @@ export function buildFeedback(
             strip: bodyStrip(events, attempt.duration_ms ?? 0),
           }
         : null,
+    coach: parseStoredCoach(body?.coach ?? null),
     shared: attempt.shared_at !== null,
     shareDefaults: extra.shareDefaults ?? { name: "", team: "", email: "" },
   };
@@ -189,6 +194,7 @@ export const FEEDBACK_FIXTURE: FeedbackData = {
       { flex: 2, tone: null },
     ],
   },
+  coach: PREVIEW_COACH,
   shared: false,
   shareDefaults: { name: "", team: "", email: "" },
 };

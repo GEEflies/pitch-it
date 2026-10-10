@@ -1,0 +1,21 @@
+/* Živý tréner reči tela: krátke „vyskočenie“ bubliny a odpočtu. */
+@keyframes coach-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-pop {
+  animation: coach-pop 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop {
+    animation: none;
+  }
+}

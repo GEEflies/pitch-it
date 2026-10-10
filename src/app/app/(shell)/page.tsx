@@ -46,7 +46,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
     {
       key: "profile",
       title: "Nastav si plán tréningu",
-      detail: "Šesť rýchlych otázok, z ktorých zostavíme plán pred stretnutím.",
+      detail: "Tri rýchle otázky, z ktorých zostavíme plán tréningu.",
       href: "/app/vitaj",
       done: Boolean(profile?.onboarding_answers),
     },

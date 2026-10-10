@@ -9,6 +9,7 @@ export default function PreviewRecord() {
       preview
       setup={{ audience: "investor", targetSeconds: 60, focus: "tempo" }}
       cameraHref="/ukazka/nahravka/kamera"
+      drillsHref="/ukazka/nahravka/cvicenia"
       feedbackHref="/ukazka/nahravka/feedback"
     />
   );

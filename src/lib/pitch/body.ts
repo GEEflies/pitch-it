@@ -1,4 +1,5 @@
 import type { VisionSample } from "@/lib/analytics/vision/types";
+import type { StoredCoach } from "@/lib/coach/stored";
 
 /*
   Súhrn reči tela z kamery pre feedback. Iba odvodené hodnoty zo snímok, nikdy obraz.
@@ -16,6 +17,8 @@ export type BodySummary = {
   /** Priemerná aktivita rúk (relatívna). */
   gestureActivity: number | null;
   events: BodyEvent[];
+  /** Súhrn živého trénera reči tela (nahrávanie s kamerou). */
+  coach?: StoredCoach | null;
 };
 
 export const BODY_EVENT_LABELS: Record<BodyEventKind, { label: string; tone: "good" | "warn" }> = {

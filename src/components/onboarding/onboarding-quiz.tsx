@@ -9,10 +9,51 @@ import { NOTES_MAX, planSummary, QUESTIONS, type OnboardingAnswers } from "@/lib
 
 /*
   Onboarding 1:1 podľa dizajnu PitchIt („1 · Onboarding“): tri otázky, karta „Tvoj plán“
-  a voliteľné poznámky k pitchu. Potom rovno nahrávanie s kamerou.
+  a voliteľné poznámky k pitchu. Potom krátka obrazovka „Personalizujeme…“ (beží popri
+  uložení odpovedí) a plynulý prechod na prehľad, odkiaľ sa začína nahrávať.
 */
 
-const NEXT_HREF = "/app/nahravka/kamera";
+const NEXT_HREF = "/app";
+// Najkratšia dĺžka personalizácie, aby jednotlivé kroky stihli naskočiť.
+const PERSONALIZE_MS = 3600;
+const PERSONALIZE_MS_REDUCED = 1200;
+const FADE_MS = 420;
+
+function personalizeSteps(answers: OnboardingAnswers) {
+  return [
+    `Nastavujeme časovač na ${answers.lengthSeconds} s`,
+    answers.audience === "investor" ? "Ladíme hodnotenie pre investorov" : "Ladíme hodnotenie pre tím",
+    answers.focus === "tempo" ? "Pripravujeme cvičenia na tempo a pauzy" : "Pripravujeme cvičenia na štruktúru pitchu",
+    "Zostavujeme tvoj prehľad",
+  ];
+}
+
+function Personalizing({ steps, done, leaving }: { steps: string[]; done: number; leaving: boolean }) {
+  const percent = Math.round((done / steps.length) * 100);
+  return (
+    <div className={`prs${leaving ? " out" : ""}`} role="status" aria-live="polite">
+      <div className="prs-ring" style={{ "--p": percent } as React.CSSProperties}>
+        <span>{percent}%</span>
+      </div>
+      <div className="eyebrow">Tvoj plán</div>
+      <h1 className="h" style={{ fontSize: "40px", margin: "12px 0 28px", textAlign: "center" }}>
+        Personalizujeme tvoj tréning…
+      </h1>
+      <ul className="prs-list">
+        {steps.map((label, index) => (
+          <li key={label} className={index < done ? "ok" : index === done ? "now" : ""}>
+            <i aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 12 12">
+                <path d="M2.5 6.2l2.3 2.3 4.7-4.9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </i>
+            {label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function CloseButton({ onClick }: { onClick: () => void }) {
   return (
@@ -69,7 +110,9 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Array<string | number | null>>([null, null, null]);
-  const [stage, setStage] = useState<"quiz" | "plan" | "notes">("quiz");
+  const [stage, setStage] = useState<"quiz" | "plan" | "notes" | "personalize">("quiz");
+  const [done, setDone] = useState(0);
+  const [leaving, setLeaving] = useState(false);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -93,7 +136,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
   };
 
   useEffect(() => {
-    if (stage === "quiz") return;
+    if (stage === "quiz" || stage === "personalize") return;
     dialogRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") restart();
@@ -104,15 +147,31 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
 
   const finish = (withNotes: boolean) => {
     if (!parsed) return;
-    if (preview) {
-      router.push(previewHref ?? "/ukazka");
-      return;
-    }
     setError(null);
+    setDone(0);
+    setLeaving(false);
+    setStage("personalize");
     startTransition(async () => {
-      const result = await submitOnboarding({ ...parsed, notes: withNotes ? notes : "" });
-      if (result.status === "ok") router.push(NEXT_HREF);
-      else setError(result.message);
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const total = reduced ? PERSONALIZE_MS_REDUCED : PERSONALIZE_MS;
+      const count = personalizeSteps(parsed).length;
+      const ticks = Array.from({ length: count }, (_, index) =>
+        window.setTimeout(() => setDone(index + 1), ((index + 1) * total) / (count + 0.5)),
+      );
+      const [result] = await Promise.all([
+        preview ? Promise.resolve({ status: "ok" as const }) : submitOnboarding({ ...parsed, notes: withNotes ? notes : "" }),
+        new Promise((resolve) => window.setTimeout(resolve, total)),
+      ]);
+      if (result.status !== "ok") {
+        ticks.forEach(window.clearTimeout);
+        setError(result.message);
+        setStage("notes");
+        return;
+      }
+      setDone(count);
+      setLeaving(true);
+      await new Promise((resolve) => window.setTimeout(resolve, reduced ? 0 : FADE_MS));
+      router.push(preview ? (previewHref ?? "/ukazka") : NEXT_HREF);
     });
   };
 
@@ -122,6 +181,11 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
       style={{ background: PI_BACKGROUND, color: "var(--color-paper)", minHeight: "100dvh", position: "relative" }}
     >
       <PiTopbar />
+      {stage === "personalize" && parsed ? (
+        <main id="obsah" style={{ display: "flex", justifyContent: "center", padding: "48px 24px" }}>
+          <Personalizing steps={personalizeSteps(parsed)} done={done} leaving={leaving} />
+        </main>
+      ) : (
       <main
         id="obsah"
         style={{ display: "flex", flexWrap: "wrap", gap: "48px", justifyContent: "center", alignItems: "flex-start", padding: "48px 32px" }}
@@ -175,6 +239,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
           </div>
         </div>
       </main>
+      )}
 
       {stage === "plan" && summary ? (
         <Overlay>
@@ -239,7 +304,7 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
             </h2>
             <p className="muted" style={{ margin: "0 0 18px", fontSize: "15px", lineHeight: "1.55" }}>
               Voliteľné. Poznámky ti budú nad kamerou počas nahrávania, aby si nestratila niť. Analýza ich použije na porovnanie, čo si naozaj
-              povedala.
+              povedala. Neskôr ich zmeníš pri nahrávaní.
             </p>
             <label htmlFor="nta" style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "8px" }}>
               Tvoje poznámky
@@ -267,11 +332,11 @@ export function OnboardingQuiz({ preview = false, previewHref }: { preview?: boo
                 onClick={() => finish(true)}
                 style={{ flex: "2 1 240px", minHeight: "52px", opacity: pending ? 0.7 : 1 }}
               >
-                {pending ? "Ukladám…" : "Začať nahrávať s kamerou"}
+                Uložiť a pokračovať
               </button>
             </div>
             <div className="muted" style={{ marginTop: "14px", fontSize: "13px", textAlign: "center" }}>
-              Nahrávanie prebehne cez kameru, so sledovaním reči tela.
+              Prispôsobíme tréning a otvoríme tvoj prehľad.
             </div>
           </div>
         </Overlay>

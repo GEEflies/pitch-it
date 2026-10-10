@@ -207,18 +207,19 @@ function Room({ controller, ...props }: TrainingRoomProps & { controller: LiveSe
 
       <main id="obsah" className="mx-auto w-full max-w-[90rem] flex-1 px-4 py-8 md:px-8 md:py-10">
         {!inRoom ? (
-          <>
-            <h1 className="type-display text-[clamp(2rem,1.5rem+1.6vw,2.75rem)]">
-              {isText ? "Textový tréning" : "Priprav si mikrofón"}
+          <div className="mx-auto max-w-[64rem]">
+            <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-faint">Pred rozhovorom</p>
+            <h1 className="type-display mt-2 text-[clamp(1.75rem,1.4rem+1.2vw,2.25rem)]">
+              {isText ? "Textový tréning" : props.cameraEnabled ? "Skontroluj mikrofón a kameru" : "Skontroluj mikrofón"}
             </h1>
-            <p className="mt-3 max-w-[40rem] leading-relaxed text-mute">
+            <p className="mt-2 max-w-[40rem] leading-relaxed text-mute">
               {delivery
                 ? "Po spustení odprezentuj celý pitch. Investor počúva a nevstupuje do toho."
                 : isText
                   ? `${props.investorName} sa bude pýtať písomne.`
-                  : `${props.investorName} sa ozve hneď po spustení. Hovor prirodzene, investora môžeš kedykoľvek prerušiť.`}
+                  : `${props.investorName} sa ozve hneď po spustení. Kedykoľvek ho môžeš prerušiť.`}
             </p>
-            <div className="mt-10">
+            <div className="mt-8">
               <Preflight
                 controller={controller}
                 snapshot={snapshot}
@@ -231,7 +232,7 @@ function Room({ controller, ...props }: TrainingRoomProps & { controller: LiveSe
                 preview={Boolean(props.preview)}
               />
             </div>
-          </>
+          </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
             <div className="flex flex-col gap-6 lg:col-span-7">

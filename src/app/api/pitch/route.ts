@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseStoredCoach } from "@/lib/coach/stored";
 import { analyzePitch, MAX_PITCH_AUDIO_BYTES, PitchServiceError } from "@/lib/pitch/service";
 import { apiError, apiOk, handleRouteError, rateLimited, requireApiUser } from "@/lib/http/route";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
@@ -66,6 +67,16 @@ export async function POST(request: Request) {
       }
     }
 
+    let coach = null;
+    const rawCoach = form.get("coach");
+    if (typeof rawCoach === "string" && rawCoach && rawCoach.length < 200_000) {
+      try {
+        coach = parseStoredCoach(JSON.parse(rawCoach));
+      } catch {
+        coach = null;
+      }
+    }
+
     const extension = baseType === "audio/mp4" || baseType === "audio/x-m4a" ? "m4a" : baseType.split("/")[1];
     const attempt = await analyzePitch(user.id, {
       audio,
@@ -75,6 +86,7 @@ export async function POST(request: Request) {
       targetSeconds: meta.data.targetSeconds,
       focus: meta.data.focus,
       vision,
+      coach,
     });
     return apiOk({ attemptId: attempt.id }, 201);
   } catch (error) {

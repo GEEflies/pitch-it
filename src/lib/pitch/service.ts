@@ -4,6 +4,7 @@ import { getLlmProvider } from "@/lib/ai/llm/anthropic";
 import { LlmError } from "@/lib/ai/llm/types";
 import { TranscriptionError, transcribeWithWords } from "@/lib/ai/transcription";
 import type { VisionSample } from "@/lib/analytics/vision/types";
+import type { StoredCoach } from "@/lib/coach/stored";
 import { checkEntitlement } from "@/lib/billing/plans";
 import { getProfile } from "@/lib/db/profile";
 import { insertPitchAttempt, updatePitchAttempt } from "@/lib/db/pitch";
@@ -36,6 +37,7 @@ export type PitchInput = {
   targetSeconds: PitchAttemptRow["target_seconds"];
   focus: PitchAttemptRow["focus"];
   vision: VisionSample[] | null;
+  coach?: StoredCoach | null;
 };
 
 /**
@@ -56,7 +58,7 @@ export async function analyzePitch(userId: string, input: PitchInput): Promise<P
     audience: input.audience,
     target_seconds: input.targetSeconds,
     focus: input.focus,
-    with_camera: Boolean(input.vision?.length),
+    with_camera: Boolean(input.vision?.length || input.coach),
     duration_ms: input.durationMs,
   });
 
@@ -78,7 +80,7 @@ export async function analyzePitch(userId: string, input: PitchInput): Promise<P
   await recordUsage(userId, "transcription_seconds", Math.ceil(input.durationMs / 1000), null);
 
   const metrics = buildMetrics({ text: transcript.text, words: transcript.words, durationMs: input.durationMs });
-  const body = input.vision?.length ? summarizeBody(input.vision) : null;
+  const body = input.vision?.length || input.coach ? { ...summarizeBody(input.vision ?? []), coach: input.coach ?? null } : null;
 
   let content = null;
   let score: number | null = null;

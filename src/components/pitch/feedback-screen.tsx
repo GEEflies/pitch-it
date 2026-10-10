@@ -3,6 +3,7 @@
 import "@/styles/screens/feedback.css";
 import Link from "next/link";
 import { Fragment, useEffect, useState, useTransition, type CSSProperties } from "react";
+import { CoachFeedbackCard } from "@/components/coach/coach-feedback-card";
 import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
 import { sharePitch } from "@/lib/pitch/actions";
 import { SECTION_LABELS, sectionOrder, type BodyTone, type FeedbackData, type ScoreTone } from "@/lib/pitch/feedback";
@@ -302,7 +303,9 @@ export function FeedbackScreen({ data, preview = false }: { data: FeedbackData; 
             </div>
           </section>
 
-          {data.body ? (
+          {data.coach ? (
+            <CoachFeedbackCard attemptId={data.attemptId} coach={data.coach} />
+          ) : data.body ? (
             <section className="card rv" style={{ animationDelay: "550ms", order: 3 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "12px" }}>
                 <h2 className="h" style={{ fontSize: "26px" }}>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { VisionSample } from "@/lib/analytics/vision/types";
+import type { StoredCoach } from "@/lib/coach/stored";
 
 /*
   Nahrávanie pitchu v prehliadači: mikrofón (a voliteľne kamera), úroveň hlasu pre vlnu,
@@ -121,6 +122,7 @@ export async function uploadPitch(
   recording: { audio: Blob; durationMs: number },
   setup: RecorderSetup,
   vision: VisionSample[] | null,
+  coach: StoredCoach | null = null,
 ): Promise<{ ok: true; attemptId: string } | { ok: false; message: string }> {
   const form = new FormData();
   form.set("audio", recording.audio, "pitch");
@@ -129,6 +131,7 @@ export async function uploadPitch(
   form.set("targetSeconds", String(setup.targetSeconds));
   form.set("focus", setup.focus);
   if (vision?.length) form.set("vision", JSON.stringify(vision));
+  if (coach) form.set("coach", JSON.stringify(coach));
   try {
     const response = await fetch("/api/pitch", { method: "POST", body: form });
     const data = (await response.json().catch(() => null)) as { attemptId?: string; error?: { message?: string } } | null;

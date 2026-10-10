@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans, Outfit } from "next/font/google";
+import { DevResetButton } from "@/components/dev-reset-button";
 import { MotionProvider } from "@/components/motion-provider";
 import { THEME_INIT_SCRIPT } from "@/components/theme-toggle";
 import { siteConfig } from "@/config/site";
@@ -74,6 +75,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Preskočiť na obsah
         </a>
         <MotionProvider>{children}</MotionProvider>
+        {/* Dočasné: reset prehliadača pri testovaní, iba `next dev`. */}
+        {process.env.NODE_ENV === "development" ? <DevResetButton /> : null}
       </body>
     </html>
   );

@@ -64,7 +64,7 @@ function CardHeader({ id, title, action }: { id: string; title: string; action?:
 
 /* ───────────── Úvodná karta ───────────── */
 
-function Hero({ href }: { href: string }) {
+function Hero({ recordHref, investorHref }: { recordHref: string; investorHref: string }) {
   return (
     <section aria-labelledby="hero-title" className="dash-hero relative isolate overflow-hidden rounded-[16px] border border-hero-line">
       <MicIllustration className="pointer-events-none absolute top-0 right-0 -z-10 hidden h-full w-auto md:block" />
@@ -75,14 +75,19 @@ function Hero({ href }: { href: string }) {
           <span className="block text-accent">začína tu</span>
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-slide sm:text-[16px]">Nacvič pitch alebo si vyskúšaj náročné otázky investora.</p>
-        <Link
-          href={href}
-          className="dash-cta mt-6 inline-flex h-11 items-center gap-3 rounded-full bg-signal pr-5 pl-[26px] text-[15px] font-bold text-on-signal transition-[transform,filter] duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0"
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Link
+            href={recordHref}
+            className="dash-cta inline-flex h-11 items-center gap-3 rounded-full bg-signal pr-5 pl-[26px] text-[15px] font-bold text-on-signal transition-[transform,filter] duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0"
         >
-          <PlayIcon className="size-[17px]" />
-          Začať tréning
-          <Icon name="chevronRight" className="size-[18px]" strokeWidth={2.2} />
-        </Link>
+            <PlayIcon className="size-[17px]" />
+            Nahrať pitch
+            <Icon name="chevronRight" className="size-[18px]" strokeWidth={2.2} />
+          </Link>
+          <Link href={investorHref} className="text-[15px] font-semibold text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline">
+            Simulovať investora
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -400,11 +405,11 @@ export function DashboardView({
   href = (path) => path,
 }: DashboardViewData) {
   return (
-    <div className="space-y-5">
+    <div className="dash-enter space-y-5">
       {notice}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-[18px]">
-          <Hero href={href(trainingHref)} />
+          <Hero recordHref={href("/app/nahravka/kamera")} investorHref={href(trainingHref)} />
           <GettingStarted items={checklist} href={href} />
           <section aria-label="Výsledky posledného tréningu">
             <ul className="grid grid-cols-1 gap-[18px] min-[420px]:grid-cols-2 2xl:grid-cols-4">
