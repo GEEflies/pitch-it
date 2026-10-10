@@ -10,5 +10,5 @@ export const metadata: Metadata = { title: "Nahrávanie" };
 export default async function RecordPage() {
   const user = await requireUser("/app/nahravka");
   const { setup } = await loadPitchSetup(user.id);
-  return <CameraRecordScreen setup={setup} audioHref="/app/nahravka/zvuk" feedbackHref="/app/nahravka/{id}" />;
+  return <CameraRecordScreen setup={setup} feedbackHref="/app/nahravka/{id}" />;
 }

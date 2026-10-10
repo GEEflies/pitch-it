@@ -10,7 +10,6 @@ export default function PreviewCameraRecord() {
       homeHref="/ukazka/prehlad"
       setupHref="/ukazka/vitaj"
       setup={{ audience: "investor", targetSeconds: 60, focus: "tempo" }}
-      audioHref="/ukazka/nahravka"
       feedbackHref="/ukazka/nahravka/feedback"
     />
   );

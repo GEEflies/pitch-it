@@ -29,15 +29,12 @@ const STEPS = [
 
 export function CameraRecordScreen({
   setup,
-  audioHref,
   feedbackHref,
   homeHref = "/app",
   setupHref = "/app/vitaj",
   preview = false,
 }: {
   setup: RecorderSetup;
-  /** nahrávanie len so zvukom */
-  audioHref: string;
   /** Návrat na prehľad. */
   homeHref?: string;
   /** Kvíz, kde sa mení publikum, dĺžka a cieľ. */
@@ -177,10 +174,6 @@ export function CameraRecordScreen({
             <p className="text-sm text-mute">
               <Link href={setupHref} className="font-bold text-signal">
                 Zmeniť publikum a dĺžku
-              </Link>
-              {" · "}
-              <Link href={audioHref} className="font-bold text-signal">
-                Nahrať len zvuk
               </Link>
             </p>
             {micText ? (

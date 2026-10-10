@@ -62,31 +62,34 @@ export async function analyzePitch(userId: string, input: PitchInput): Promise<P
     duration_ms: input.durationMs,
   });
 
-  let transcript;
+  const body = input.vision?.length || input.coach ? { ...summarizeBody(input.vision ?? []), coach: input.coach ?? null } : null;
+
+  // Bez nakonfigurovaného prepisu sa pokus s kamerou aj tak dokončí: skóre z reči tela.
+  let transcript: Awaited<ReturnType<typeof transcribeWithWords>> | null = null;
   try {
     transcript = await transcribeWithWords(input.audio, input.fileName, "sk");
   } catch (error) {
-    await updatePitchAttempt(attempt.id, { status: "failed" });
-    const message =
-      error instanceof TranscriptionError && error.code === "not_configured"
-        ? "Prepis reči nie je nakonfigurovaný (chýba OPENAI_API_KEY)."
-        : "Nahrávku sa nepodarilo prepísať. Skús to znova.";
-    throw new PitchServiceError("transcription_failed", message, 503);
+    const notConfigured = error instanceof TranscriptionError && error.code === "not_configured";
+    if (!notConfigured || !body) {
+      await updatePitchAttempt(attempt.id, { status: "failed" });
+      const message = notConfigured ? "Prepis reči nie je nakonfigurovaný (chýba OPENAI_API_KEY alebo MISTRAL_API_KEY)." : "Nahrávku sa nepodarilo prepísať. Skús to znova.";
+      throw new PitchServiceError("transcription_failed", message, 503);
+    }
+    console.warn("[pitch] prepis nie je nakonfigurovaný, vyhodnocujem len reč tela");
   }
-  if (!transcript.text) {
+  if (transcript && !transcript.text) {
     await updatePitchAttempt(attempt.id, { status: "failed" });
     throw new PitchServiceError("transcription_failed", "V nahrávke sme nezachytili reč. Skús to znova bližšie k mikrofónu.");
   }
-  await recordUsage(userId, "transcription_seconds", Math.ceil(input.durationMs / 1000), null);
+  if (transcript) await recordUsage(userId, "transcription_seconds", Math.ceil(input.durationMs / 1000), null);
 
-  const metrics = buildMetrics({ text: transcript.text, words: transcript.words, durationMs: input.durationMs });
-  const body = input.vision?.length || input.coach ? { ...summarizeBody(input.vision ?? []), coach: input.coach ?? null } : null;
+  const metrics = transcript ? buildMetrics({ text: transcript.text, words: transcript.words, durationMs: input.durationMs }) : null;
 
   let content = null;
   let score: number | null = null;
   let model: string | null = null;
   const llm = getLlmProvider();
-  if (llm) {
+  if (llm && transcript) {
     try {
       const profile = await getProfile(userId);
       const result = await llm.generateStructured({
@@ -119,7 +122,7 @@ export async function analyzePitch(userId: string, input: PitchInput): Promise<P
 
   const patch = {
     status: "ready" as const,
-    transcript: transcript.text.slice(0, 20_000),
+    transcript: transcript ? transcript.text.slice(0, 20_000) : null,
     metrics,
     content,
     content_score: score,

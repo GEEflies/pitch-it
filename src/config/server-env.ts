@@ -47,6 +47,12 @@ export function getOpenAiRealtimeConfig(): OpenAiRealtimeConfig | null {
   };
 }
 
+/** Mistral (Voxtral): náhradný prepis, keď chýba OPENAI_API_KEY. */
+export function getMistralTranscriptionConfig(): { apiKey: string; model: string } | null {
+  const apiKey = read("MISTRAL_API_KEY");
+  return apiKey ? { apiKey, model: read("MISTRAL_TRANSCRIPTION_MODEL") ?? "voxtral-mini-latest" } : null;
+}
+
 export type StripeConfig = {
   secretKey: string;
   webhookSecret: string;
