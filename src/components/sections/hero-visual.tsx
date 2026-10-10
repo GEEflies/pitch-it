@@ -61,7 +61,7 @@ export function HeroVisual() {
       <div aria-hidden="true">
         {/* Slide z decku */}
         <m.div
-          className="relative overflow-hidden rounded-[10px] bg-slide text-ink shadow-[0_50px_120px_-40px_rgba(61,91,255,0.6),0_0_0_1px_rgba(255,255,255,0.06)] md:w-[64%]"
+          className="relative overflow-hidden rounded-[10px] bg-slide text-ink shadow-[0_50px_120px_-40px_rgba(59,130,246,0.6),0_0_0_1px_rgba(255,255,255,0.06)] md:w-[64%]"
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1, ease, delay: 0.35 }}

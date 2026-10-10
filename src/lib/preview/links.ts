@@ -6,6 +6,7 @@ export function isPreviewEnabled(): boolean {
 /** Odkazy aplikácie (/app/…) presmeruje na zodpovedajúce ukážkové obrazovky. */
 export function previewHref(path: string): string {
   if (path === "/app") return "/ukazka/prehlad";
+  if (path.startsWith("/app/vitaj")) return "/ukazka/vitaj";
   if (path.startsWith("/app/historia/porovnanie")) return path.replace("/app/historia/porovnanie", "/ukazka/porovnanie");
   if (path.startsWith("/app/historia")) return path.replace("/app/historia", "/ukazka/historia");
   if (path.startsWith("/app/trening/novy")) return "/ukazka/novy-trening";

@@ -18,7 +18,7 @@ export function Hero({ cta }: { cta: Cta }) {
         className="pointer-events-none absolute -top-40 right-[-20%] h-[900px] w-[1100px] opacity-90 md:right-[-8%]"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(61,91,255,0.28), rgba(61,91,255,0.08) 55%, transparent 75%)",
+            "radial-gradient(closest-side, rgba(59,130,246,0.28), rgba(59,130,246,0.08) 55%, transparent 75%)",
         }}
       />
       <div

@@ -36,7 +36,7 @@ export function TextComposer({ onSend, pending, disabled }: { onSend: (text: str
         maxLength={4000}
         disabled={disabled}
         placeholder="Napíš odpoveď investorovi. Enter odošle, Shift+Enter je nový riadok."
-        className="min-h-24 w-full flex-1 rounded-[12px] border border-line-strong bg-ink-2 px-4 py-3 text-[15px] leading-relaxed text-paper outline-none placeholder:text-faint focus:border-signal-soft focus:shadow-[0_0_0_3px_rgba(61,91,255,0.25)]"
+        className="min-h-24 w-full flex-1 rounded-[12px] border border-line-strong bg-ink-2 px-4 py-3 text-[15px] leading-relaxed text-paper outline-none placeholder:text-faint focus:border-signal-soft focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)]"
       />
       <button type="submit" disabled={pending || disabled || !value.trim()} className={buttonClasses({ className: "sm:mb-0.5" })}>
         {pending ? <Spinner /> : null}

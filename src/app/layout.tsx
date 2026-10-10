@@ -1,22 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { MotionProvider } from "@/components/motion-provider";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
-
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin", "latin-ext"],
-  axes: ["opsz", "wdth"],
-  display: "swap",
-});
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin", "latin-ext"],
-  axes: ["opsz"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -45,16 +30,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b1022",
+  themeColor: "#09090b",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="sk"
-      className={`${bricolage.variable} ${sourceSerif.variable}`}
-    >
+    <html lang="sk">
       <body className="min-h-dvh">
         <a
           href="#obsah"

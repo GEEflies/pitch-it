@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { siteConfig } from "@/config/site";
 
 export const alt =
-  "Pitch It: Priprav sa na otázky, ktoré v pitch decku nie sú. Ukážka slidu so zvýrazneným číslom a otázkou investora.";
+  `${siteConfig.name}: Priprav sa na otázky, ktoré v pitch decku nie sú. Ukážka slidu so zvýrazneným číslom a otázkou investora.`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,23 +24,19 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "64px 72px",
-          background: "#0b1022",
+          background: "#09090b",
           backgroundImage:
-            "radial-gradient(circle at 85% 10%, rgba(61,91,255,0.38), rgba(61,91,255,0.06) 45%, transparent 70%)",
-          color: "#eef0f8",
+            "radial-gradient(circle at 85% 10%, rgba(59,130,246,0.38), rgba(59,130,246,0.06) 45%, transparent 70%)",
+          color: "#fafafa",
           fontFamily: "Bricolage",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <svg width="44" height="44" viewBox="0 0 28 28">
-            <path
-              d="M5 4h18a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H11.5L6 24.5V20H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"
-              fill="#3d5bff"
-            />
-            <rect x="6" y="8.5" width="10" height="3.2" rx="1.6" fill="#ffc34d" />
-            <rect x="6" y="13.6" width="14" height="2" rx="1" fill="#ffffff" fillOpacity="0.8" />
+            <rect x="2" y="2" width="24" height="24" rx="7" fill="#27272a" />
+            <rect x="9" y="9" width="10" height="10" rx="3" fill="#fafafa" />
           </svg>
-          <span style={{ fontSize: 34, letterSpacing: "-0.02em" }}>Pitch It</span>
+          <span style={{ fontSize: 34, letterSpacing: "-0.02em" }}>{siteConfig.name}</span>
         </div>
 
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 48 }}>
@@ -61,8 +58,8 @@ export default function OpengraphImage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                background: "#e6e9f4",
-                color: "#0b1022",
+                background: "#e4e4e7",
+                color: "#09090b",
                 borderRadius: 10,
                 padding: "22px 26px",
               }}
@@ -76,7 +73,7 @@ export default function OpengraphImage() {
                     right: 110,
                     bottom: 6,
                     height: 26,
-                    background: "#ffc34d",
+                    background: "#f5b942",
                     borderRadius: 4,
                   }}
                 />
@@ -86,8 +83,8 @@ export default function OpengraphImage() {
             <div
               style={{
                 display: "flex",
-                background: "#141b38",
-                border: "1px solid #263059",
+                background: "#151518",
+                border: "1px solid #27272a",
                 borderRadius: 16,
                 padding: "18px 22px",
                 fontFamily: "Source Serif",

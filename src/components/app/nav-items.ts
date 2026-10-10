@@ -15,12 +15,6 @@ export const APP_NAV: NavItem[] = [
     match: (path) => path.startsWith("/app/projekty"),
   },
   {
-    href: "/app/trening/novy",
-    label: "Nový tréning",
-    icon: "M10 3.5a3 3 0 0 1 3 3v3a3 3 0 0 1-6 0v-3a3 3 0 0 1 3-3ZM5 9.5a5 5 0 0 0 10 0M10 14.5v2.5",
-    match: (path) => path.startsWith("/app/trening/novy"),
-  },
-  {
     href: "/app/cvicenia",
     label: "Cvičenia",
     icon: "M4 15.5 8 11l3 3 5-6.5M12.5 7.5H16V11",
@@ -32,6 +26,11 @@ export const APP_NAV: NavItem[] = [
     icon: "M10 5.5v4.5l3 2M3.8 10a6.2 6.2 0 1 0 1.9-4.5M3.5 3.8v2.7h2.7",
     match: (path) => path.startsWith("/app/historia") || /^\/app\/trening\/(?!novy)/.test(path),
   },
+];
+
+export const NEW_TRAINING_ICON = "M10 3.5a3 3 0 0 1 3 3v3a3 3 0 0 1-6 0v-3a3 3 0 0 1 3-3ZM5 9.5a5 5 0 0 0 10 0M10 14.5v2.5";
+
+export const SETTINGS_NAV: NavItem[] = [
   {
     href: "/app/nastavenia",
     label: "Nastavenia",
@@ -40,10 +39,12 @@ export const APP_NAV: NavItem[] = [
   },
 ];
 
-const iconOf = (href: string) => APP_NAV.find((item) => item.href === href)?.icon ?? APP_NAV[0].icon;
+const ALL_NAV = [...APP_NAV, ...SETTINGS_NAV];
+const iconOf = (href: string) => href === "/app/trening/novy" ? NEW_TRAINING_ICON : (ALL_NAV.find((item) => item.href === href)?.icon ?? APP_NAV[0].icon);
 
 /** Navigácia vývojovej ukážky (/ukazka). */
 export const PREVIEW_NAV: NavItem[] = [
+  { href: "/ukazka/vitaj", label: "Úvodný kvíz", icon: "M4 5.5h12M4 10h12M4 14.5h7", match: (path) => path.startsWith("/ukazka/vitaj") },
   { href: "/ukazka/prehlad", label: "Prehľad", icon: iconOf("/app"), match: (path) => path === "/ukazka/prehlad" },
   { href: "/ukazka/podklady", label: "Podklady a fakty", icon: iconOf("/app/projekty"), match: (path) => path.startsWith("/ukazka/podklady") },
   { href: "/ukazka/novy-trening", label: "Nový tréning", icon: iconOf("/app/trening/novy"), match: (path) => path.startsWith("/ukazka/novy-trening") },

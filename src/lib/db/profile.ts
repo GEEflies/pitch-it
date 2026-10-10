@@ -68,3 +68,22 @@ export async function recordConsent(userId: string, kind: ConsentKind, granted: 
   const { error } = await supabase.from("consents").insert({ user_id: userId, kind, granted, version });
   check({ error }, "consents.record");
 }
+
+/** Uloží výsledok úvodného kvízu (alebo jeho preskočenie, ak `answers` chýba). */
+export async function completeOnboarding(
+  userId: string,
+  input: {
+    answers: Record<string, unknown> | null;
+    settings?: { default_mode: UserSettingsRow["default_mode"]; coach_focus: string[] };
+  },
+): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const profileUpdate: Partial<ProfileRow> = { onboarding_completed_at: new Date().toISOString() };
+  if (input.answers) profileUpdate.onboarding_answers = input.answers;
+  const [profile, settings] = await Promise.all([
+    supabase.from("profiles").update(profileUpdate).eq("id", userId),
+    input.settings ? supabase.from("user_settings").update(input.settings).eq("user_id", userId) : Promise.resolve({ error: null }),
+  ]);
+  check(profile, "profile.onboarding");
+  check(settings, "settings.onboarding");
+}

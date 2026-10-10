@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { DashboardView } from "@/components/app/dashboard-view";
 import { Notice } from "@/components/ui/notice";
 import { requireUser } from "@/lib/auth/session";
@@ -24,7 +25,51 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
     listExercises(user.id, "open"),
     getBillingContext(user.id),
   ]);
+  // Nový účet: najprv krátky úvodný kvíz (dá sa preskočiť).
+  if (profile && !profile.onboarding_completed_at) redirect("/app/vitaj");
+
   const counts = await getMaterialCounts(projects.map((project) => project.id));
+
+  const firstProject = projects[0] ?? null;
+  const hasDeck = projects.some((project) => (counts[project.id]?.documents ?? 0) > 0);
+  const deckProject = firstProject ? `/app/projekty/${firstProject.id}/podklady` : "/app/projekty/novy";
+  const checklist = [
+    {
+      key: "profile",
+      title: "Nastav si plán tréningu",
+      detail: "Šesť rýchlych otázok, z ktorých zostavíme plán pred stretnutím.",
+      href: "/app/vitaj",
+      done: Boolean(profile?.onboarding_answers),
+    },
+    {
+      key: "project",
+      title: "Opíš svoj startup",
+      detail: "Investor sa bude pýtať podľa profilu startupu.",
+      href: firstProject ? `/app/projekty/${firstProject.id}` : "/app/projekty/novy",
+      done: projects.length > 0,
+    },
+    {
+      key: "deck",
+      title: "Nahraj pitch deck",
+      detail: "PDF alebo PPTX. Vytiahneme z neho čísla a fakty, na ktoré sa investor opýta.",
+      href: deckProject,
+      done: hasDeck,
+    },
+    {
+      key: "session",
+      title: "Absolvuj prvý tréning",
+      detail: "Hlasový rozhovor so simulovaným investorom.",
+      href: "/app/trening/novy",
+      done: sessions.some((session) => session.status === "completed"),
+    },
+    {
+      key: "report",
+      title: "Prejdi si rozbor",
+      detail: "Merania, citácie slabých miest a cvičenia na zlepšenie.",
+      href: "/app/historia",
+      done: sessions.some((session) => session.feedback_reports?.status === "ready"),
+    },
+  ];
 
   const last = sessions.find((session) => session.status === "completed") ?? null;
   const recommendation = recommendNextStep({
@@ -58,6 +103,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
       sessions={sessions}
       exercises={exercises}
       billing={billing}
+      checklist={checklist}
       notice={params.heslo === "zmenene" ? <Notice tone="success">Heslo je zmenené.</Notice> : null}
     />
   );

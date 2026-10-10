@@ -8,7 +8,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 const control =
   "w-full rounded-[10px] border bg-ink-2 px-3.5 text-[15px] text-paper placeholder:text-faint " +
   "transition-[border-color,box-shadow] duration-150 outline-none " +
-  "focus:border-signal-soft focus:shadow-[0_0_0_3px_rgba(61,91,255,0.25)] disabled:opacity-60";
+  "focus:border-signal-soft focus:shadow-[0_0_0_3px_rgba(59,130,246,0.25)] disabled:opacity-60";
 
 function borderFor(error?: string | null) {
   return error ? "border-coral/70" : "border-line-strong";

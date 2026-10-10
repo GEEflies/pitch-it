@@ -5,8 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { APP_NAV, PREVIEW_NAV, type NavItem } from "@/components/app/nav-items";
+import { APP_NAV, NEW_TRAINING_ICON, PREVIEW_NAV, SETTINGS_NAV, type NavItem } from "@/components/app/nav-items";
 import { Wordmark } from "@/components/wordmark";
+
+function NavIcon({ d, className = "" }: { d: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className={`size-[18px] shrink-0 ${className}`}>
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavItem[] }) {
   const pathname = usePathname();
@@ -20,16 +28,11 @@ function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavIt
               href={item.href}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
-              className={`group relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] transition-colors duration-150 ${
-                active ? "bg-panel text-paper" : "text-mute hover:bg-panel/60 hover:text-paper"
+              className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors duration-150 ${
+                active ? "bg-panel-2 font-medium text-paper" : "text-mute hover:bg-panel hover:text-paper"
               }`}
             >
-              {active ? (
-                <span aria-hidden="true" className="absolute top-2 bottom-2 -left-3 w-[3px] rounded-r-full bg-signal" />
-              ) : null}
-              <svg viewBox="0 0 20 20" aria-hidden="true" className={`size-5 shrink-0 ${active ? "text-signal-soft" : ""}`}>
-                <path d={item.icon} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <NavIcon d={item.icon} className={active ? "text-paper" : "text-faint"} />
               {item.label}
             </Link>
           </li>
@@ -39,9 +42,55 @@ function NavLinks({ onNavigate, items }: { onNavigate?: () => void; items: NavIt
   );
 }
 
-/** Bočný panel na desktope, horná lišta s výsuvným menu na mobile. */
-export function AppNav({ account, variant = "app" }: { account: ReactNode; variant?: "app" | "preview" }) {
+function NewTrainingButton({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link
+      href="/app/trening/novy"
+      onClick={onNavigate}
+      className="flex h-9 items-center justify-center gap-2 rounded-md bg-signal px-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-signal-hover"
+    >
+      <NavIcon d={NEW_TRAINING_ICON} />
+      Nový tréning
+    </Link>
+  );
+}
+
+function SidebarBody({
+  variant,
+  onNavigate,
+  footer,
+}: {
+  variant: "app" | "preview";
+  onNavigate?: () => void;
+  footer: ReactNode;
+}) {
   const items = variant === "preview" ? PREVIEW_NAV : APP_NAV;
+  return (
+    <>
+      {variant === "app" ? (
+        <div className="mt-5">
+          <NewTrainingButton onNavigate={onNavigate} />
+        </div>
+      ) : null}
+      <nav aria-label="Aplikácia" className="mt-5 flex flex-1 flex-col">
+        <p className="mb-1.5 px-2.5 text-xs font-medium tracking-wide text-faint uppercase">Pracovný priestor</p>
+        <NavLinks items={items} onNavigate={onNavigate} />
+        {variant === "app" ? (
+          <div className="mt-auto pt-6">
+            <NavLinks items={SETTINGS_NAV} onNavigate={onNavigate} />
+          </div>
+        ) : null}
+      </nav>
+      <div className="mt-4 border-t border-line pt-4">{footer}</div>
+    </>
+  );
+}
+
+/**
+ * Bočný panel na desktope, horná lišta s výsuvným menu na mobile.
+ * `footer` je serverový obsah (plán, účet), preto sa podáva zvonku.
+ */
+export function AppNav({ account, variant = "app" }: { account: ReactNode; variant?: "app" | "preview" }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const panelId = useId();
@@ -73,15 +122,12 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-line/70 bg-ink-2 px-5 py-6 lg:flex">
-        <Wordmark className="px-1" />
-        <nav aria-label="Aplikácia" className="mt-10 flex-1">
-          <NavLinks items={items} />
-        </nav>
-        <div className="border-t border-line/70 pt-4">{account}</div>
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-ink-2 px-3 py-4 lg:flex">
+        <Wordmark className="px-1.5" />
+        <SidebarBody variant={variant} footer={account} />
       </aside>
 
-      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line/70 bg-ink/95 px-4 lg:hidden">
+      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-ink/95 px-4 backdrop-blur lg:hidden">
         <Wordmark />
         <button
           ref={toggleRef}
@@ -90,7 +136,7 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
           aria-expanded={open}
           aria-controls={panelId}
           aria-label={open ? "Zavrieť menu" : "Otvoriť menu"}
-          className="inline-flex size-11 items-center justify-center rounded-[10px] border border-line-strong text-paper"
+          className="inline-flex size-10 items-center justify-center rounded-md border border-line-strong text-paper"
         >
           <svg viewBox="0 0 20 20" aria-hidden="true" className="size-5">
             <path
@@ -112,13 +158,10 @@ export function AppNav({ account, variant = "app" }: { account: ReactNode; varia
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto bg-ink px-5 py-6 lg:hidden"
+            transition={{ duration: 0.18 }}
+            className="fixed inset-x-0 top-14 bottom-0 z-40 flex flex-col overflow-y-auto bg-ink px-4 pb-6 lg:hidden"
           >
-            <nav aria-label="Aplikácia">
-              <NavLinks items={items} onNavigate={() => setOpen(false)} />
-            </nav>
-            <div className="mt-8 border-t border-line/70 pt-4">{account}</div>
+            <SidebarBody variant={variant} footer={account} onNavigate={() => setOpen(false)} />
           </m.div>
         ) : null}
       </AnimatePresence>

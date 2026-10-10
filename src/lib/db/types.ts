@@ -22,6 +22,8 @@ export type ProfileRow = {
   display_name: string | null;
   locale: "sk" | "en";
   onboarding_completed_at: string | null;
+  /** Odpovede z úvodného kvízu, tvar `OnboardingAnswers` (src/lib/onboarding/plan.ts). */
+  onboarding_answers: Record<string, unknown> | null;
   created_at: string;
 };
 

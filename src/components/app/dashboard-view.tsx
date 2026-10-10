@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { GettingStarted, type ChecklistItem } from "@/components/app/getting-started";
 import { SessionStatusText } from "@/components/app/session-status";
 import { UsageMeter } from "@/components/app/usage-meter";
 import { buttonClasses } from "@/components/ui/button";
@@ -18,23 +19,27 @@ export type DashboardViewData = {
   exercises: Array<Pick<ExerciseRow, "id" | "title" | "origin">>;
   billing: { plan: Plan; usage: UsageTotals };
   notice?: ReactNode;
+  /** Prvé kroky nového účtu; prázdne alebo hotové sa neukáže. */
+  checklist?: ChecklistItem[];
   /** Prepis odkazov (ukážka mapuje /app na /ukazka). */
   href?: (path: string) => string;
 };
 
-export function DashboardView({ name, recommendation, sessions, exercises, billing, notice = null, href = (path) => path }: DashboardViewData) {
+export function DashboardView({ name, recommendation, sessions, exercises, billing, notice = null, checklist = [], href = (path) => path }: DashboardViewData) {
   const minutesUsed = Math.ceil(billing.usage.realtime_seconds / 60);
   return (
     <div className="space-y-12">
       {notice}
 
-      <section aria-labelledby="next-step" className="relative overflow-hidden rounded-[18px] border border-line bg-panel px-6 py-8 md:px-10 md:py-10">
-        <p id="next-step" className="text-[15px] text-signal-soft">
+      <GettingStarted items={checklist} href={href} />
+
+      <section aria-labelledby="next-step" className="relative overflow-hidden rounded-xl border border-line bg-panel px-6 py-6 md:px-8 md:py-7">
+        <p id="next-step" className="text-sm font-medium text-signal-soft">
           {name ? `${name}, tvoj ďalší krok` : "Tvoj ďalší krok"}
         </p>
-        <h1 className="type-display mt-3 max-w-[40rem] text-[clamp(2rem,1.4rem+2vw,3rem)]">{recommendation.title}</h1>
-        <p className="mt-4 max-w-[36rem] leading-relaxed text-mute">{recommendation.reason}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <h1 className="type-display mt-2 max-w-[40rem] text-[1.6rem] md:text-[1.85rem]">{recommendation.title}</h1>
+        <p className="mt-2 max-w-[36rem] text-[15px] leading-relaxed text-mute">{recommendation.reason}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link href={href(recommendation.href)} className={buttonClasses({ size: "lg" })}>
             {recommendation.cta}
           </Link>
@@ -49,7 +54,7 @@ export function DashboardView({ name, recommendation, sessions, exercises, billi
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
         <section aria-labelledby="recent" className="lg:col-span-7">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 id="recent" className="type-heading text-[1.4rem]">
+            <h2 id="recent" className="type-heading text-lg">
               Posledné tréningy
             </h2>
             {sessions.length > 0 ? (
@@ -90,7 +95,7 @@ export function DashboardView({ name, recommendation, sessions, exercises, billi
 
         <div className="space-y-12 lg:col-span-5">
           <section aria-labelledby="usage">
-            <h2 id="usage" className="type-heading text-[1.4rem]">
+            <h2 id="usage" className="type-heading text-lg">
               Tento mesiac
             </h2>
             <p className="mt-1 text-sm text-faint">Plán {billing.plan.name}</p>
@@ -107,7 +112,7 @@ export function DashboardView({ name, recommendation, sessions, exercises, billi
 
           <section aria-labelledby="exercises">
             <div className="flex items-baseline justify-between gap-4">
-              <h2 id="exercises" className="type-heading text-[1.4rem]">
+              <h2 id="exercises" className="type-heading text-lg">
                 Otvorené cvičenia
               </h2>
               <Link href={href("/app/cvicenia")} className="link-underline text-sm text-mute hover:text-paper">

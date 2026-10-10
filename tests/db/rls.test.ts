@@ -32,6 +32,27 @@ before(async () => {
   db = await createDatabase();
 });
 
+describe("úvodný kvíz", () => {
+  test("používateľ uloží odpovede iba do vlastného profilu a iba ako objekt", async () => {
+    const me = await createUser(db);
+    const other = await createUser(db);
+
+    await asUser(db, me, async (tx) => {
+      await tx.query(
+        "update public.profiles set onboarding_answers = $1, onboarding_completed_at = now() where id = $2",
+        [JSON.stringify({ version: 1, stage: "seed" }), me],
+      );
+      const own = await tx.query<{ stage: string }>("select onboarding_answers ->> 'stage' as stage from public.profiles");
+      assert.equal(own.rows[0].stage, "seed");
+
+      const foreign = await tx.query("update public.profiles set onboarding_answers = '{}' where id = $1 returning id", [other]);
+      assert.equal(foreign.rows.length, 0);
+
+      await assert.rejects(tx.query("update public.profiles set onboarding_answers = '[1]' where id = $1", [me]));
+    });
+  });
+});
+
 describe("registrácia", () => {
   test("trigger vytvorí profil, nastavenia, free plán a súhlasy", async () => {
     const id = await createUser(db, {

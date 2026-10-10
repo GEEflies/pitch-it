@@ -1,44 +1,46 @@
 @import "tailwindcss";
 
 /*
-  Pitch It: tokeny
-  ink     tmavá zasadačka (pozadie)
-  panel   povrchy produktu (simulácia, karty)
-  paper   text a premietaný slide
-  signal  značka a primárne akcie (elektrická modrá)
-  marker  zvýrazňovač investora = slabé miesto
-  coral   chýbajúca odpoveď
+  Neutrálne tokeny (bez značky). Brand sa dopĺňa iba tu: názvy tokenov ostávajú,
+  menia sa hodnoty a písmo. Komponenty používajú výhradne tieto tokeny.
+  ink     pozadie aplikácie
+  panel   povrchy (karty, panely)
+  line    okraje
+  paper   hlavný text
+  mute    sekundárny text, faint terciárny
+  signal  akcent a primárne akcie (dočasná neutrálna modrá)
+  marker  upozornenie / slabé miesto
+  coral   chyba / chýbajúca odpoveď, mint úspech
 */
 @theme {
-  --color-ink: #0b1022;
-  --color-ink-2: #0e1430;
-  --color-panel: #141b38;
-  --color-panel-2: #1a2246;
-  --color-line: #263059;
-  --color-line-strong: #36427c;
-  --color-paper: #eef0f8;
-  --color-slide: #e6e9f4;
-  --color-mute: #a3acd0;
-  --color-faint: #7d87b1;
-  --color-signal: #3d5bff;
-  --color-signal-hover: #4a66ff;
-  --color-signal-soft: #93a5ff;
-  --color-marker: #ffc34d;
-  --color-coral: #ff8a78;
-  --color-mint: #6fdcb4;
+  --color-ink: #09090b;
+  --color-ink-2: #0e0e11;
+  --color-panel: #151518;
+  --color-panel-2: #1c1c20;
+  --color-line: #27272a;
+  --color-line-strong: #3a3a40;
+  --color-paper: #fafafa;
+  --color-slide: #e4e4e7;
+  --color-mute: #a1a1aa;
+  --color-faint: #76767f;
+  --color-signal: #3b82f6;
+  --color-signal-hover: #2f74e8;
+  --color-signal-soft: #93c5fd;
+  --color-marker: #f5b942;
+  --color-coral: #f87171;
+  --color-mint: #4ade80;
 
-  /* Grafy: overené validátorom (tmavý povrch #141b38, CVD aj kontrast). */
-  --color-chart-1: #5f78ff;
-  --color-chart-attention: #b98018;
-  --color-chart-grid: #263059;
+  --color-chart-1: #60a5fa;
+  --color-chart-attention: #c98a1c;
+  --color-chart-grid: #27272a;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
-  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
 }
 
 @layer base {
@@ -61,16 +63,6 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Jemné zrno, aby tmavé plochy nepôsobili digitálne ploché. */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    pointer-events: none;
-    opacity: 0.045;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
 
   ::selection {
     background-color: var(--color-marker);
@@ -121,22 +113,20 @@
     }
   }
 
-  /* Hlas produktu a foundera: zúžený grotesk pre titulky. */
+  /* Titulky. */
   .type-display {
-    font-weight: 640;
-    font-variation-settings: "wdth" 86;
-    letter-spacing: -0.026em;
-    line-height: 0.98;
+    font-weight: 650;
+    letter-spacing: -0.022em;
+    line-height: 1.1;
   }
 
   .type-heading {
-    font-weight: 620;
-    font-variation-settings: "wdth" 90;
-    letter-spacing: -0.018em;
-    line-height: 1.06;
+    font-weight: 600;
+    letter-spacing: -0.014em;
+    line-height: 1.2;
   }
 
-  /* Hlas investora: vždy pätkové písmo. */
+  /* Hlas investora: odlíšený od foundera. */
   .type-investor {
     font-family: var(--font-serif);
     font-weight: 450;

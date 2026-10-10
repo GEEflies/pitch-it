@@ -83,7 +83,7 @@ export function Demo() {
         className="pointer-events-none absolute top-0 left-1/2 h-[520px] w-[900px] -translate-x-1/2"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(61,91,255,0.16), transparent 75%)",
+            "radial-gradient(closest-side, rgba(59,130,246,0.16), transparent 75%)",
         }}
       />
 
