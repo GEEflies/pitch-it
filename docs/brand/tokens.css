@@ -1,0 +1,105 @@
+/*
+  PitchIt brand tokens, taken exactly from the design canvas
+  (claude.ai/artifact/3x98z5q84WCB6ARWcGZkHs, version 1791634982-365a).
+  Dark is the primary theme; light is the "Svetlý" variant.
+  Fonts: Google Fonts
+    Bricolage Grotesque 500,700 · DM Sans 400,500,700 · Outfit 700
+*/
+
+:root,
+[data-theme="dark"] {
+  /* Brand */
+  --brand-lime: #aaff00;          /* primary accent, logo top, glow dots */
+  --brand-lime-light: #d2ff6b;    /* gradient start, logo triangle */
+  --brand-lime-deep: #7ab800;     /* gradient end, logo stem */
+  --brand-violet: #7d51fe;        /* secondary accent, background glow */
+  --brand-violet-light: #b9a2ff;
+
+  /* Surfaces */
+  --bg: #141414;
+  --surface: #1e1e22;             /* inputs, flat panels */
+  --card-from: #222228;           /* cards: linear-gradient(160deg, from, to) */
+  --card-to: #1a1a1f;
+  --surface-sunken: #0b0b0e;
+
+  /* Lines */
+  --border: #333333;
+  --border-strong: #4a4a52;       /* outline buttons, chips, inputs */
+
+  /* Text */
+  --text: #f5f5f7;
+  --text-soft: #dedee6;           /* chip labels */
+  --text-muted: #b4b4be;
+  --text-subtle: #7a7a86;         /* placeholders */
+  --text-accent: #aaff00;         /* eyebrows, step numbers */
+  --text-on-accent: #141414;
+
+  /* Status */
+  --warning: #ffc94d;
+  --attention: #ff7a59;
+  --danger: #ff5c5c;
+
+  /* Effects */
+  --glow-bg:
+    radial-gradient(900px 600px at 90% 0, rgba(125, 81, 254, 0.38), transparent 60%),
+    radial-gradient(700px 500px at 0 20%, rgba(170, 255, 0, 0.1), transparent 60%);
+  --shadow-card: 0 22px 50px rgba(0, 0, 0, 0.5);
+  --shadow-hero: 0 40px 100px rgba(0, 0, 0, 0.6);
+  --shadow-violet: 0 30px 90px rgba(125, 81, 254, 0.22);
+  --shadow-dot: 0 0 12px #aaff00;
+  --focus-ring: 0 0 0 3px rgba(170, 255, 0, 0.18);
+}
+
+[data-theme="light"] {
+  --brand-lime: #aaff00;          /* fills only: never text on light (fails contrast) */
+  --brand-lime-light: #d2ff6b;
+  --brand-lime-deep: #7ab800;
+  --brand-violet: #7d51fe;
+  --brand-violet-light: #5b34e0;
+
+  --bg: #f5f5f1;
+  --surface: #ffffff;
+  --card-from: #ffffff;
+  --card-to: #ffffff;
+  --surface-sunken: #ecece6;
+
+  --border: #dcdcd5;
+  --border-strong: #8a8a82;
+
+  --text: #15151a;
+  --text-soft: #2e2e38;
+  --text-muted: #54545e;
+  --text-subtle: #6a6a74;
+  --text-accent: #2f6b00;         /* lime as text on light */
+  --text-on-accent: #141414;
+
+  --warning: #8a5a00;
+  --attention: #e5522b;
+  --danger: #b4361a;
+
+  --glow-bg:
+    radial-gradient(900px 600px at 90% 0, rgba(125, 81, 254, 0.13), transparent 60%),
+    radial-gradient(700px 500px at 0 20%, rgba(170, 255, 0, 0.22), transparent 60%);
+  --shadow-card: 0 18px 40px rgba(30, 30, 70, 0.14);
+  --shadow-hero: 0 30px 80px rgba(30, 30, 70, 0.14);
+  --shadow-violet: 0 30px 90px rgba(125, 81, 254, 0.22);
+  --shadow-dot: 0 0 12px #aaff00;
+  --focus-ring: 0 0 0 3px rgba(170, 255, 0, 0.18);
+}
+
+:root {
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-wordmark: "Outfit", sans-serif;
+
+  --gradient-primary: linear-gradient(135deg, var(--brand-lime-light), var(--brand-lime) 55%, var(--brand-lime-deep));
+
+  --radius-bar: 4px;
+  --radius-input: 12px;
+  --radius-panel: 16px;
+  --radius-card: 20px;
+  --radius-hero: 28px;
+  --radius-pill: 999px;
+
+  --ease-brand: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
