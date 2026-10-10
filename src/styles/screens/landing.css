@@ -45,3 +45,12 @@
 /* Z dizajnu: úpravy pre telefón (inline štýly vyhrávajú, preto !important). */
 @media(max-width:900px){.pi-ld .hc{display:none!important}}
 @media(max-width:560px){.pi-ld #top .nav .btn-p{display:none}.pi-ld #top h1{font-size:clamp(38px,11.5vw,66px)!important}.pi-ld #ako{overflow-x:clip}.pi-ld #organizatori>.rv{padding:44px 24px!important;border-radius:32px!important}.pi-ld #organizatori h2{font-size:clamp(34px,9.5vw,52px)!important}.pi-ld #organizatori .lift{zoom:.75}}
+/* 3D mozog v hero */
+.pi-ld .hero-brain{position:absolute;top:84px;bottom:0;left:38%;right:0;z-index:1}
+.pi-ld #top>.wrap{pointer-events:none}.pi-ld #top>.wrap>*{pointer-events:auto}
+.pi-ld .brain-node{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#AAFF00;box-shadow:0 0 0 4px rgba(170,255,0,.14),0 0 14px #AAFF00}
+.pi-ld .brain-lead{stroke:rgba(170,255,0,.5);stroke-width:1;stroke-dasharray:2 4}
+.pi-ld .brain-pill{position:absolute;left:0;top:0;display:flex;align-items:center;gap:9px;padding:9px 16px 9px 12px;border-radius:999px;background:rgba(20,20,26,.72);border:1px solid rgba(170,255,0,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font:600 13px var(--font-dm-sans),sans-serif;color:#F5F5F7;white-space:nowrap;cursor:pointer;transition:border-color .25s,background-color .25s,box-shadow .25s,scale .25s}
+.pi-ld .brain-pill:hover,.pi-ld .brain-pill:focus-visible{border-color:#AAFF00;background-color:rgba(36,48,10,.82);box-shadow:0 0 28px rgba(170,255,0,.28);scale:1.05;outline:none}
+.pi-ld .brain-pill .dotp{width:8px;height:8px;border-radius:50%;background:#AAFF00;box-shadow:0 0 12px #AAFF00}
+@media(max-width:900px){.pi-ld #top{flex-direction:column}.pi-ld #top>.wrap{padding-bottom:0!important}.pi-ld .hero-brain{position:relative;top:auto;left:auto;right:auto;height:min(78vw,440px);margin:-20px 0 24px;order:2}.pi-ld .brain-pill{font-size:11px;padding:7px 12px 7px 10px}}

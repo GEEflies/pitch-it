@@ -6,6 +6,6 @@ import dynamic from "next/dynamic";
 export const BrainScene = dynamic(() => import("./brain-scene").then((m) => m.BrainScene), {
   ssr: false,
   loading: () => (
-    <div aria-hidden="true" style={{ width: "100%", maxWidth: "900px", margin: "0 auto", height: "clamp(360px, 60vw, 560px)" }} />
+    <div aria-hidden="true" style={{ width: "100%", height: "100%" }} />
   ),
 });
