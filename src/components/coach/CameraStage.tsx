@@ -43,6 +43,9 @@ export type StageApi = {
   startRecording: () => boolean;
   /** ukončí nahrávanie a vráti URL videa */
   stopRecording: () => Promise<Recording | null>;
+  /** pozastaví a obnoví nahrávanie (pauza sa vo videu nezobrazí) */
+  pauseRecording: () => void;
+  resumeRecording: () => void;
   /** malá fotka aktuálneho záberu (JPEG data URL), zrkadlovo ako na obrazovke */
   snapshot: () => string | null;
   /** bod nad hlavou rečníka v pixeloch voči plátnu (pre bublinu s feedbackom) */
@@ -222,6 +225,12 @@ export default function CameraStage({
         console.warn("Recording is not available", e);
         return false;
       }
+    },
+    pauseRecording() {
+      if (recRef.current?.rec.state === "recording") recRef.current.rec.pause();
+    },
+    resumeRecording() {
+      if (recRef.current?.rec.state === "paused") recRef.current.rec.resume();
     },
     stopRecording() {
       const r = recRef.current;

@@ -29,6 +29,7 @@ export function usePitchRecorder({ video = false }: { video?: boolean } = {}) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const startedAtRef = useRef(0);
+  const pausedAtRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -83,15 +84,38 @@ export function usePitchRecorder({ video = false }: { video?: boolean } = {}) {
     if (!current) return false;
     const audioOnly = new MediaStream(current.getAudioTracks());
     const mimeType = pickMimeType();
-    const recorder = new MediaRecorder(audioOnly, mimeType ? { mimeType } : undefined);
     chunksRef.current = [];
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunksRef.current.push(event.data);
-    };
-    recorder.start(1000);
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(audioOnly, mimeType ? { mimeType } : undefined);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.start(1000);
+    } catch {
+      // mikrofón medzitým vypadol; volajúci pokračuje bez zvuku
+      return false;
+    }
     recorderRef.current = recorder;
     startedAtRef.current = performance.now();
+    pausedAtRef.current = 0;
     return true;
+  }, []);
+
+  /** Pauza: čas pauzy sa nezapočíta do dĺžky nahrávky. */
+  const pause = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder?.state !== "recording") return;
+    recorder.pause();
+    pausedAtRef.current = performance.now();
+  }, []);
+
+  const resume = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder?.state !== "paused") return;
+    recorder.resume();
+    startedAtRef.current += performance.now() - pausedAtRef.current;
+    pausedAtRef.current = 0;
   }, []);
 
   /** Zastaví nahrávanie a vráti audio s dĺžkou. */
@@ -100,7 +124,7 @@ export function usePitchRecorder({ video = false }: { video?: boolean } = {}) {
       new Promise<{ audio: Blob; durationMs: number } | null>((resolve) => {
         const recorder = recorderRef.current;
         if (!recorder || recorder.state === "inactive") return resolve(null);
-        const durationMs = Math.round(performance.now() - startedAtRef.current);
+        const durationMs = Math.round((pausedAtRef.current || performance.now()) - startedAtRef.current);
         recorder.onstop = () => resolve({ audio: new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" }), durationMs });
         recorder.stop();
       }),
@@ -114,7 +138,7 @@ export function usePitchRecorder({ video = false }: { video?: boolean } = {}) {
     setStream(null);
   }, []);
 
-  return { media, stream, level, open, start, stop, release };
+  return { media, stream, level, open, start, pause, resume, stop, release };
 }
 
 /** Odošle nahrávku na analýzu. Vráti id pokusu alebo chybovú správu. */
@@ -123,7 +147,7 @@ export async function uploadPitch(
   setup: RecorderSetup,
   vision: VisionSample[] | null,
   coach: StoredCoach | null = null,
-): Promise<{ ok: true; attemptId: string } | { ok: false; message: string }> {
+): Promise<{ ok: true; attemptId: string } | { ok: false; message: string; retryable: boolean }> {
   const form = new FormData();
   form.set("audio", recording.audio, "pitch");
   form.set("durationMs", String(Math.max(1000, recording.durationMs)));
@@ -136,8 +160,16 @@ export async function uploadPitch(
     const response = await fetch("/api/pitch", { method: "POST", body: form });
     const data = (await response.json().catch(() => null)) as { attemptId?: string; error?: { message?: string } } | null;
     if (response.ok && data?.attemptId) return { ok: true, attemptId: data.attemptId };
-    return { ok: false, message: data?.error?.message ?? "Analýza zlyhala. Skús to znova." };
+    return { ok: false, message: data?.error?.message ?? "Analýza zlyhala. Skús to znova.", retryable: response.status >= 500 || !data };
   } catch {
-    return { ok: false, message: "Nepodarilo sa spojiť so serverom. Skontroluj pripojenie a skús to znova." };
+    return { ok: false, message: "Nepodarilo sa spojiť so serverom. Skontroluj pripojenie a skús to znova.", retryable: true };
   }
+}
+
+/** Ako uploadPitch, ale výpadok siete alebo servera skúsi ešte raz. */
+export async function uploadPitchWithRetry(...args: Parameters<typeof uploadPitch>) {
+  const first = await uploadPitch(...args);
+  if (first.ok || !first.retryable) return first;
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  return uploadPitch(...args);
 }

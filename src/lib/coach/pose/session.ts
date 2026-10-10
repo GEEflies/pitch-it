@@ -61,6 +61,22 @@ export class SessionRecorder {
     this.start = this.lastSample = this.lastT = t;
   }
 
+  private pausedAt = 0;
+
+  /** Pauza: čas pauzy sa nezapočíta, aby časy chýb sedeli s pozastaveným videom. */
+  pause(t: number) {
+    this.pausedAt = t;
+  }
+
+  resume(t: number) {
+    if (!this.pausedAt) return;
+    const gap = t - this.pausedAt;
+    this.start += gap;
+    this.lastSample += gap;
+    this.lastT = t;
+    this.pausedAt = 0;
+  }
+
   record(t: number, fb: FeedbackState, m: Metrics | null, snapshot?: () => string | null) {
     const dt = Math.min(t - this.lastT, 250);
     this.lastT = t;

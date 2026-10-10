@@ -1,37 +1,34 @@
 "use client";
 
 import "@/styles/screens/coach.css";
-import { useCallback, useEffect, useRef, useState } from "react";
-import CameraStage, { type Recording, type StageApi, type TrackingQuality } from "@/components/coach/CameraStage";
+import { useEffect, useRef, useState } from "react";
+import CameraStage, { type TrackingQuality } from "@/components/coach/CameraStage";
 import DrillProgressCard from "@/components/coach/DrillProgressCard";
 import FeedbackBubble from "@/components/coach/FeedbackBubble";
 import LivePanel from "@/components/coach/LivePanel";
 import type { PrompterSetting } from "@/components/coach/SessionSetup";
 import StageMap from "@/components/coach/StageMap";
 import Teleprompter from "@/components/coach/Teleprompter";
-import { DrillTracker, SCRIPTS, type DrillProgress, type SessionMode } from "@/lib/coach/modes";
-import type { FeedbackState } from "@/lib/coach/pose/feedback";
-import type { Metrics, MicHand } from "@/lib/coach/pose/metrics";
+import { fmtClock, useCoachSession, type CoachResult } from "@/components/coach/use-coach-session";
+import { SCRIPTS, type SessionMode } from "@/lib/coach/modes";
+import type { MicHand } from "@/lib/coach/pose/metrics";
 import { STATUS_COLOR } from "@/lib/coach/pose/renderer";
-import { SessionRecorder, type SessionSummary } from "@/lib/coach/pose/session";
 
 /*
   Živý tréner reči tela (port zo Stage Coach): kamera so siluetou, bublina s radou nad hlavou,
   power zóna, teleprompter a záznam chýb. Pripojenie komponentu = spustenie kamery a modelu.
 */
 
-const UI_INTERVAL_MS = 100;
 const MIC_KEY = "pitchit-coach-mic";
 const QUALITY_KEY = "pitchit-coach-quality";
 const MIC_HAND_KEY = "pitchit-coach-mic-hand";
 /** odhad šírky bubliny, aby sme ju vedeli udržať v zábere */
 const BUBBLE_MAX_W = 900;
-const COUNTDOWN = 2;
 
-type Anchor = { x: number; y: number };
+export type Anchor = { x: number; y: number };
 
 /** bublina nad hlavou, ale vždy celá v zábere (a pod telepromptrom) */
-function bubbleAnchor(head: Anchor | null, stage: HTMLElement | null, bubble: HTMLElement | null, topInset: number): Anchor | null {
+export function bubbleAnchor(head: Anchor | null, stage: HTMLElement | null, bubble: HTMLElement | null, topInset: number): Anchor | null {
   if (!head || !stage) return null;
   const w = stage.clientWidth;
   const half = Math.min(w * 0.92, BUBBLE_MAX_W) / 2;
@@ -104,29 +101,7 @@ export function useCoachPrefs() {
 
 export type CoachPrefs = ReturnType<typeof useCoachPrefs>;
 
-export type CoachResult = {
-  summary: SessionSummary;
-  drill: DrillProgress | null;
-  /** nahrávka kamery pre klipy chýb (len v pamäti prehliadača) */
-  recording: Recording | null;
-};
-
-const fmtClock = (ms: number) => {
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-};
-
-const INITIAL_FB: FeedbackState = {
-  status: "idle",
-  title: "Načítavam…",
-  tip: "Zapínam kameru a sledovanie tela.",
-  ruleId: null,
-  activeIds: [],
-  score: 70,
-  highlight: null,
-};
-
-type Phase = "loading" | "countdown" | "live";
+export type { CoachResult };
 
 export function CoachLive({
   mode,
@@ -149,104 +124,26 @@ export function CoachLive({
   onFinish: (result: CoachResult) => void;
   onError: (message: string) => void;
 }) {
-  const [phase, setPhase] = useState<Phase>("loading");
-  const [fb, setFb] = useState<FeedbackState>(INITIAL_FB);
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [count, setCount] = useState(COUNTDOWN);
-  const [elapsedMs, setElapsedMs] = useState(0);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
-  const [drillProgress, setDrillProgress] = useState<DrillProgress | null>(null);
   const { prompter, onPrompter, prompterText, micMode, micHand, quality } = prefs;
 
-  const stageApi = useRef<StageApi>(null);
   const stageRef = useRef<HTMLElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const prompterRef = useRef<HTMLDivElement>(null);
-  const recorder = useRef<SessionRecorder | null>(null);
-  const drillTracker = useRef<DrillTracker | null>(null);
-  const lastUi = useRef(0);
-  const lastT = useRef(0);
-  const liveStartedAt = useRef(0);
-  const finishing = useRef(false);
-  const phaseRef = useRef(phase);
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
 
-  const drill = mode.kind === "drill" ? mode : null;
-  const durationMs = mode.durationMs;
-
-  const callbacks = useRef({ onLive, onFinish, onError });
-  useEffect(() => {
-    callbacks.current = { onLive, onFinish, onError };
-  });
-
-  const onFrame = useCallback((f: FeedbackState, m: Metrics | null, t: number) => {
-    const dt = lastT.current ? Math.min(t - lastT.current, 250) : 0;
-    lastT.current = t;
-    if (phaseRef.current === "live") {
-      recorder.current?.record(t, f, m, () => stageApi.current?.snapshot() ?? null);
-      drillTracker.current?.update(m, f, dt);
-    }
-    if (t - lastUi.current > UI_INTERVAL_MS) {
-      lastUi.current = t;
-      setFb(f);
-      setMetrics(m);
-      if (drillTracker.current) setDrillProgress(drillTracker.current.progress());
-      const head = m ? (stageApi.current?.headAnchor(m) ?? null) : null;
-      const p = prompterRef.current;
-      const inset = p ? p.offsetTop + p.offsetHeight : 0;
-      setAnchor(bubbleAnchor(head, stageRef.current, bubbleRef.current, inset));
-    }
-  }, []);
-
-  const onReady = useCallback(() => {
-    setCount(COUNTDOWN);
-    setPhase("countdown");
-  }, []);
-
-  const onStageError = useCallback((msg: string) => callbacks.current.onError(msg), []);
-
-  const finish = useCallback(async () => {
-    if (!recorder.current || finishing.current) return;
-    finishing.current = true;
-    const summary = recorder.current.summary();
-    const drillResult = drillTracker.current?.progress() ?? null;
-    const recording = (await stageApi.current?.stopRecording()) ?? null;
-    callbacks.current.onFinish({ summary, drill: drillResult, recording });
-  }, []);
-
-  // odpočet 3-2-1 a potom štart nahrávania
-  useEffect(() => {
-    if (phase !== "countdown") return;
-    const id = setTimeout(
-      () => {
-        if (count > 0) return setCount(count - 1);
-        recorder.current = new SessionRecorder();
-        recorder.current.begin(lastT.current || performance.now());
-        drillTracker.current = drill ? new DrillTracker(drill) : null;
-        setDrillProgress(drillTracker.current?.progress() ?? null);
-        liveStartedAt.current = performance.now();
-        stageApi.current?.startRecording();
-        setElapsedMs(0);
-        setPhase("live");
-        callbacks.current.onLive?.();
+  const { phase, fb, metrics, count, elapsedMs, durationMs, drill, drillProgress, stageApi, onFrame, onReady, onStageError, finish } =
+    useCoachSession({
+      mode,
+      onLive,
+      onFinish,
+      onError,
+      onUi: (m) => {
+        const head = m ? (stageApi.current?.headAnchor(m) ?? null) : null;
+        const p = prompterRef.current;
+        const inset = p ? p.offsetTop + p.offsetHeight : 0;
+        setAnchor(bubbleAnchor(head, stageRef.current, bubbleRef.current, inset));
       },
-      count > 0 ? 800 : 300,
-    );
-    return () => clearTimeout(id);
-  }, [phase, count, drill]);
-
-  // časomiera; pri režime s limitom sa nahrávanie na konci samo ukončí
-  useEffect(() => {
-    if (phase !== "live") return;
-    const id = setInterval(() => {
-      const el = performance.now() - liveStartedAt.current;
-      setElapsedMs(el);
-      if (durationMs !== null && el >= durationMs) void finish();
-    }, 250);
-    return () => clearInterval(id);
-  }, [phase, durationMs, finish]);
+    });
 
   const color = STATUS_COLOR[fb.status];
   const remaining = durationMs !== null ? durationMs - elapsedMs : null;

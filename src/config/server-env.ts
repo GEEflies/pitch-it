@@ -53,6 +53,14 @@ export function getMistralTranscriptionConfig(): { apiKey: string; model: string
   return apiKey ? { apiKey, model: read("MISTRAL_TRANSCRIPTION_MODEL") ?? "voxtral-mini-latest" } : null;
 }
 
+/** Mistral ako jazykový model, keď chýba ANTHROPIC_API_KEY. */
+export function getMistralLlmConfig(): { apiKey: string; model: string; fastModel: string } | null {
+  const apiKey = read("MISTRAL_API_KEY");
+  if (!apiKey) return null;
+  const model = read("MISTRAL_MODEL") ?? "mistral-medium-latest";
+  return { apiKey, model, fastModel: read("MISTRAL_FAST_MODEL") ?? model };
+}
+
 export type StripeConfig = {
   secretKey: string;
   webhookSecret: string;

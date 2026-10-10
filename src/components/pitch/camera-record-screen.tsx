@@ -3,14 +3,16 @@
 import "@/styles/screens/record.css";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CoachLive, useCoachPrefs, type CoachResult } from "@/components/coach/coach-live";
+import { useCoachPrefs, type CoachResult } from "@/components/coach/coach-live";
 import { preloadCoachModels } from "@/components/coach/CameraStage";
 import SessionSetup from "@/components/coach/SessionSetup";
 import { PI_BACKGROUND, PiTopbar } from "@/components/pitch/pi-topbar";
-import { uploadPitch, usePitchRecorder, type RecorderSetup } from "@/components/pitch/use-recorder";
+import { PitchStudio } from "@/components/pitch/pitch-studio";
+import { uploadPitchWithRetry, usePitchRecorder, type RecorderSetup } from "@/components/pitch/use-recorder";
 import { keepLocalSession } from "@/lib/coach/local-session";
 import { ruleFilterFor, type TalkMode } from "@/lib/coach/modes";
-import { toStoredCoach } from "@/lib/coach/stored";
+import type { SessionSummary } from "@/lib/coach/pose/session";
+import { toStoredCoach, type StoredCoach } from "@/lib/coach/stored";
 import { AUDIENCE_LABELS, FOCUS_GOALS } from "@/lib/onboarding/plan";
 
 /*
@@ -26,6 +28,8 @@ const STEPS = [
   ["Tempo a vypĺňacie slová", "Slabiky za sekundu, pauzy, akože a ehm"],
   ["Obsahové skóre", "Problém, Riešenie, Trh, Traction a Ask"],
 ] as const;
+
+const fmtTarget = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 export function CameraRecordScreen({
   setup,
@@ -51,6 +55,7 @@ export function CameraRecordScreen({
   const [k, setK] = useState(0);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const audioStarted = useRef(false);
+  const [take, setTake] = useState(0);
 
   const mode: TalkMode = useMemo(
     () => ({ kind: "talk", id: "pitch", title: `Pitch · ${setup.targetSeconds} s`, subtitle: AUDIENCE_LABELS[setup.audience], durationMs: setup.targetSeconds * 1000 }),
@@ -93,6 +98,28 @@ export function CameraRecordScreen({
     if (!preview) audioStarted.current = recorder.start();
   };
 
+  // posledná nahrávka čaká v pamäti, kým ju server neprijme (dá sa poslať znova bez nového nahrávania)
+  const pending = useRef<{ audio: { audio: Blob; durationMs: number }; coach: StoredCoach; summary: SessionSummary; videoUrl: string | null } | null>(null);
+  const [canResend, setCanResend] = useState(false);
+
+  const send = async () => {
+    const p = pending.current;
+    if (!p) return;
+    setError(null);
+    setCanResend(false);
+    setK(1);
+    const uploaded = await uploadPitchWithRetry(p.audio, setup, null, p.coach);
+    if (uploaded.ok) {
+      pending.current = null;
+      keepLocalSession(uploaded.attemptId, { summary: p.summary, videoUrl: p.videoUrl });
+      setAttemptId(uploaded.attemptId);
+      setK(4);
+    } else {
+      setError(uploaded.message);
+      setCanResend(uploaded.retryable);
+    }
+  };
+
   const onFinish = async (result: CoachResult) => {
     setPhase("analyze");
     setK(1);
@@ -101,22 +128,12 @@ export function CameraRecordScreen({
       keepLocalSession("ukazka", { summary: result.summary, videoUrl: result.recording?.url ?? null });
       return;
     }
-    const recording = audioStarted.current ? await recorder.stop() : null;
+    const recording = audioStarted.current ? await recorder.stop().catch(() => null) : null;
     release();
-    if (!recording) {
-      if (result.recording) URL.revokeObjectURL(result.recording.url);
-      setError("Nahrávka sa nezachytila. Skús to znova.");
-      return;
-    }
-    const uploaded = await uploadPitch(recording, setup, null, coach);
-    if (uploaded.ok) {
-      keepLocalSession(uploaded.attemptId, { summary: result.summary, videoUrl: result.recording?.url ?? null });
-      setAttemptId(uploaded.attemptId);
-      setK(4);
-    } else {
-      if (result.recording) URL.revokeObjectURL(result.recording.url);
-      setError(uploaded.message);
-    }
+    // bez zvuku pošleme aspoň reč tela, server z nej spraví spätnú väzbu
+    const audio = recording ?? { audio: new Blob([], { type: "audio/webm" }), durationMs: result.summary.durationMs };
+    pending.current = { audio, coach, summary: result.summary, videoUrl: result.recording?.url ?? null };
+    await send();
   };
 
   const onError = (message: string) => {
@@ -127,6 +144,9 @@ export function CameraRecordScreen({
   };
 
   const retry = () => {
+    if (pending.current?.videoUrl) URL.revokeObjectURL(pending.current.videoUrl);
+    pending.current = null;
+    setCanResend(false);
     setError(null);
     setAttemptId(null);
     setK(0);
@@ -134,17 +154,34 @@ export function CameraRecordScreen({
     if (!preview) void open();
   };
 
+  // zahodí rozbehnutý zvuk; video zahodí CameraStage pri odpojení
+  const discardAudio = () => {
+    if (audioStarted.current) void recorder.stop();
+    audioStarted.current = false;
+  };
+
   if (phase === "live") {
     return (
-      <CoachLive
+      <PitchStudio
+        key={take}
         mode={mode}
-        label={`${mode.title} · ${AUDIENCE_LABELS[setup.audience]}`}
+        title="Tréning pitchu"
+        subtitle={`Pitch ${AUDIENCE_LABELS[setup.audience].toLowerCase()} · cieľ ${fmtTarget(setup.targetSeconds)}`}
         prefs={prefs}
         ruleFilter={ruleFilter}
-        finishLabel="Skončiť pitch"
         onLive={onLive}
+        onPause={recorder.pause}
+        onResume={recorder.resume}
         onFinish={(r) => void onFinish(r)}
         onError={onError}
+        onBack={() => {
+          discardAudio();
+          setPhase("setup");
+        }}
+        onRestart={() => {
+          discardAudio();
+          setTake((t) => t + 1);
+        }}
       />
     );
   }
@@ -225,8 +262,13 @@ export function CameraRecordScreen({
                 <p role="alert" style={{ margin: "0 0 14px", fontSize: "15px", color: "var(--color-coral)" }}>
                   {error}
                 </p>
+                {canResend ? (
+                  <button type="button" className="btn btn-p" onClick={() => void send()} style={{ width: "100%", minHeight: "54px", marginBottom: "10px" }}>
+                    Odoslať nahrávku znova
+                  </button>
+                ) : null}
                 <button type="button" className="btn" onClick={retry} style={{ width: "100%", minHeight: "54px" }}>
-                  Skús znova
+                  {canResend ? "Nahrať odznova" : "Skús znova"}
                 </button>
               </div>
             ) : null}

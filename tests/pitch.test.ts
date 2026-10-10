@@ -70,3 +70,39 @@ describe("nahraný pitch – obsah a reč tela", () => {
     assert.deepEqual(body.events.map((e) => e.kind), ["steady_eye_contact", "restless_hands"]);
   });
 });
+
+describe("nahraný pitch – spätná väzba bez prepisu", () => {
+  test("pokus s kamerou bez reči (len reč tela) sa vždy zobrazí", async () => {
+    const { buildFeedback } = await import("../src/lib/pitch/feedback.ts");
+    const { SessionRecorder } = await import("../src/lib/coach/pose/session.ts");
+    const { toStoredCoach } = await import("../src/lib/coach/stored.ts");
+    const recorder = new SessionRecorder();
+    recorder.begin(0);
+    const coach = toStoredCoach(recorder.summary(), { teleprompter: false, micMode: false });
+    const attempt = {
+      id: "a1",
+      user_id: "u1",
+      audience: "investor",
+      target_seconds: 30,
+      focus: "tempo",
+      with_camera: true,
+      duration_ms: 6000,
+      status: "ready",
+      transcript: null,
+      metrics: null,
+      content: null,
+      content_score: null,
+      body: { ...summarizeBody([]), coach },
+      model: null,
+      event_id: null,
+      share_name: null,
+      share_team: null,
+      share_email: null,
+      created_at: new Date().toISOString(),
+    } as unknown as Parameters<typeof buildFeedback>[0];
+    const data = buildFeedback(attempt, { number: 1, retryHref: "/app/nahravka" });
+    assert.equal(data.tempo, null);
+    assert.equal(data.content, null);
+    assert.ok(data.coach, "reč tela z kamery musí prejsť do feedbacku");
+  });
+});

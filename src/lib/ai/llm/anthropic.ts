@@ -3,6 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { getAnthropicConfig, type AnthropicConfig } from "@/config/server-env";
+import { createMistralProvider } from "@/lib/ai/llm/mistral";
 import { LlmError, type LlmProvider, type StructuredRequest, type StructuredResult } from "@/lib/ai/llm/types";
 
 /*
@@ -87,16 +88,16 @@ export class AnthropicLlmProvider implements LlmProvider {
 
 let provider: LlmProvider | null | undefined;
 
-/** Aktuálny LLM poskytovateľ alebo null, ak nie je nakonfigurovaný. */
+/** Aktuálny LLM poskytovateľ (Anthropic, inak Mistral) alebo null, ak nie je nakonfigurovaný. */
 export function getLlmProvider(): LlmProvider | null {
   if (provider !== undefined) return provider;
   const config = getAnthropicConfig();
-  provider = config ? new AnthropicLlmProvider(config) : null;
+  provider = config ? new AnthropicLlmProvider(config) : createMistralProvider();
   return provider;
 }
 
 export function requireLlmProvider(): LlmProvider {
   const llm = getLlmProvider();
-  if (!llm) throw new LlmError("not_configured", "AI analýza nie je nakonfigurovaná (ANTHROPIC_API_KEY).");
+  if (!llm) throw new LlmError("not_configured", "AI analýza nie je nakonfigurovaná (ANTHROPIC_API_KEY alebo MISTRAL_API_KEY).");
   return llm;
 }

@@ -297,7 +297,9 @@ export function FeedbackScreen({ data, preview = false }: { data: FeedbackData; 
                 })
               ) : (
                 <div className="muted" style={{ padding: "18px 0", borderTop: "1px solid var(--color-line)", fontSize: "14px", lineHeight: "1.55" }}>
-                  Obsahové skóre sa tentoraz nepodarilo vyhodnotiť. Tempo a vypĺňacie slová platia, obsah skús pri ďalšom pokuse.
+                  {data.tempo
+                    ? "Obsahové skóre sa tentoraz nepodarilo vyhodnotiť. Tempo a vypĺňacie slová platia, obsah skús pri ďalšom pokuse."
+                    : "Reč sa tentoraz nepodarilo vyhodnotiť, preto hodnotíme len reč tela. Pri ďalšom pokuse hovor nahlas a bližšie k mikrofónu."}
                 </div>
               )}
             </div>

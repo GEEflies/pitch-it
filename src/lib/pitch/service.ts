@@ -45,7 +45,9 @@ export type PitchInput = {
  * obsahové skóre (LLM) → reč tela. Nahrávka sa neukladá, pošle sa na prepis a zahodí sa.
  */
 export async function analyzePitch(userId: string, input: PitchInput): Promise<PitchAttemptRow> {
-  if (input.audio.size === 0 || input.audio.size > MAX_PITCH_AUDIO_BYTES) {
+  const hasBody = Boolean(input.vision?.length || input.coach);
+  // pokus s kamerou má reč tela aj bez zvuku, prázdny zvuk ho preto nezastaví
+  if ((input.audio.size === 0 && !hasBody) || input.audio.size > MAX_PITCH_AUDIO_BYTES) {
     throw new PitchServiceError("invalid", "Nahrávka je prázdna alebo príliš dlhá (najviac 3 minúty).");
   }
   const billing = await getBillingContext(userId);
@@ -62,79 +64,90 @@ export async function analyzePitch(userId: string, input: PitchInput): Promise<P
     duration_ms: input.durationMs,
   });
 
-  const body = input.vision?.length || input.coach ? { ...summarizeBody(input.vision ?? []), coach: input.coach ?? null } : null;
-
-  // Bez nakonfigurovaného prepisu sa pokus s kamerou aj tak dokončí: skóre z reči tela.
-  let transcript: Awaited<ReturnType<typeof transcribeWithWords>> | null = null;
   try {
-    transcript = await transcribeWithWords(input.audio, input.fileName, "sk");
-  } catch (error) {
-    const notConfigured = error instanceof TranscriptionError && error.code === "not_configured";
-    if (!notConfigured || !body) {
-      await updatePitchAttempt(attempt.id, { status: "failed" });
-      const message = notConfigured ? "Prepis reči nie je nakonfigurovaný (chýba OPENAI_API_KEY alebo MISTRAL_API_KEY)." : "Nahrávku sa nepodarilo prepísať. Skús to znova.";
-      throw new PitchServiceError("transcription_failed", message, 503);
-    }
-    console.warn("[pitch] prepis nie je nakonfigurovaný, vyhodnocujem len reč tela");
-  }
-  if (transcript && !transcript.text) {
-    await updatePitchAttempt(attempt.id, { status: "failed" });
-    throw new PitchServiceError("transcription_failed", "V nahrávke sme nezachytili reč. Skús to znova bližšie k mikrofónu.");
-  }
-  if (transcript) await recordUsage(userId, "transcription_seconds", Math.ceil(input.durationMs / 1000), null);
+    const body = input.vision?.length || input.coach ? { ...summarizeBody(input.vision ?? []), coach: input.coach ?? null } : null;
 
-  const metrics = transcript ? buildMetrics({ text: transcript.text, words: transcript.words, durationMs: input.durationMs }) : null;
-
-  let content = null;
-  let score: number | null = null;
-  let model: string | null = null;
-  const llm = getLlmProvider();
-  if (llm && transcript) {
+    let transcript: Awaited<ReturnType<typeof transcribeWithWords>> | null = null;
     try {
-      const profile = await getProfile(userId);
-      const result = await llm.generateStructured({
-        purpose: "pitch_content",
-        system: CONTENT_SYSTEM,
-        messages: [
-          {
-            role: "user",
-            content: buildContentPrompt({
-              transcript: transcript.text,
-              audience: input.audience,
-              targetSeconds: input.targetSeconds,
-              notes: profile?.pitch_notes ?? null,
-            }),
-          },
-        ],
-        schema: contentScoreSchema,
-        effort: "low",
-        maxTokens: 3_000,
-        speed: "interactive",
-      });
-      content = result.data;
-      score = overallScore(result.data, input.audience);
-      model = result.model;
-      await recordUsage(userId, "exercise_evaluation", 1, null);
+      if (input.audio.size > 0) transcript = await transcribeWithWords(input.audio, input.fileName, "sk");
     } catch (error) {
-      console.error("[pitch] obsahové skóre zlyhalo:", error instanceof LlmError ? error.code : error);
+      const notConfigured = error instanceof TranscriptionError && error.code === "not_configured";
+      if (!body) {
+        await updatePitchAttempt(attempt.id, { status: "failed" });
+        const message = notConfigured ? "Prepis reči nie je nakonfigurovaný (chýba OPENAI_API_KEY alebo MISTRAL_API_KEY)." : "Nahrávku sa nepodarilo prepísať. Skús to znova.";
+        throw new PitchServiceError("transcription_failed", message, 503);
+      }
+      // pokus s kamerou sa dokončí aj bez prepisu: skóre z reči tela
+      console.warn("[pitch] prepis zlyhal, vyhodnocujem len reč tela:", error instanceof TranscriptionError ? error.code : error);
     }
-  }
+    if (transcript && !transcript.text.trim()) {
+      if (!body) {
+        await updatePitchAttempt(attempt.id, { status: "failed" });
+        throw new PitchServiceError("transcription_failed", "V nahrávke sme nezachytili reč. Skús to znova bližšie k mikrofónu.");
+      }
+      // s kamerou dáme aspoň spätnú väzbu k reči tela
+      console.warn("[pitch] v nahrávke nie je reč, vyhodnocujem len reč tela");
+      transcript = null;
+    }
+    if (transcript) await recordUsage(userId, "transcription_seconds", Math.ceil(input.durationMs / 1000), null);
 
-  const patch = {
-    status: "ready" as const,
-    transcript: transcript ? transcript.text.slice(0, 20_000) : null,
-    metrics,
-    content,
-    content_score: score,
-    body,
-    model,
-  };
-  await updatePitchAttempt(attempt.id, patch);
-  await trackEvent(userId, "pitch_analyzed", {
-    audience: input.audience,
-    target: input.targetSeconds,
-    camera: Boolean(body),
-    content: Boolean(content),
-  });
-  return { ...attempt, ...patch } as PitchAttemptRow;
+    const metrics = transcript ? buildMetrics({ text: transcript.text, words: transcript.words, durationMs: input.durationMs }) : null;
+
+    let content = null;
+    let score: number | null = null;
+    let model: string | null = null;
+    const llm = getLlmProvider();
+    if (llm && transcript) {
+      try {
+        const profile = await getProfile(userId);
+        const result = await llm.generateStructured({
+          purpose: "pitch_content",
+          system: CONTENT_SYSTEM,
+          messages: [
+            {
+              role: "user",
+              content: buildContentPrompt({
+                transcript: transcript.text,
+                audience: input.audience,
+                targetSeconds: input.targetSeconds,
+                notes: profile?.pitch_notes ?? null,
+              }),
+            },
+          ],
+          schema: contentScoreSchema,
+          effort: "low",
+          maxTokens: 3_000,
+          speed: "interactive",
+        });
+        content = result.data;
+        score = overallScore(result.data, input.audience);
+        model = result.model;
+        await recordUsage(userId, "exercise_evaluation", 1, null);
+      } catch (error) {
+        console.error("[pitch] obsahové skóre zlyhalo:", error instanceof LlmError ? error.code : error);
+      }
+    }
+
+    const patch = {
+      status: "ready" as const,
+      transcript: transcript ? transcript.text.slice(0, 20_000) : null,
+      metrics,
+      content,
+      content_score: score,
+      body,
+      model,
+    };
+    await updatePitchAttempt(attempt.id, patch);
+    await trackEvent(userId, "pitch_analyzed", {
+      audience: input.audience,
+      target: input.targetSeconds,
+      camera: Boolean(body),
+      content: Boolean(content),
+    });
+    return { ...attempt, ...patch } as PitchAttemptRow;
+  } catch (error) {
+    // pokus nesmie zostať visieť ako rozpracovaný
+    if (!(error instanceof PitchServiceError)) await updatePitchAttempt(attempt.id, { status: "failed" }).catch(() => {});
+    throw error;
+  }
 }
