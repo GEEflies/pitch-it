@@ -327,7 +327,7 @@ function ReportsCard({ reports, href }: { reports: ReportTile[]; href: (path: st
 
 function QuickActions({ href, latestReportHref }: { href: (path: string) => string; latestReportHref: string | null }) {
   const actions: Array<{ icon: IconName; title: string; detail: string; to: string }> = [
-    { icon: "mic", title: "Nacvičiť pitch", detail: "Prezentácia pred kamerou", to: "/app/nahravka" },
+    { icon: "mic", title: "Nacvičiť pitch", detail: "Prezentácia pred kamerou", to: "/app/nahravka/kamera" },
     { icon: "chat", title: "Simulovať investora", detail: "Náročné otázky a dialóg", to: "/app/trening/novy?rezim=simulation" },
     { icon: "file", title: "Pozrieť report", detail: "Analýza a odporúčania", to: latestReportHref ?? "/app/historia" },
   ];
@@ -404,7 +404,7 @@ export function DashboardView({
       {notice}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-[18px]">
-          <Hero href={href(trainingHref)} />
+          <Hero href={href("/app/nahravka/kamera")} />
           <GettingStarted items={checklist} href={href} />
           <section aria-label="Výsledky posledného tréningu">
             <ul className="grid grid-cols-1 gap-[18px] min-[420px]:grid-cols-2 2xl:grid-cols-4">
