@@ -67,6 +67,19 @@ export async function listExercises(userId: string, status?: ExerciseRow["status
   return must(result, "exercises.list") as ExerciseRow[];
 }
 
+/** Posledné cvičenia z rozboru pre upozornenia v hornej lište. */
+export async function listRecentReportExercises(userId: string): Promise<Array<Pick<ExerciseRow, "id" | "title" | "created_at">>> {
+  const db = await getUserDb();
+  const result = await db
+    .from("exercises")
+    .select("id, title, created_at")
+    .eq("user_id", userId)
+    .eq("origin", "report")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  return must(result, "exercises.recentFromReport") as Array<Pick<ExerciseRow, "id" | "title" | "created_at">>;
+}
+
 export async function getExercise(exerciseId: string): Promise<ExerciseRow | null> {
   const db = await getUserDb();
   const { data, error } = await db.from("exercises").select("*").eq("id", exerciseId).maybeSingle<ExerciseRow>();

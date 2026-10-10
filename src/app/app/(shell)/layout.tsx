@@ -1,30 +1,33 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-import { AccountMenu } from "@/components/app/account-menu";
-import { AppNav } from "@/components/app/app-nav";
-import { Breadcrumbs } from "@/components/app/breadcrumbs";
+import { AppSidebar } from "@/components/app/app-nav";
+import { MobileNavProvider } from "@/components/app/mobile-nav";
+import { PlanCardLoader, PlanCardSkeleton } from "@/components/app/plan-card";
+import { TopBarLoader, TopBarSkeleton } from "@/components/app/top-bar";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function ShellLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col lg:flex-row">
-      <AppNav
-        account={
-          <Suspense fallback={<div className="h-28" />}>
-            <AccountMenu />
+    <MobileNavProvider>
+      <div className="app-shell app-glow flex min-h-dvh">
+        <AppSidebar
+          footer={
+            <Suspense fallback={<PlanCardSkeleton />}>
+              <PlanCardLoader />
+            </Suspense>
+          }
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Suspense fallback={<TopBarSkeleton />}>
+            <TopBarLoader />
           </Suspense>
-        }
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 hidden h-14 items-center border-b border-line bg-ink/90 px-6 backdrop-blur lg:flex md:px-10">
-          <Breadcrumbs />
-        </header>
-        <main id="obsah" className="min-w-0 flex-1 px-4 py-8 sm:px-6 md:px-10 md:py-10">
-          <div className="mx-auto max-w-[72rem]">
-            <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
-          </div>
-        </main>
+          <main id="obsah" className="min-w-0 flex-1 px-4 pt-6 pb-10 sm:px-6 lg:px-9 lg:pt-1">
+            <div className="max-w-[1320px]">
+              <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </MobileNavProvider>
   );
 }

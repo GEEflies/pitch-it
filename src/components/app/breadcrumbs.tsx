@@ -9,9 +9,10 @@ const LABELS: Record<string, string> = {
   podklady: "Podklady",
   trening: "Tréning",
   cvicenia: "Cvičenia",
-  historia: "História",
+  historia: "Reporty",
   porovnanie: "Porovnanie",
   nastavenia: "Nastavenia",
+  progres: "Progres",
 };
 
 /** Názov detailu podľa rodičovskej sekcie (ID v URL nemá ľudský názov). */
