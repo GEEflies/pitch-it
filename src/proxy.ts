@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { readSession, SESSION_COOKIE } from "@/lib/auth/token";
 
 const AUTH_PAGES = new Set(["/prihlasenie", "/registracia"]);
+/** Zamknuté časti (Môj startup, AI investor) a zrušené reporty: vedú späť na prehľad. */
+const LOCKED_PREFIXES = ["/app/projekty", "/app/trening", "/app/miestnost", "/app/historia"];
 
 /*
   Optimistické presmerovania podľa cookie relácie. Nie je to autorizácia:
@@ -16,6 +18,13 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/prihlasenie";
     url.search = "";
     url.searchParams.set("next", `${pathname}${search}`);
+    return NextResponse.redirect(url);
+  }
+
+  if (LOCKED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/app";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

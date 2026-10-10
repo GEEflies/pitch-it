@@ -17,6 +17,21 @@ function Navigation({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
     <ul className="flex flex-col gap-1">
       {items.map((item) => {
         const active = item.match(pathname);
+        if (item.locked) {
+          return (
+            <li key={item.href}>
+              <span
+                aria-disabled="true"
+                title="Čoskoro"
+                className="flex h-12 cursor-not-allowed items-center gap-4 rounded-xl px-4 text-[15.5px] text-nav opacity-50"
+              >
+                <Icon name={item.icon} className="size-[22px] text-nav-icon" />
+                {item.label}
+                <Icon name="lock" className="ml-auto size-[16px]" aria-label="Zamknuté" />
+              </span>
+            </li>
+          );
+        }
         return (
           <li key={item.href}>
             <Link

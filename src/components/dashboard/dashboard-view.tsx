@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GettingStarted, type ChecklistItem } from "@/components/app/getting-started";
 import { Icon, PlayIcon, type IconName } from "@/components/app/icons";
 import type { ActivityItem, ProgressSeries, ReportTile, StatCard, Tip } from "@/lib/dashboard/overview";
-import { STAGE_LABELS, type Currency, type Stage } from "@/lib/domain/labels";
+import type { Currency, Stage } from "@/lib/domain/labels";
 
 export type DashboardStartup = {
   id: string;
@@ -45,24 +45,9 @@ function IconBadge({ icon, tone, size = "md" }: { icon: IconName; tone: "lime" |
   );
 }
 
-function CardHeader({ id, title, action }: { id: string; title: string; action?: { href: string; label: string } }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3">
-      <h2 id={id} className="text-[17px] font-bold tracking-[-0.01em] text-paper">
-        {title}
-      </h2>
-      {action ? (
-        <Link href={action.href} className="text-[12.5px] text-periwinkle transition-colors hover:text-paper">
-          {action.label}
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
 /* ───────────── Úvodná karta ───────────── */
 
-function Hero({ recordHref, investorHref }: { recordHref: string; investorHref: string }) {
+function Hero({ recordHref }: { recordHref: string }) {
   return (
     <section aria-labelledby="hero-title" className="dash-hero relative isolate overflow-hidden rounded-[16px] border border-hero-line">
       {/* eslint-disable-next-line @next/next/no-img-element -- dekoratívne pozadie, rovnaký súbor ako na landingu */}
@@ -74,7 +59,7 @@ function Hero({ recordHref, investorHref }: { recordHref: string; investorHref: 
           Tvoj ďalší tréning
           <span className="block text-accent">začína tu</span>
         </h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-slide sm:text-[16px]">Nacvič pitch alebo si vyskúšaj náročné otázky investora.</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-slide sm:text-[16px]">Nahraj pitch pred kamerou a dostaneš spätnú väzbu na mieru.</p>
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
           <Link
             href={recordHref}
@@ -83,9 +68,6 @@ function Hero({ recordHref, investorHref }: { recordHref: string; investorHref: 
             <PlayIcon className="size-[17px]" />
             Nahrať pitch
             <Icon name="chevronRight" className="size-[18px]" strokeWidth={2.2} />
-          </Link>
-          <Link href={investorHref} className="text-[15px] font-semibold text-paper/80 underline-offset-4 transition-colors hover:text-paper hover:underline">
-            Simulovať investora
           </Link>
         </div>
       </div>
@@ -146,198 +128,10 @@ function StatTile({ card }: { card: StatCard }) {
   );
 }
 
-/* ───────────── Môj startup ───────────── */
-
-function formatRaise(amount: number | null, currency: Currency): string | null {
-  if (amount === null || !Number.isFinite(amount)) return null;
-  return new Intl.NumberFormat("sk-SK", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
-}
-
-function StartupCard({ startup, href }: { startup: DashboardStartup | null; href: (path: string) => string }) {
-  if (!startup) {
-    return (
-      <section aria-labelledby="startup-title" className="dash-card p-[18px]">
-        <CardHeader id="startup-title" title="Môj startup" />
-        <div className="mt-4 rounded-[14px] border border-dashed border-line-strong px-5 py-7">
-          <p className="text-[15px] font-semibold text-paper">Opíš svoj startup</p>
-          <p className="mt-1 max-w-[30rem] text-[13.5px] leading-relaxed text-mute">
-            Investor sa pýta na tvoj trh, čísla a tím. Bez profilu startupu by kládol všeobecné otázky.
-          </p>
-          <Link href={href("/app/projekty/novy")} className="mt-4 inline-flex h-10 items-center rounded-full bg-signal px-5 text-[14px] font-bold text-on-signal">
-            Vytvoriť profil startupu
-          </Link>
-        </div>
-      </section>
-    );
-  }
-  const raise = formatRaise(startup.raiseAmount, startup.raiseCurrency);
-  const columns: Array<{ icon: IconName; label: string; value: ReactNode }> = [
-    {
-      icon: "flag",
-      label: "Fáza",
-      value: (
-        <>
-          <span aria-hidden="true" className="size-[7px] shrink-0 rounded-full bg-signal" />
-          {STAGE_LABELS[startup.stage]}
-        </>
-      ),
-    },
-    {
-      icon: "mountain",
-      label: "Trakcia",
-      value: startup.traction ? (
-        <>
-          <Icon name="users" className="size-[15px] text-accent" />
-          <span className="truncate" title={startup.traction}>
-            {startup.traction}
-          </span>
-        </>
-      ) : (
-        <span className="text-faint">Nedoplnené</span>
-      ),
-    },
-    { icon: "coins", label: "Fundraising", value: raise ?? <span className="text-faint">Nedoplnené</span> },
-  ];
-  return (
-    <section aria-labelledby="startup-title" className="dash-card p-[18px]">
-      <CardHeader id="startup-title" title="Môj startup" action={{ href: href(`/app/projekty/${startup.id}`), label: "Upraviť" }} />
-      <div className="mt-[18px] rounded-[14px] border border-inner-line bg-inner px-4 pt-4 pb-4 sm:px-[18px]">
-        <div className="flex items-center gap-4 pb-4">
-          <span
-            aria-hidden="true"
-            className="inline-flex size-[52px] shrink-0 items-center justify-center rounded-[10px] bg-[linear-gradient(140deg,#b9f5c4,#7fdc93_55%,#4fb86a)] text-[22px] font-extrabold text-[#0f3a1c]"
-          >
-            {startup.name.trim().charAt(0).toUpperCase()}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[17px] font-semibold text-paper">{startup.name}</p>
-            {startup.oneLiner ? <p className="mt-0.5 line-clamp-2 text-[13.5px] text-mute">{startup.oneLiner}</p> : null}
-          </div>
-        </div>
-        <dl className="grid grid-cols-1 gap-3 border-t border-inner-line pt-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-0 sm:divide-x sm:divide-inner-line">
-          {columns.map((column, index) => (
-            <div key={column.label} className={`min-w-0 ${index === 0 ? "sm:pr-4" : index === 1 ? "sm:px-4" : "sm:pl-4"}`}>
-              <dt className="flex items-center gap-2.5 text-[12px] text-mute">
-                <Icon name={column.icon} className="size-[17px] text-mute" strokeWidth={1.5} />
-                {column.label}
-              </dt>
-              <dd className={`mt-2.5 flex min-w-0 items-center gap-2.5 text-[13.5px] font-medium text-paper ${index === 1 ? "" : "whitespace-nowrap"}`}>{column.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  );
-}
-
-/* ───────────── Posledná aktivita ───────────── */
-
-const ACTIVITY_STYLE: Record<ActivityItem["kind"], { icon: IconName; tone: "lime" | "violet" | "amber" }> = {
-  training: { icon: "check", tone: "lime" },
-  report: { icon: "file", tone: "violet" },
-  exercise: { icon: "bolt", tone: "amber" },
-};
-
-function ActivityCard({ items, href }: { items: ActivityItem[]; href: (path: string) => string }) {
-  return (
-    <section aria-labelledby="activity-title" className="dash-card p-[18px]">
-      <CardHeader id="activity-title" title="Posledná aktivita" action={items.length > 0 ? { href: href("/app/historia"), label: "Zobraziť všetko" } : undefined} />
-      {items.length === 0 ? (
-        <p className="mt-4 text-[13.5px] leading-relaxed text-mute">Zatiaľ žiadna aktivita. Po prvom tréningu tu uvidíš jeho priebeh, rozbor a cvičenia.</p>
-      ) : (
-        <ul className="mt-2 divide-y divide-line">
-          {items.map((item) => {
-            const style = ACTIVITY_STYLE[item.kind];
-            return (
-              <li key={item.key}>
-                <Link href={href(item.href)} className="group -mx-2 flex items-center gap-4 rounded-[10px] px-2 py-3 transition-colors hover:bg-panel-2/60">
-                  <IconBadge icon={style.icon} tone={style.tone} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-medium text-paper">{item.title}</span>
-                    <span className="mt-1 block truncate text-[12px] text-mute">{item.meta}</span>
-                  </span>
-                  <Icon name="chevronRight" className="size-[18px] text-mute transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-/* ───────────── Nedávne reporty ───────────── */
-
-function ScoreRing({ score }: { score: NonNullable<ReportTile["score"]> }) {
-  const r = 17;
-  const circumference = 2 * Math.PI * r;
-  const color = score.tone === "good" ? "var(--color-accent)" : score.tone === "mid" ? "var(--color-marker)" : "var(--color-coral)";
-  return (
-    <span className="relative inline-flex size-[42px] shrink-0 items-center justify-center" title={score.label}>
-      <svg viewBox="0 0 42 42" aria-hidden="true" className="absolute inset-0 -rotate-90">
-        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-ring-track)" strokeWidth="3" />
-        <circle
-          cx="21"
-          cy="21"
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={`${(score.value / 100) * circumference} ${circumference}`}
-        />
-      </svg>
-      <span aria-hidden="true" className="text-[13px] font-bold tabular-nums" style={{ color }}>
-        {score.value}
-      </span>
-      <span className="sr-only">{score.label}</span>
-    </span>
-  );
-}
-
-function ReportsCard({ reports, href }: { reports: ReportTile[]; href: (path: string) => string }) {
-  return (
-    <section aria-labelledby="reports-title" className="dash-card p-[18px]">
-      <CardHeader id="reports-title" title="Nedávne reporty" action={reports.length > 0 ? { href: href("/app/historia"), label: "Zobraziť všetky" } : undefined} />
-      {reports.length === 0 ? (
-        <p className="mt-4 text-[13.5px] leading-relaxed text-mute">Po prvom tréningu tu nájdeš rozbor: čo fungovalo, kde odpovede neobstáli a čo precvičiť.</p>
-      ) : (
-        <ul className="mt-4 grid gap-3.5 md:grid-cols-3">
-          {reports.map((report) => (
-            <li key={report.id} className="min-w-0">
-              <Link
-                href={href(report.href)}
-                className="block h-full rounded-[12px] border border-line bg-tile p-3.5 transition-colors hover:border-line-strong hover:bg-panel-2/60"
-              >
-                <div className="flex items-start gap-3">
-                  <IconBadge icon={report.icon} tone="violet" size="sm" />
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p className="truncate text-[13.5px] font-semibold text-paper">{report.title}</p>
-                    <p className="mt-1 truncate text-[11.5px] text-mute">{report.meta}</p>
-                  </div>
-                  {report.score ? <ScoreRing score={report.score} /> : null}
-                </div>
-                {report.summary ? <p className="mt-3 line-clamp-2 text-[12px] leading-[1.55] text-mute">{report.summary}</p> : null}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-/* ───────────── Pravý stĺpec ───────────── */
-
 /* ───────────── Kompozícia ───────────── */
 
 export function DashboardView({
-  trainingHref,
   stats,
-  startup,
-  activity,
-  reports,
   notice = null,
   checklist = [],
   href = (path) => path,
@@ -346,7 +140,7 @@ export function DashboardView({
     <div className="dash-enter space-y-5">
       {notice}
       <div className="min-w-0 space-y-[18px]">
-          <Hero recordHref={href("/app/nahravka")} investorHref={href(trainingHref)} />
+          <Hero recordHref={href("/app/nahravka")} />
           <GettingStarted items={checklist} href={href} />
           <section aria-label="Výsledky posledného tréningu">
             <ul className="grid grid-cols-1 gap-[18px] min-[420px]:grid-cols-2 2xl:grid-cols-4">
@@ -355,11 +149,6 @@ export function DashboardView({
               ))}
             </ul>
           </section>
-          <div className="grid gap-[18px] lg:grid-cols-[minmax(0,53fr)_minmax(0,47fr)]">
-            <StartupCard startup={startup} href={href} />
-            <ActivityCard items={activity} href={href} />
-          </div>
-          <ReportsCard reports={reports} href={href} />
       </div>
     </div>
   );

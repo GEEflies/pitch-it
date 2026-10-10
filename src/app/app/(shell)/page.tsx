@@ -14,6 +14,7 @@ import {
 } from "@/lib/dashboard/overview";
 import { recommendNextStep } from "@/lib/dashboard/recommendation";
 import { listExercises } from "@/lib/db/exercises";
+import { listOwnPitchAttempts } from "@/lib/db/pitch";
 import { getProfile } from "@/lib/db/profile";
 import { getMaterialCounts, listProjects } from "@/lib/db/projects";
 import { listDashboardSessions } from "@/lib/db/sessions";
@@ -27,11 +28,12 @@ export const metadata: Metadata = { title: "Prehľad" };
 export default async function DashboardPage({ searchParams }: PageProps<"/app">) {
   const user = await requireUser("/app");
   const params = await searchParams;
-  const [profile, projects, rows, exerciseRows] = await Promise.all([
+  const [profile, projects, rows, exerciseRows, pitchAttempts] = await Promise.all([
     getProfile(user.id),
     listProjects(),
     listDashboardSessions(user.id),
     listExercises(user.id),
+    listOwnPitchAttempts(user.id, 1),
   ]);
   // Nový účet: najprv krátky úvodný kvíz (dá sa preskočiť).
   if (profile && !profile.onboarding_completed_at) redirect("/app/vitaj");
@@ -41,7 +43,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
   const exercises = exerciseRows.map(toDashboardExercise);
 
   const firstProject = projects[0] ?? null;
-  const hasDeck = projects.some((project) => (counts[project.id]?.documents ?? 0) > 0);
   const checklist = [
     {
       key: "profile",
@@ -51,32 +52,11 @@ export default async function DashboardPage({ searchParams }: PageProps<"/app">)
       done: Boolean(profile?.onboarding_answers),
     },
     {
-      key: "project",
-      title: "Opíš svoj startup",
-      detail: "Investor sa bude pýtať podľa profilu startupu.",
-      href: firstProject ? `/app/projekty/${firstProject.id}` : "/app/projekty/novy",
-      done: projects.length > 0,
-    },
-    {
-      key: "deck",
-      title: "Nahraj pitch deck",
-      detail: "PDF alebo PPTX. Vytiahneme z neho čísla a fakty, na ktoré sa investor opýta.",
-      href: firstProject ? `/app/projekty/${firstProject.id}/podklady` : "/app/projekty/novy",
-      done: hasDeck,
-    },
-    {
-      key: "session",
-      title: "Absolvuj prvý tréning",
-      detail: "Hlasový rozhovor so simulovaným investorom.",
-      href: "/app/trening/novy",
-      done: rows.some((row) => row.status === "completed"),
-    },
-    {
-      key: "report",
-      title: "Prejdi si rozbor",
-      detail: "Merania, citácie slabých miest a cvičenia na zlepšenie.",
-      href: "/app/historia",
-      done: rows.some((row) => row.feedback_reports?.status === "ready"),
+      key: "pitch",
+      title: "Nahraj prvý pitch",
+      detail: "Pitch pred kamerou. Tréner ti radí počas pitchu, na konci dostaneš spätnú väzbu.",
+      href: "/app/nahravka",
+      done: pitchAttempts.length > 0,
     },
   ];
 

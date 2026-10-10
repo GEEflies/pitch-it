@@ -1,22 +1,17 @@
 import type { IconName } from "@/components/app/icons";
 
-export type NavItem = { href: string; label: string; icon: IconName; match: (path: string) => boolean };
+export type NavItem = { href: string; label: string; icon: IconName; match: (path: string) => boolean; /** Zamknuté: v menu je, ale zatiaľ sa nedá otvoriť. */ locked?: boolean };
 
 export const APP_NAV: NavItem[] = [
   { href: "/app", label: "Prehľad", icon: "home", match: (path) => path === "/app" },
-  { href: "/app/projekty", label: "Môj startup", icon: "presentation", match: (path) => path.startsWith("/app/projekty") },
+  { href: "/app/projekty", label: "Môj startup", icon: "presentation", match: (path) => path.startsWith("/app/projekty"), locked: true },
   { href: "/app/nahravka", label: "Tréning pitchu", icon: "mic", match: (path) => path.startsWith("/app/nahravka") },
   {
     href: "/app/trening/novy?rezim=simulation",
     label: "AI investor",
     icon: "chat",
     match: (path) => path.startsWith("/app/trening/novy") || path.startsWith("/app/miestnost"),
-  },
-  {
-    href: "/app/historia",
-    label: "Reporty",
-    icon: "file",
-    match: (path) => (path.startsWith("/app/historia") && !path.startsWith("/app/historia/porovnanie")) || /^\/app\/trening\/(?!novy)/.test(path),
+    locked: true,
   },
   {
     href: "/app/progres",
@@ -30,10 +25,9 @@ export const APP_NAV: NavItem[] = [
 /** Navigácia vývojovej ukážky (/ukazka): rovnaké položky, odkazy na ukážkové obrazovky. */
 export const PREVIEW_NAV: NavItem[] = [
   { href: "/ukazka/prehlad", label: "Prehľad", icon: "home", match: (path) => path === "/ukazka/prehlad" },
-  { href: "/ukazka/podklady", label: "Môj startup", icon: "presentation", match: (path) => path.startsWith("/ukazka/podklady") },
+  { href: "/ukazka/podklady", label: "Môj startup", icon: "presentation", match: (path) => path.startsWith("/ukazka/podklady"), locked: true },
   { href: "/ukazka/nahravka/kamera", label: "Tréning pitchu", icon: "mic", match: (path) => path.startsWith("/ukazka/nahravka") },
-  { href: "/ukazka/novy-trening", label: "AI investor", icon: "chat", match: (path) => path.startsWith("/ukazka/novy-trening") },
-  { href: "/ukazka/report", label: "Reporty", icon: "file", match: (path) => path.startsWith("/ukazka/report") || path.startsWith("/ukazka/historia") },
+  { href: "/ukazka/novy-trening", label: "AI investor", icon: "chat", match: (path) => path.startsWith("/ukazka/novy-trening"), locked: true },
   { href: "/ukazka/progres", label: "Progres", icon: "trendUp", match: (path) => path.startsWith("/ukazka/progres") || path.startsWith("/ukazka/porovnanie") },
   { href: "/ukazka/vitaj", label: "Úvodný kvíz", icon: "flag", match: (path) => path.startsWith("/ukazka/vitaj") },
 ];
